@@ -111,9 +111,27 @@ function App() {
             <Route path="/contact" element={<ContactPage />} />
 
             {/* 관리자 페이지 (로그인 상태에 따라 접근 제어) */}
-            <Route path="/cmsl2004" element={session ? <AdminPage onNavigate={handlePageChange} /> : <LoginPage />} />
-            <Route path="/cmsl20042" element={session ? <AdminPage2 onNavigate={handlePageChange} /> : <LoginPage />} />
-            <Route path="/update-password" element={session ? <UpdatePasswordPage /> : <Navigate to="/cmsl2004" />} />
+            <Route 
+              path="/cmsl2004" 
+              element={
+                session 
+                  ? <AdminPage session={session} onNavigate={handlePageChange} /> 
+                  : <Navigate to="/login" replace /> 
+              } 
+            />
+            <Route 
+              path="/cmsl20042" 
+              element={
+                session 
+                  ? <AdminPage2 session={session} onNavigate={handlePageChange} /> 
+                  : <Navigate to="/login" replace />
+              } 
+            />
+            
+            {/* 로그인 페이지 경로를 명확하게 분리합니다. */}
+            <Route path="/login" element={<LoginPage />} />
+
+            <Route path="/update-password" element={session ? <UpdatePasswordPage /> : <Navigate to="/login" replace />} />
 
             {/* 위에 정의되지 않은 모든 경로는 홈으로 리디렉션 */}
             <Route path="*" element={<Navigate to="/" replace />} />

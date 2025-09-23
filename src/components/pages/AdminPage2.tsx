@@ -1,12 +1,25 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Session } from '@supabase/supabase-js'; // 1. Session 타입을 import 합니다.
+import { useNavigate } from 'react-router-dom'; // 2. useNavigate 훅을 import 합니다.
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // 3. Alert 컴포넌트를 import 합니다.
+import { Terminal } from "lucide-react"; // 아이콘 import
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabaseClient';
 import { EditMemberPage } from './EditMemberPage';
 import { EditAlumniPage } from './EditAlumniPage';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
-export function AdminPage2({ onNavigate }: { onNavigate: (page: string) => void }) {
+// 4. props 타입을 수정하여 session을 받도록 합니다.
+interface AdminPage2Props {
+  session: Session;
+  onNavigate: (page: string) => void;
+}
+
+export function AdminPage2({ session, onNavigate }: AdminPage2Props) {
+  const navigate = useNavigate(); // 5. navigate 함수를 초기화합니다.
+  // 6. 세션의 aal 레벨을 확인하여 비밀번호 설정 필요 여부를 결정합니다.
+  const needsPasswordSetup = (session?.user as any)?.aal === 'aal1';
   const [contentView, setContentView] = useState('members'); // 'members', 'alumni', 'home'
   const [editView, setEditView] = useState<{ type: string | null, id?: number }>({ type: null });
 
@@ -74,7 +87,19 @@ export function AdminPage2({ onNavigate }: { onNavigate: (page: string) => void 
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="max-w-4xl mx-auto px-4 py-8 space-y-4">
+      {/* 7. 비밀번호 설정이 필요한 경우에만 이 안내 배너를 추가합니다. */}
+      {needsPasswordSetup && (
+        <Alert>
+          <Terminal className="h-4 w-4" />
+          <AlertTitle>환영합니다! 계정 활성화를 완료해주세요.</AlertTitle>
+          <AlertDescription className="flex justify-between items-center">
+            <p>보안을 위해 초기 비밀번호를 설정해야 모든 기능을 정상적으로 이용할 수 있습니다.</p>
+            <Button onClick={() => navigate('/update-password')}>비밀번호 설정하기</Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Card>
         <CardHeader>
           <div className="flex justify-between items-start">
