@@ -11,11 +11,9 @@ import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-
 // 페이지 컴포넌트들 import...
 import { HomePage } from '@/components/pages/HomePage';
 import { IntroductionPage } from '@/components/pages/IntroductionPage';
-import { PeoplePage } from '@/components/pages/PeoplePage';
 import { ProfessorPage } from '@/components/pages/ProfessorPage';
 import { MembersPage } from '@/components/pages/MembersPage';
 import { AlumniPage } from '@/components/pages/AlumniPage';
-import { ResearchPage } from '@/components/pages/ResearchPage';
 import { CastingAlloysPage } from '@/components/pages/CastingAlloysPage';
 import { ThinFilmsPage } from '@/components/pages/ThinFilmsPage';
 import { BiodegradableAlloysPage } from '@/components/pages/BiodegradableAlloysPage';
@@ -91,13 +89,11 @@ function App() {
             <Route path="/introduction" element={<IntroductionPage />} />
             
             {/* People 관련 페이지들 */}
-            <Route path="/people" element={<PeoplePage />} />
             <Route path="/people/professor" element={<ProfessorPage />} />
             <Route path="/people/members" element={<MembersPage />} />
             <Route path="/people/alumni" element={<AlumniPage />} />
 
             {/* Research 관련 페이지들 */}
-            <Route path="/research" element={<ResearchPage />} />
             <Route path="/research/casting" element={<CastingAlloysPage />} />
             <Route path="/research/films" element={<ThinFilmsPage />} />
             <Route path="/research/biodegradable" element={<BiodegradableAlloysPage />} />

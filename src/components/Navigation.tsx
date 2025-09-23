@@ -80,7 +80,6 @@ export function Navigation({ currentPage, onPageChange }: NavigationProps) {
           {item.subItems ? (
             <div className="relative">
               <div
-                onClick={() => onPageChange(`/${item.key}`)} // 상위 메뉴 클릭 시 해당 경로로 이동
                 className={`px-6 py-4 text-lg font-medium cursor-pointer transition-all duration-200 flex items-center gap-1 ${
                   currentPage === item.key 
                     ? 'text-primary bg-primary/5 border-b-2 border-primary' 

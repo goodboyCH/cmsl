@@ -181,7 +181,7 @@ export function AdminPage({ onNavigate }: { onNavigate: (page: string) => void }
               <CardDescription>공지사항, 갤러리, 논문, 프로젝트를 등록합니다.</CardDescription>
             </div>
             <div className="flex items-center space-x-2">
-              <Button variant="link" onClick={() => onNavigate('admin2')}>콘텐츠 관리 페이지로 →</Button>
+              <Button variant="link" onClick={() => onNavigate('cmsl20042')}>콘텐츠 관리 페이지로 →</Button>
               <Button variant="outline" onClick={handleLogout}>로그아웃</Button>
             </div>
           </div>

@@ -6,7 +6,6 @@ import { useLanguage } from '../LanguageProvider';
 import { ScrollAnimation } from '../ScrollAnimation';
 import { ResearchHighlightsSlider } from '../ResearchHighlightsSlider';
 import { supabase } from '@/lib/supabaseClient';
-import { ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // --- Data for Interactive Sections ---
@@ -17,13 +16,16 @@ const capabilities = [
   { id: 4, title: "Electrochemical Modeling", description: "Simulation of corrosion processes and electrochemical potential mapping, critical for designing durable and biodegradable materials.", bgImage: "/images/capability_electrochem.jpeg" }
 ];
 
+// 1. researchTopics 배열의 path를 완전한 URL 경로로 수정
 const researchTopics = [
-    { title: "Casting Alloys", description: "Phase-field modeling for solidification microstructures in NdFeB, Al/Fe, and high-Si steel casting.", bgImage: "./images/phase_field_simulation_1.png", path: "casting" },
-    { title: "Ferroelectric Films", description: "HfO₂/HZO thin films with FE-AFE-DE transitions and domain engineering for memory applications.", bgImage: "./images/ferroelectric_films_1.png", path: "films" },
-    { title: "Biodegradable Alloys", description: "Mg-Zn alloy microstructure control and electrochemical potential mapping for biomedical applications.", bgImage: "./images/mg_zn_alloys_1.jpeg", path: "biodegradable" }
+    { title: "Casting Alloys", description: "Phase-field modeling for solidification microstructures in NdFeB, Al/Fe, and high-Si steel casting.", bgImage: "./images/phase_field_simulation_1.png", path: "/research/casting" },
+    { title: "Ferroelectric Films", description: "HfO₂/HZO thin films with FE-AFE-DE transitions and domain engineering for memory applications.", bgImage: "./images/ferroelectric_films_1.png", path: "/research/films" },
+    { title: "Biodegradable Alloys", description: "Mg-Zn alloy microstructure control and electrochemical potential mapping for biomedical applications.", bgImage: "./images/mg_zn_alloys_1.jpeg", path: "/research/biodegradable" }
 ];
 
-interface HomePageProps { onPageChange: (page: string, subTab?: string) => void; }
+interface HomePageProps {
+  onPageChange: (path: string) => void;
+}
 
 export function HomePage({ onPageChange }: HomePageProps) {
   const { t } = useLanguage();
@@ -62,7 +64,7 @@ export function HomePage({ onPageChange }: HomePageProps) {
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight text-center whitespace-pre-line">{t('home.hero.title')}</h1>
             <p className="text-xl md:text-2xl lg:text-3xl opacity-90 leading-relaxed max-w-5xl mx-auto whitespace-pre-line">{t('home.hero.subtitle')}</p>
             <p className="text-lg md:text-xl opacity-80 max-w-4xl mx-auto">{t('home.hero.capabilities')}</p>
-            <div className="pt-6"><Badge variant="secondary" className="text-lg md:text-xl px-8 py-3 bg-white/20 text-white border-white/30 hover:bg-white/30 cursor-pointer transition-all" onClick={() => onPageChange('contact')}>협업 및 인턴 모집중 | Collaboration & Internship Recruitment →</Badge></div>
+            <div className="pt-6"><Badge variant="secondary" className="text-lg md:text-xl px-8 py-3 bg-white/20 text-white border-white/30 hover:bg-white/30 cursor-pointer transition-all" onClick={() => onPageChange('/contact')}>협업 및 인턴 모집중 | Collaboration & Internship Recruitment →</Badge></div>
           </div>
         </div>
       </section>
@@ -111,7 +113,12 @@ export function HomePage({ onPageChange }: HomePageProps) {
               <h2 className="text-3xl font-bold text-center text-primary">Research Topics</h2>
               <div className="grid md:grid-cols-3 gap-6">
                 {researchTopics.map((topic) => (
-                  <Card key={topic.title} className="elegant-shadow smooth-transition hover:shadow-lg group cursor-pointer relative overflow-hidden h-80" onClick={() => onPageChange('research', topic.path)}>
+                  <Card 
+                    key={topic.title} 
+                    className="elegant-shadow smooth-transition hover:shadow-lg group cursor-pointer relative overflow-hidden h-80" 
+                    // 2. onClick 핸들러가 수정된 topic.path를 직접 사용
+                    onClick={() => onPageChange(topic.path)}
+                  >
                     <div className="absolute inset-0"><img src={topic.bgImage} alt={topic.title} className="w-full h-full object-cover group-hover:scale-105 smooth-transition"/><div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div></div>
                     <CardContent className="relative z-10 p-6 h-full flex flex-col justify-end text-white">
                       <h3 className="text-xl font-bold">{topic.title}</h3>
@@ -154,7 +161,7 @@ export function HomePage({ onPageChange }: HomePageProps) {
                     )}
                   </div>
                 ))}
-              </CardContent><CardFooter className="justify-center pt-4 border-t"><Button variant="outline" onClick={() => onPageChange('publications')}>View More →</Button></CardFooter></Card>
+              </CardContent><CardFooter className="justify-center pt-4 border-t"><Button variant="outline" onClick={() => onPageChange('/publications')}>View More →</Button></CardFooter></Card>
             </section>
           </ScrollAnimation>
 
@@ -163,7 +170,7 @@ export function HomePage({ onPageChange }: HomePageProps) {
               <div className="text-center mb-8"><h2 className="text-3xl font-bold text-primary">Latest News</h2></div>
               <Card className="flex-grow elegant-shadow"><CardContent className="p-6 space-y-6">
                 {latestNews.slice(0, 4).map(item => (
-                  <div key={`${item.id}-${item.type}`} className="flex items-start gap-4 border-b pb-4 last:border-b-0 last:pb-0 cursor-pointer" onClick={() => onPageChange('board', item.type === 'Notice' ? 'news' : 'gallery')}>
+                  <div key={`${item.id}-${item.type}`} className="flex items-start gap-4 border-b pb-4 last:border-b-0 last:pb-0 cursor-pointer" onClick={() => onPageChange(item.type === 'Notice' ? '/board/news' : '/board/gallery')}>
                     <div className="flex-grow">
                       <Badge variant={item.type === 'Notice' ? 'default' : 'secondary'} className="text-xs">{item.type}</Badge>
                       <h4 className="font-semibold mt-1 leading-snug hover:text-primary">{item.title}</h4>
@@ -174,7 +181,7 @@ export function HomePage({ onPageChange }: HomePageProps) {
                     )}
                   </div>
                 ))}
-              </CardContent><CardFooter className="justify-center pt-4 border-t"><Button variant="outline" onClick={() => onPageChange('board', 'news')}>View More →</Button></CardFooter></Card>
+              </CardContent><CardFooter className="justify-center pt-4 border-t"><Button variant="outline" onClick={() => onPageChange('/board/news')}>View More →</Button></CardFooter></Card>
             </section>
           </ScrollAnimation>
         </div>
