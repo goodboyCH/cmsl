@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabaseClient';
+import { Link } from 'react-router-dom'; // Link를 import 합니다.
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
@@ -68,6 +69,12 @@ export function LoginPage() {
             </Button>
             {error && <p className="text-sm text-red-500 pt-2">{error}</p>}
           </form>
+          {/* ⬇️ 이 부분을 추가합니다 ⬇️ */}
+          <div className="text-center mt-4">
+            <Button variant="link" asChild>
+              <Link to="/forgot-password">비밀번호를 잊으셨나요?</Link>
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

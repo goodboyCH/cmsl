@@ -27,7 +27,8 @@ import { ContactPage } from '@/components/pages/ContactPage';
 import { AdminPage } from '@/components/pages/AdminPage';
 import { AdminPage2 } from '@/components/pages/AdminPage2';
 import { LoginPage } from '@/components/pages/LoginPage';
-import { UpdatePasswordPage } from '@/components/pages/UpdatePasswordPage';
+import { ForgotPasswordPage } from '@/components/pages/ForgotPasswordPage';
+import { ResetPasswordPage } from '@/components/pages/ResetPasswordPage';
 
 // Quill 설정...
 import { Quill } from 'react-quill';
@@ -113,8 +114,8 @@ function App() {
             {/* 관리자 페이지 (로그인 상태에 따라 접근 제어) */}
             <Route path="/cmsl2004" element={session ? <AdminPage onNavigate={handlePageChange} /> : <LoginPage />} />
             <Route path="/cmsl20042" element={session ? <AdminPage2 onNavigate={handlePageChange} /> : <LoginPage />} />
-            <Route path="/update-password" element={session ? <UpdatePasswordPage /> : <Navigate to="/cmsl2004" />} />
-
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             {/* 위에 정의되지 않은 모든 경로는 홈으로 리디렉션 */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
