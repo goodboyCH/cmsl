@@ -29,7 +29,7 @@ import { ContactPage } from '@/components/pages/ContactPage';
 import { AdminPage } from '@/components/pages/AdminPage';
 import { AdminPage2 } from '@/components/pages/AdminPage2';
 import { LoginPage } from '@/components/pages/LoginPage';
-import { UpdatePasswordPage } from '@/components/pages/UpdatePasswordPage'; // 비밀번호 업데이트 페이지 import
+import { UpdatePasswordPage } from '@/components/pages/UpdatePasswordPage';
 
 // Quill 에디터 설정은 그대로 유지합니다.
 import { Quill } from 'react-quill';
@@ -38,39 +38,42 @@ Quill.register('modules/imageResize', ImageResize);
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
-  // 비밀번호 업데이트 UI를 보여줄지 결정하는 상태
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    // 1. 초기 세션 확인
+    // 1. 초기 세션 확인 및 URL 해시 즉시 검사
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      // 페이지 로드 시 URL에 초대 토큰이 있는지 즉시 확인
+      // 페이지가 처음 로드될 때 URL에 초대 토큰이 있는지 확인
       if (session && window.location.hash.includes('type=invite')) {
         setIsUpdatingPassword(true);
       }
     });
 
-    // 2. 인증 상태 변경 리스너
+    // 2. 인증 상태 변경 리스너 (더욱 견고하게 수정)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       
       // 사용자가 로그인했고, 이벤트가 초대 링크를 통한 것이라면 비밀번호 업데이트 필요
       if (event === 'SIGNED_IN' && window.location.hash.includes('type=invite')) {
         setIsUpdatingPassword(true);
-      } else if (event === 'SIGNED_OUT') {
+      } 
+      // 로그아웃 시에는 비밀번호 업데이트 상태 해제
+      else if (event === 'SIGNED_OUT') {
         setIsUpdatingPassword(false);
-      } else if (event === 'USER_UPDATED') {
+      } 
+      // 사용자가 비밀번호를 성공적으로 업데이트하면 'USER_UPDATED' 이벤트 발생
+      else if (event === 'USER_UPDATED') {
         // 비밀번호 업데이트가 완료되면 상태를 false로 변경하고 홈으로 이동
         setIsUpdatingPassword(false);
-        navigate('/');
+        // navigate('/'); // USER_UPDATED는 다른 프로필 변경 시에도 발생하므로, 여기서는 navigate를 제거하는 것이 더 안정적일 수 있습니다. UpdatePasswordPage에서 직접 이동을 처리합니다.
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]); // navigate를 의존성 배열에 추가
+  }, []); // 의존성 배열을 비워 최초 한 번만 실행되도록 합니다.
 
   const handlePageChange = (path: string) => {
     if (location.pathname === path) {
@@ -139,7 +142,7 @@ function App() {
 
               {/* 관리자 페이지 (로그인 상태에 따라 접근 제어) */}
               <Route path="/cmsl2004" element={session ? <AdminPage onNavigate={handlePageChange} /> : <LoginPage />} />
-              <Route path="/admin2" element={session ? <AdminPage2 onNavigate={handlePageChange} /> : <LoginPage />} />
+              <Route path="/cmsl20042" element={session ? <AdminPage2 onNavigate={handlePageChange} /> : <LoginPage />} />
               
               {/* 위에 정의되지 않은 모든 경로는 홈으로 리디렉션 */}
               <Route path="*" element={<Navigate to="/" replace />} />
