@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { useLanguage } from './LanguageProvider';
+import { useLanguage } from '@/components/LanguageProvider'; // 경로 별칭(@) 사용
 import { ChevronDown } from 'lucide-react';
 
 interface MobileNavigationProps {
   currentPage: string;
-  onPageChange: (page: string, subTab?: string) => void;
+  onPageChange: (path: string) => void; // 인자를 경로(path) 하나만 받도록 수정
 }
 
 export function MobileNavigation({ currentPage, onPageChange }: MobileNavigationProps) {
@@ -13,42 +13,47 @@ export function MobileNavigation({ currentPage, onPageChange }: MobileNavigation
   const [isOpen, setIsOpen] = useState(false);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
+  // 1. navItems 배열에 각 항목의 전체 URL 경로(path)를 추가합니다.
   const navItems = [
-    { key: 'home', label: t('nav.home') },
-    { key: 'introduction', label: t('nav.introduction') },
+    { key: 'home', path: '/', label: t('nav.home') },
+    { key: 'introduction', path: '/introduction', label: t('nav.introduction') },
     { 
-      key: 'people', 
+      key: 'people',
+      path: '/people',
       label: t('nav.people'),
       subItems: [
-        { key: 'professor', label: t('nav.professor') },
-        { key: 'members', label: t('nav.members') },
-        { key: 'alumni', label: t('nav.alumni') }
+        { key: 'professor', path: '/people/professor', label: t('nav.professor') },
+        { key: 'members', path: '/people/members', label: t('nav.members') },
+        { key: 'alumni', path: '/people/alumni', label: t('nav.alumni') }
       ]
     },
     { 
-      key: 'research', 
+      key: 'research',
+      path: '/research',
       label: t('nav.research'),
       subItems: [
-        { key: 'casting', label: 'Casting Alloys' },
-        { key: 'films', label: 'Thin Films' },
-        { key: 'biodegradable', label: 'Biodegradable Alloys' }
+        { key: 'casting', path: '/research/casting', label: 'Casting Alloys' },
+        { key: 'films', path: '/research/films', label: 'Thin Films' },
+        { key: 'biodegradable', path: '/research/biodegradable', label: 'Biodegradable Alloys' }
       ]
     },
-    { key: 'publications', label: t('nav.publications') },
-    { key: 'projects', label: t('nav.projects') },
+    { key: 'publications', path: '/publications', label: t('nav.publications') },
+    { key: 'projects', path: '/projects', label: t('nav.projects') },
     { 
-      key: 'board', 
+      key: 'board',
+      path: '/board',
       label: t('nav.board'),
       subItems: [
-        { key: 'news', label: 'Notices & News' },
-        { key: 'gallery', label: 'Gallery' }
+        { key: 'news', path: '/board/news', label: 'Notices & News' },
+        { key: 'gallery', path: '/board/gallery', label: 'Gallery' }
       ]
     },
-    { key: 'contact', label: t('nav.contact') },
+    { key: 'contact', path: '/contact', label: t('nav.contact') },
   ];
 
-  const handlePageChange = (page: string, subTab?: string) => {
-    onPageChange(page, subTab);
+  // 2. handlePageChange 함수를 단순화합니다.
+  const handleItemClick = (path: string) => {
+    onPageChange(path);
     setIsOpen(false);
   };
 
@@ -134,7 +139,8 @@ export function MobileNavigation({ currentPage, onPageChange }: MobileNavigation
                               <Button
                                 key={subItem.key}
                                 variant="ghost"
-                                onClick={() => handlePageChange(item.key, subItem.key)}
+                                // 3. 서브메뉴 클릭 시 subItem의 path로 직접 이동합니다.
+                                onClick={() => handleItemClick(subItem.path)}
                                 className="w-full justify-start text-sm h-10 px-4 text-muted-foreground hover:text-foreground"
                               >
                                 {subItem.label}
@@ -146,7 +152,8 @@ export function MobileNavigation({ currentPage, onPageChange }: MobileNavigation
                     ) : (
                       <Button
                         variant={currentPage === item.key ? 'default' : 'ghost'}
-                        onClick={() => handlePageChange(item.key)}
+                        // 4. 일반 메뉴 클릭 시 item의 path로 직접 이동합니다.
+                        onClick={() => handleItemClick(item.path)}
                         className="w-full justify-start text-lg font-medium h-12 px-4 animate-in slide-in-from-left duration-200"
                         style={{ animationDelay: `${index * 50}ms` }}
                       >

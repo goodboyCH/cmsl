@@ -6,6 +6,11 @@ import { LanguageProvider } from '@/components/LanguageProvider';
 import { Navigation } from '@/components/Navigation';
 import { MobileNavigation } from '@/components/MobileNavigation';
 import { ScrollToTopButton } from '@/components/ScrollToTopButton';
+
+// react-router-dom에서 필요한 기능들을 가져옵니다.
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
+
+// 모든 페이지 컴포넌트들을 import 합니다.
 import { HomePage } from '@/components/pages/HomePage';
 import { IntroductionPage } from '@/components/pages/IntroductionPage';
 import { PeoplePage } from '@/components/pages/PeoplePage';
@@ -24,95 +29,58 @@ import { ContactPage } from '@/components/pages/ContactPage';
 import { AdminPage } from '@/components/pages/AdminPage';
 import { AdminPage2 } from '@/components/pages/AdminPage2';
 import { LoginPage } from '@/components/pages/LoginPage';
+import { UpdatePasswordPage } from '@/components/pages/UpdatePasswordPage'; // 비밀번호 업데이트 페이지 import
+
+// Quill 에디터 설정은 그대로 유지합니다.
 import { Quill } from 'react-quill';
 import ImageResize from 'quill-image-resize-module-react';
 Quill.register('modules/imageResize', ImageResize);
 
 function App() {
-  const [currentPage, setCurrentPage] = useState('home');
-  const [currentSubPage, setCurrentSubPage] = useState<string | null>(null);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [researchTab, setResearchTab] = useState('casting');
   const [session, setSession] = useState<Session | null>(null);
+  // 비밀번호 업데이트 UI를 보여줄지 결정하는 상태
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => { setSession(session); });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { setSession(session); });
-    return () => subscription.unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    const path = window.location.pathname;
-    if (path === '/cmsl2004') {
-      handlePageChange('admin');
-    }
-  }, []);
-
-  const handlePageChange = (page: string, subTab?: string) => {
-    if (page === currentPage && subTab === currentSubPage) return;
-    if (subTab) {
-      if (page === 'research') { setResearchTab(subTab); }
-      setCurrentSubPage(subTab);
-    } else {
-      setCurrentSubPage(null);
-    }
-    
-    if (page === 'admin' || page === 'admin2') {
-      window.history.pushState({}, '', '/cmsl2004');
-    } else if (page === 'home') {
-      window.history.pushState({}, '', '/');
-    }
-
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setCurrentPage(page);
-      setIsTransitioning(false);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 150);
-  };
-
-  const renderPage = () => {
-    if (currentSubPage) {
-      switch (currentPage) {
-        case 'people':
-          switch (currentSubPage) {
-            case 'professor': return <ProfessorPage />;
-            case 'members': return <MembersPage />;
-            case 'alumni': return <AlumniPage />;
-            default: return <PeoplePage />;
-          }
-        case 'board':
-          switch (currentSubPage) {
-            case 'news': return <NoticeBoardPage session={session} />; 
-            case 'gallery': return <GalleryBoardPage session={session} />;
-            default: return <h2>Board Main</h2>;
-          }
-        case 'research':
-          switch (currentSubPage) {
-            case 'casting': return <CastingAlloysPage />;
-            case 'films': return <ThinFilmsPage />;
-            case 'biodegradable': return <BiodegradableAlloysPage />;
-            default: return <ResearchPage initialTab={researchTab} />;
-          }
+    // 1. 초기 세션 확인
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      // 페이지 로드 시 URL에 초대 토큰이 있는지 즉시 확인
+      if (session && window.location.hash.includes('type=invite')) {
+        setIsUpdatingPassword(true);
       }
-    }
+    });
 
-    switch (currentPage) {
-      case 'home': return <HomePage onPageChange={handlePageChange} />;
-      case 'introduction': return <IntroductionPage />;
-      case 'people': return <PeoplePage />;
-      case 'research': return <ResearchPage initialTab={researchTab} />;
-      case 'publications': return <PublicationsPage />;
-      case 'projects': return <ProjectsPage />;
-      case 'board': return <h2>Board Main Page</h2>;
-      case 'contact': return <ContactPage />;
-      case 'admin': 
-        return session ? <AdminPage onNavigate={handlePageChange} /> : <LoginPage />;
-      case 'admin2':
-        return session ? <AdminPage2 onNavigate={handlePageChange} /> : <LoginPage />;
-      default: return <HomePage onPageChange={handlePageChange} />;
+    // 2. 인증 상태 변경 리스너
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+      
+      // 사용자가 로그인했고, 이벤트가 초대 링크를 통한 것이라면 비밀번호 업데이트 필요
+      if (event === 'SIGNED_IN' && window.location.hash.includes('type=invite')) {
+        setIsUpdatingPassword(true);
+      } else if (event === 'SIGNED_OUT') {
+        setIsUpdatingPassword(false);
+      } else if (event === 'USER_UPDATED') {
+        // 비밀번호 업데이트가 완료되면 상태를 false로 변경하고 홈으로 이동
+        setIsUpdatingPassword(false);
+        navigate('/');
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]); // navigate를 의존성 배열에 추가
+
+  const handlePageChange = (path: string) => {
+    if (location.pathname === path) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
     }
+    navigate(path);
   };
+  
+  const currentPage = location.pathname.split('/')[1] || 'home';
 
   return (
     <LanguageProvider>
@@ -122,7 +90,7 @@ function App() {
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center space-x-6">
                 <button 
-                  onClick={() => handlePageChange('home')}
+                  onClick={() => handlePageChange('/')}
                   className="text-3xl lg:text-4xl font-bold text-primary hover:text-primary/80 smooth-transition"
                 >
                   CMSL
@@ -138,10 +106,45 @@ function App() {
           </div>
         </header>
 
-        <main className={`w-full max-w-none transition-all duration-300 ${
-          isTransitioning ? 'opacity-0 transform translate-y-4' : 'opacity-100 transform translate-y-0'
-        }`}>
-          {renderPage()}
+        <main>
+          {isUpdatingPassword ? (
+            // 비밀번호 업데이트가 필요하면 다른 모든 것을 무시하고 이 페이지만 렌더링
+            <UpdatePasswordPage />
+          ) : (
+            <Routes>
+              {/* 기본 페이지 라우팅 */}
+              <Route path="/" element={<HomePage onPageChange={handlePageChange} />} />
+              <Route path="/introduction" element={<IntroductionPage />} />
+              
+              {/* People 관련 페이지들 */}
+              <Route path="/people" element={<PeoplePage />} />
+              <Route path="/people/professor" element={<ProfessorPage />} />
+              <Route path="/people/members" element={<MembersPage />} />
+              <Route path="/people/alumni" element={<AlumniPage />} />
+
+              {/* Research 관련 페이지들 */}
+              <Route path="/research" element={<ResearchPage />} />
+              <Route path="/research/casting" element={<CastingAlloysPage />} />
+              <Route path="/research/films" element={<ThinFilmsPage />} />
+              <Route path="/research/biodegradable" element={<BiodegradableAlloysPage />} />
+              
+              <Route path="/publications" element={<PublicationsPage />} />
+              <Route path="/projects" element={<ProjectsPage />} />
+
+              {/* Board 관련 페이지들 (추후 상세/수정 페이지 라우팅 추가 예정) */}
+              <Route path="/board/news" element={<NoticeBoardPage session={session} />} />
+              <Route path="/board/gallery" element={<GalleryBoardPage session={session} />} />
+
+              <Route path="/contact" element={<ContactPage />} />
+
+              {/* 관리자 페이지 (로그인 상태에 따라 접근 제어) */}
+              <Route path="/cmsl2004" element={session ? <AdminPage onNavigate={handlePageChange} /> : <LoginPage />} />
+              <Route path="/admin2" element={session ? <AdminPage2 onNavigate={handlePageChange} /> : <LoginPage />} />
+              
+              {/* 위에 정의되지 않은 모든 경로는 홈으로 리디렉션 */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          )}
         </main>
 
         <footer className="border-t bg-muted/50 mt-16">
@@ -167,10 +170,17 @@ function App() {
               <div>
                 <h3 className="text-lg font-semibold text-primary mb-4">Quick Links</h3>
                 <div className="space-y-2 text-sm">
-                  <button onClick={() => handlePageChange('research', 'casting')} className="block text-muted-foreground hover:text-primary smooth-transition">Research Areas</button>
-                  <button onClick={() => handlePageChange('publications')} className="block text-muted-foreground hover:text-primary smooth-transition">Publications</button>
-                  <button onClick={() => handlePageChange('people', 'members')} className="block text-muted-foreground hover:text-primary smooth-transition">Team Members</button>
-                  <button onClick={() => handlePageChange('contact')} className="block text-muted-foreground hover:text-primary smooth-transition">Contact Us</button>
+                  {/* 'Research Areas' -> '/research/casting' 경로로 변경 */}
+                  <button onClick={() => handlePageChange('/research/casting')} className="block text-muted-foreground hover:text-primary smooth-transition">Research Areas</button>
+                  
+                  {/* '/publications' 경로로 변경 */}
+                  <button onClick={() => handlePageChange('/publications')} className="block text-muted-foreground hover:text-primary smooth-transition">Publications</button>
+                  
+                  {/* 'Team Members' -> '/people/members' 경로로 변경 */}
+                  <button onClick={() => handlePageChange('/people/members')} className="block text-muted-foreground hover:text-primary smooth-transition">Team Members</button>
+                  
+                  {/* '/contact' 경로로 변경 */}
+                  <button onClick={() => handlePageChange('/contact')} className="block text-muted-foreground hover:text-primary smooth-transition">Contact Us</button>
                 </div>
               </div>
               <div>
@@ -194,7 +204,6 @@ function App() {
         </div>
 
         <ScrollToTopButton />
-
         <Toaster />
       </div>
     </LanguageProvider>
