@@ -82,7 +82,7 @@ export function AdminPage2({ onNavigate }: { onNavigate: (page: string) => void 
               <CardTitle>콘텐츠 관리</CardTitle>
               <CardDescription>홈페이지, 멤버, 졸업생 등 정적 콘텐츠를 관리합니다.</CardDescription>
             </div>
-            <Button variant="link" onClick={() => onNavigate('admin')}>← 게시물 관리 페이지로</Button>
+            <Button variant="link" onClick={() => onNavigate('cmsl2004')}>← 게시물 관리 페이지로</Button>
           </div>
         </CardHeader>
         <CardContent>
