@@ -6,11 +6,9 @@ import { LanguageProvider } from '@/components/LanguageProvider';
 import { Navigation } from '@/components/Navigation';
 import { MobileNavigation } from '@/components/MobileNavigation';
 import { ScrollToTopButton } from '@/components/ScrollToTopButton';
-
-// react-router-dom에서 필요한 기능들을 가져옵니다.
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 
-// 모든 페이지 컴포넌트들을 import 합니다.
+// 페이지 컴포넌트들 import...
 import { HomePage } from '@/components/pages/HomePage';
 import { IntroductionPage } from '@/components/pages/IntroductionPage';
 import { PeoplePage } from '@/components/pages/PeoplePage';
@@ -31,7 +29,7 @@ import { AdminPage2 } from '@/components/pages/AdminPage2';
 import { LoginPage } from '@/components/pages/LoginPage';
 import { UpdatePasswordPage } from '@/components/pages/UpdatePasswordPage';
 
-// Quill 에디터 설정은 그대로 유지합니다.
+// Quill 설정...
 import { Quill } from 'react-quill';
 import ImageResize from 'quill-image-resize-module-react';
 Quill.register('modules/imageResize', ImageResize);
@@ -43,37 +41,22 @@ function App() {
   const location = useLocation();
 
   useEffect(() => {
-    // 1. 초기 세션 확인 및 URL 해시 즉시 검사
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // onAuthStateChange 리스너 하나로 모든 인증 상태를 처리합니다.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      // 페이지가 처음 로드될 때 URL에 초대 토큰이 있는지 확인
-      if (session && window.location.hash.includes('type=invite')) {
-        setIsUpdatingPassword(true);
-      }
-    });
 
-    // 2. 인증 상태 변경 리스너 (더욱 견고하게 수정)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session);
-      
-      // 사용자가 로그인했고, 이벤트가 초대 링크를 통한 것이라면 비밀번호 업데이트 필요
-      if (event === 'SIGNED_IN' && window.location.hash.includes('type=invite')) {
+      // ⬇️ 여기가 핵심 로직입니다 ⬇️
+      // 세션이 있고(로그인 되었고), 인증 레벨(aal)이 'aal1'이면
+      // 비밀번호를 설정해야 하는 사용자로 판단합니다.
+      if ((session?.user as any)?.aal === 'aal1') {
         setIsUpdatingPassword(true);
-      } 
-      // 로그아웃 시에는 비밀번호 업데이트 상태 해제
-      else if (event === 'SIGNED_OUT') {
+      } else {
         setIsUpdatingPassword(false);
-      } 
-      // 사용자가 비밀번호를 성공적으로 업데이트하면 'USER_UPDATED' 이벤트 발생
-      else if (event === 'USER_UPDATED') {
-        // 비밀번호 업데이트가 완료되면 상태를 false로 변경하고 홈으로 이동
-        setIsUpdatingPassword(false);
-        // navigate('/'); // USER_UPDATED는 다른 프로필 변경 시에도 발생하므로, 여기서는 navigate를 제거하는 것이 더 안정적일 수 있습니다. UpdatePasswordPage에서 직접 이동을 처리합니다.
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []); // 의존성 배열을 비워 최초 한 번만 실행되도록 합니다.
+  }, []);
 
   const handlePageChange = (path: string) => {
     if (location.pathname === path) {
