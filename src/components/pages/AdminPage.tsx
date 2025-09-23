@@ -1,10 +1,6 @@
 import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Session } from '@supabase/supabase-js'; // 1. Session 타입을 import 합니다.
-import { useNavigate } from 'react-router-dom'; // 2. 페이지 이동을 위해 useNavigate를 import 합니다.
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // 3. 안내 배너 UI를 위해 Alert를 import 합니다.
-import { Terminal, Waves } from "lucide-react"; // 아이콘 impor
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -25,17 +21,7 @@ const sanitizeForStorage = (filename: string) => {
   return cleaned;
 };
 
-// 4. props 타입을 수정하여 session을 받도록 합니다.
-interface AdminPageProps {
-  session: Session;
-  onNavigate: (page: string) => void;
-}
-
-export function AdminPage({ session, onNavigate }: AdminPageProps) {
-  const navigate = useNavigate(); // 5. navigate 함수를 초기화합니다.
-  // 6. 세션의 aal 레벨을 확인하여 비밀번호 설정 필요 여부를 결정합니다.
-  const needsPasswordSetup = (session?.user as any)?.aal === 'aal1';
-
+export function AdminPage({ onNavigate }: { onNavigate: (page: string) => void }) {
   const [postType, setPostType] = useState<'notice' | 'gallery' | 'publication' | 'project'>('notice');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -186,19 +172,7 @@ export function AdminPage({ session, onNavigate }: AdminPageProps) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-4">
-      {/* 7. 비밀번호 설정이 필요한 경우에만 이 안내 배너가 보이게 됩니다. */}
-      {needsPasswordSetup && (
-        <Alert>
-          <Terminal className="h-4 w-4" />
-          <AlertTitle>환영합니다! 계정 활성화를 완료해주세요.</AlertTitle>
-          <AlertDescription className="flex justify-between items-center">
-            <p>보안을 위해 초기 비밀번호를 설정해야 모든 기능을 정상적으로 이용할 수 있습니다.</p>
-            <Button onClick={() => navigate('/update-password')}>비밀번호 설정하기</Button>
-          </AlertDescription>
-        </Alert>
-      )}
-
+    <div className="max-w-4xl mx-auto px-4 py-8">
       <Card>
         <CardHeader>
           <div className="flex justify-between items-start">
@@ -207,7 +181,7 @@ export function AdminPage({ session, onNavigate }: AdminPageProps) {
               <CardDescription>공지사항, 갤러리, 논문, 프로젝트를 등록합니다.</CardDescription>
             </div>
             <div className="flex items-center space-x-2">
-              <Button variant="link" onClick={() => onNavigate('/admin2')}>콘텐츠 관리 페이지로 →</Button>
+              <Button variant="link" onClick={() => onNavigate('admin2')}>콘텐츠 관리 페이지로 →</Button>
               <Button variant="outline" onClick={handleLogout}>로그아웃</Button>
             </div>
           </div>
