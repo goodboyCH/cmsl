@@ -36,26 +36,17 @@ Quill.register('modules/imageResize', ImageResize);
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
-  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    // onAuthStateChange 리스너 하나로 모든 인증 상태를 처리합니다.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-
-      // ⬇️ 여기가 핵심 로직입니다 ⬇️
-      // 세션이 있고(로그인 되었고), 인증 레벨(aal)이 'aal1'이면
-      // 비밀번호를 설정해야 하는 사용자로 판단합니다.
-      if ((session?.user as any)?.aal === 'aal1') {
-        setIsUpdatingPassword(true);
-      } else {
-        setIsUpdatingPassword(false);
-      }
     });
 
-    return () => subscription.unsubscribe();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
   }, []);
 
   const handlePageChange = (path: string) => {
@@ -93,44 +84,40 @@ function App() {
         </header>
 
         <main>
-          {isUpdatingPassword ? (
-            // 비밀번호 업데이트가 필요하면 다른 모든 것을 무시하고 이 페이지만 렌더링
-            <UpdatePasswordPage />
-          ) : (
-            <Routes>
-              {/* 기본 페이지 라우팅 */}
-              <Route path="/" element={<HomePage onPageChange={handlePageChange} />} />
-              <Route path="/introduction" element={<IntroductionPage />} />
-              
-              {/* People 관련 페이지들 */}
-              <Route path="/people" element={<PeoplePage />} />
-              <Route path="/people/professor" element={<ProfessorPage />} />
-              <Route path="/people/members" element={<MembersPage />} />
-              <Route path="/people/alumni" element={<AlumniPage />} />
+          <Routes>
+            {/* 기본 페이지 라우팅 */}
+            <Route path="/" element={<HomePage onPageChange={handlePageChange} />} />
+            <Route path="/introduction" element={<IntroductionPage />} />
+            
+            {/* People 관련 페이지들 */}
+            <Route path="/people" element={<PeoplePage />} />
+            <Route path="/people/professor" element={<ProfessorPage />} />
+            <Route path="/people/members" element={<MembersPage />} />
+            <Route path="/people/alumni" element={<AlumniPage />} />
 
-              {/* Research 관련 페이지들 */}
-              <Route path="/research" element={<ResearchPage />} />
-              <Route path="/research/casting" element={<CastingAlloysPage />} />
-              <Route path="/research/films" element={<ThinFilmsPage />} />
-              <Route path="/research/biodegradable" element={<BiodegradableAlloysPage />} />
-              
-              <Route path="/publications" element={<PublicationsPage />} />
-              <Route path="/projects" element={<ProjectsPage />} />
+            {/* Research 관련 페이지들 */}
+            <Route path="/research" element={<ResearchPage />} />
+            <Route path="/research/casting" element={<CastingAlloysPage />} />
+            <Route path="/research/films" element={<ThinFilmsPage />} />
+            <Route path="/research/biodegradable" element={<BiodegradableAlloysPage />} />
+            
+            <Route path="/publications" element={<PublicationsPage />} />
+            <Route path="/projects" element={<ProjectsPage />} />
 
-              {/* Board 관련 페이지들 (추후 상세/수정 페이지 라우팅 추가 예정) */}
-              <Route path="/board/news" element={<NoticeBoardPage session={session} />} />
-              <Route path="/board/gallery" element={<GalleryBoardPage session={session} />} />
+            {/* Board 관련 페이지들 (추후 상세/수정 페이지 라우팅 추가 예정) */}
+            <Route path="/board/news" element={<NoticeBoardPage session={session} />} />
+            <Route path="/board/gallery" element={<GalleryBoardPage session={session} />} />
 
-              <Route path="/contact" element={<ContactPage />} />
+            <Route path="/contact" element={<ContactPage />} />
 
-              {/* 관리자 페이지 (로그인 상태에 따라 접근 제어) */}
-              <Route path="/cmsl2004" element={session ? <AdminPage onNavigate={handlePageChange} /> : <LoginPage />} />
-              <Route path="/cmsl20042" element={session ? <AdminPage2 onNavigate={handlePageChange} /> : <LoginPage />} />
-              
-              {/* 위에 정의되지 않은 모든 경로는 홈으로 리디렉션 */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          )}
+            {/* 관리자 페이지 (로그인 상태에 따라 접근 제어) */}
+            <Route path="/cmsl2004" element={session ? <AdminPage onNavigate={handlePageChange} /> : <LoginPage />} />
+            <Route path="/cmsl20042" element={session ? <AdminPage2 onNavigate={handlePageChange} /> : <LoginPage />} />
+            <Route path="/update-password" element={session ? <UpdatePasswordPage /> : <Navigate to="/cmsl2004" />} />
+
+            {/* 위에 정의되지 않은 모든 경로는 홈으로 리디렉션 */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
         </main>
 
         <footer className="border-t bg-muted/50 mt-16">
