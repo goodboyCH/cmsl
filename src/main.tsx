@@ -1,12 +1,12 @@
 import { createRoot } from 'react-dom/client';
-// 1. react-router-dom에서 BrowserRouter를 가져옵니다.
 import { BrowserRouter } from 'react-router-dom';
 import App from './App.tsx';
+import { ScrollToTop } from './components/ScrollToTop.tsx'; // 1. import
 import './index.css';
 
 createRoot(document.getElementById('root')!).render(
-  // 2. <App /> 컴포넌트를 <BrowserRouter>로 감싸줍니다.
   <BrowserRouter>
+    <ScrollToTop /> {/* 2. App 컴포넌트 위에 추가 */}
     <App />
   </BrowserRouter>
 );

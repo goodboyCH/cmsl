@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabaseClient';
 import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import ImageResize from 'quill-image-resize-module-react';
+import { useParams, useNavigate } from 'react-router-dom';
 
 const sanitizeForStorage = (filename: string) => {
   const cleaned = filename.replace(/[^a-zA-Z0-9._-]/g, '');
@@ -17,12 +18,11 @@ const sanitizeForStorage = (filename: string) => {
   return cleaned;
 };
 
-interface EditGalleryPageProps {
-  postId: number;
-  onBack: () => void;
-}
+export function EditGalleryPage() {
+  const { id } = useParams();
+  const postId = Number(id);
+  const navigate = useNavigate();
 
-export function EditGalleryPage({ postId, onBack }: EditGalleryPageProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [author, setAuthor] = useState('');
@@ -34,9 +34,9 @@ export function EditGalleryPage({ postId, onBack }: EditGalleryPageProps) {
 
   useEffect(() => {
     const fetchPost = async () => {
-      // setLoading(true)는 초기값이 true이므로 생략 가능
+      if (!postId) return;
+      setLoading(true);
       const { data, error } = await supabase.from('gallery').select('*').eq('id', postId).single();
-      
       if (data) {
         setTitle(data.title);
         setContent(data.content);
@@ -45,7 +45,7 @@ export function EditGalleryPage({ postId, onBack }: EditGalleryPageProps) {
       } else if (error) {
         setMessage(`게시물 로딩 오류: ${error.message}`);
       }
-      setLoading(false); // 데이터 로딩 완료
+      setLoading(false);
     };
     fetchPost();
   }, [postId]);
@@ -84,7 +84,6 @@ export function EditGalleryPage({ postId, onBack }: EditGalleryPageProps) {
         }
       };
     };
-
     return {
       toolbar: {
         container: [
@@ -94,10 +93,7 @@ export function EditGalleryPage({ postId, onBack }: EditGalleryPageProps) {
         ],
         handlers: { image: imageHandler },
       },
-      imageResize: {
-        parchment: Quill.import('parchment'),
-        modules: ['Resize', 'DisplaySize']
-      }
+      imageResize: { parchment: Quill.import('parchment'), modules: ['Resize', 'DisplaySize'] }
     };
   }, []);
 
@@ -107,47 +103,30 @@ export function EditGalleryPage({ postId, onBack }: EditGalleryPageProps) {
     setMessage('');
     try {
       let finalThumbnailUrl = existingThumbUrl;
-
       if (newThumbnail) {
         if (existingThumbUrl) {
-          try {
-            const oldFilePath = existingThumbUrl.substring(existingThumbUrl.indexOf('public/'));
-            await supabase.storage.from('notice-attachments').remove([oldFilePath]);
-          } catch (removeError) {
-            console.warn("기존 썸네일 삭제 실패 (무시하고 진행):", removeError);
-          }
+          const oldFilePath = existingThumbUrl.substring(existingThumbUrl.indexOf('public/'));
+          await supabase.storage.from('notice-attachments').remove([oldFilePath]);
         }
-        
         const thumbName = sanitizeForStorage(newThumbnail.name);
         const thumbPath = `public/gallery/thumbnails/${Date.now()}_${thumbName}`;
         const { error: thumbError } = await supabase.storage.from('notice-attachments').upload(thumbPath, newThumbnail);
         if (thumbError) throw thumbError;
-
         const { data: thumbUrlData } = supabase.storage.from('notice-attachments').getPublicUrl(thumbPath);
         finalThumbnailUrl = thumbUrlData.publicUrl;
       }
-      
-      const { error } = await supabase
-        .from('gallery')
-        .update({ title, content, author, thumbnail_url: finalThumbnailUrl })
-        .eq('id', postId);
+      const { error } = await supabase.from('gallery').update({ title, content, author, thumbnail_url: finalThumbnailUrl }).eq('id', postId);
       if (error) throw error;
-
       setMessage('성공적으로 수정되었습니다.');
-      setTimeout(onBack, 1000);
-
+      setTimeout(() => navigate(`/board/gallery/${postId}`), 1000);
     } catch (err: any) {
-      console.error("Submit Error:", err);
       setMessage(`오류 발생: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
   
-  // 데이터 로딩 중이거나, 데이터를 불러왔지만 content가 아직 없을 경우 로딩 화면 표시
-  if (loading) {
-    return <p className="text-center p-8">Loading editor...</p>;
-  }
+  if (loading) return <p className="text-center p-8">Loading editor...</p>;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -190,7 +169,7 @@ export function EditGalleryPage({ postId, onBack }: EditGalleryPageProps) {
             </div>
             <div className="flex justify-between items-center mt-8">
               <Button type="submit" disabled={loading}>{loading ? '수정 중...' : '수정 완료'}</Button>
-              <Button type="button" variant="outline" onClick={onBack}>취소</Button>
+              <Button type="button" variant="outline" onClick={() => navigate(`/board/gallery/${postId}`)}>취소</Button>
             </div>
             {message && <p className="pt-2 text-sm text-muted-foreground">{message}</p>}
           </form>

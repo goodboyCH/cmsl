@@ -1,14 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { NewsPage } from './NewsPage';
-import { NoticeDetailPage } from './NoticeDetailPage';
-import { EditNoticePage } from './EditNoticePage';
 import { supabase } from '@/lib/supabaseClient';
-
-interface Attachment {
-  name: string;
-  url: string;
-}
+import { useNavigate } from 'react-router-dom'; // 1. useNavigate 훅을 가져옵니다.
 
 interface NoticeSummary {
   id: number;
@@ -18,39 +12,36 @@ interface NoticeSummary {
   is_pinned: boolean;
 }
 
-interface NoticeDetail extends NoticeSummary {
-  content: string;
-  attachments: Attachment[] | null;
-}
-
 interface NoticeBoardPageProps {
   session: Session | null;
 }
 
-type BoardView = { mode: 'list' } | { mode: 'detail'; id: number } | { mode: 'edit'; id: number };
-
 export function NoticeBoardPage({ session }: NoticeBoardPageProps) {
-  const [view, setView] = useState<BoardView>({ mode: 'list' });
+  // 2. view와 selectedNotice 상태를 삭제합니다.
   const [notices, setNotices] = useState<NoticeSummary[]>([]);
-  const [selectedNotice, setSelectedNotice] = useState<NoticeDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   const [currentPage, setCurrentPage] = useState(1);
   const [postsPerPage] = useState(10);
   const [totalPosts, setTotalPosts] = useState(0);
-  const [totalPinned, setTotalPinned] = useState(0); // 전체 고정 글 개수 state
+  const [totalPinned, setTotalPinned] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  const navigate = useNavigate(); // 3. navigate 함수를 초기화합니다.
 
-  const fetchNotices = async () => {
+  // 4. useEffect에서 view 상태에 대한 의존성을 제거합니다.
+  useEffect(() => {
+    fetchNotices();
+  }, [currentPage, searchQuery]);
+
+  const fetchNotices = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const from = (currentPage - 1) * postsPerPage;
       const to = from + postsPerPage - 1;
 
-      // 검색어 쿼리 준비
       let query = supabase.from('notices').select('id, created_at, title, author, is_pinned', { count: 'exact' });
       let pinnedQuery = supabase.from('notices').select('*', { count: 'exact', head: true }).eq('is_pinned', true);
 
@@ -59,7 +50,6 @@ export function NoticeBoardPage({ session }: NoticeBoardPageProps) {
         pinnedQuery = pinnedQuery.ilike('title', `%${searchQuery}%`);
       }
       
-      // 데이터 가져오기와 고정 글 개수 가져오기를 동시에 실행
       const [noticeResult, pinnedResult] = await Promise.all([
         query.order('is_pinned', { ascending: false }).order('created_at', { ascending: false }).range(from, to),
         pinnedQuery
@@ -76,25 +66,7 @@ export function NoticeBoardPage({ session }: NoticeBoardPageProps) {
     } finally {
       setLoading(false);
     }
-  };
-  
-  const fetchSingleNotice = async (id: number) => {
-    setLoading(true);
-    setError(null);
-    const { data, error } = await supabase.from('notices').select('*').eq('id', id).single();
-    if (error) setError(error.message);
-    else setSelectedNotice(data || null);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    if (view.mode === 'list') {
-      fetchNotices();
-    }
-    if (view.mode === 'detail' || view.mode === 'edit') {
-      fetchSingleNotice(view.id);
-    }
-  }, [view, currentPage, searchQuery]);
+  }, [currentPage, postsPerPage, searchQuery]);
 
   const handleSearch = () => {
     setCurrentPage(1);
@@ -102,61 +74,37 @@ export function NoticeBoardPage({ session }: NoticeBoardPageProps) {
   };
   
   const handleTogglePin = async (id: number, currentStatus: boolean) => {
-    const { error } = await supabase.from('notices').update({ is_pinned: !currentStatus }).eq('id', id);
-    if (error) {
-      alert(`상태 변경 중 오류: ${error.message}`);
-    } else {
-      fetchNotices();
-    }
+    await supabase.from('notices').update({ is_pinned: !currentStatus }).eq('id', id);
+    fetchNotices();
   };
 
   const handleDelete = async (id: number) => {
     if (window.confirm('정말로 이 공지사항을 삭제하시겠습니까?')) {
-      const { error } = await supabase.from('notices').delete().eq('id', id);
-      if (error) {
-        alert(`삭제 중 오류 발생: ${error.message}`);
-      } else {
-        alert('삭제되었습니다.');
-        setView({ mode: 'list' });
-      }
+      await supabase.from('notices').delete().eq('id', id);
+      fetchNotices(); // 목록을 다시 불러옵니다.
     }
   };
 
-  switch (view.mode) {
-    case 'list':
-      return <NewsPage 
-        notices={notices}
-        loading={loading}
-        error={error}
-        session={session}
-        currentPage={currentPage}
-        totalPosts={totalPosts}
-        totalPinned={totalPinned}
-        postsPerPage={postsPerPage}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        handleSearch={handleSearch}
-        onPageChange={(page) => setCurrentPage(page)}
-        onPostClick={(id) => setView({ mode: 'detail', id })} 
-        onEdit={(id) => setView({ mode: 'edit', id })}
-        onDelete={handleDelete}
-        onTogglePin={handleTogglePin}
-      />;
-    case 'detail':
-      return <NoticeDetailPage 
-        notice={selectedNotice}
-        loading={loading}
-        session={session}
-        onBackToList={() => setView({ mode: 'list' })} 
-        onEdit={(id) => setView({ mode: 'edit', id })}
-        onDelete={handleDelete}
-      />;
-    case 'edit':
-      return <EditNoticePage 
-        noticeId={view.id} 
-        onBack={() => setView({ mode: 'detail', id: view.id })} 
-      />;
-    default:
-      return <div>Error: Invalid view mode.</div>;
-  }
+  // 5. 복잡한 switch 문 대신, NewsPage 컴포넌트만 반환합니다.
+  return (
+    <NewsPage 
+      notices={notices}
+      loading={loading}
+      error={error}
+      session={session}
+      currentPage={currentPage}
+      totalPosts={totalPosts}
+      totalPinned={totalPinned}
+      postsPerPage={postsPerPage}
+      searchTerm={searchTerm}
+      setSearchTerm={setSearchTerm}
+      handleSearch={handleSearch}
+      onPageChange={(page) => setCurrentPage(page)}
+      // 6. 클릭/수정 이벤트를 navigate 함수를 이용한 URL 이동으로 변경합니다.
+      onPostClick={(id) => navigate(`/board/news/${id}`)} 
+      onEdit={(id) => navigate(`/board/news/${id}/edit`)}
+      onDelete={handleDelete}
+      onTogglePin={handleTogglePin}
+    />
+  );
 }

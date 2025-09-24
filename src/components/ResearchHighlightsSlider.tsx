@@ -15,50 +15,14 @@ interface ResearchHighlight {
   doi: string;
 }
 
-const highlights: ResearchHighlight[] = [
-  {
-    title: "AI-Accelerated Phase-Field Modeling for HfO₂ Ferroelectric Domains",
-    authors: "Bang J.H., Kim D.U., Cha P.R.",
-    journal: "Nature Materials",
-    year: "2024",
-    description: "Revolutionary approach combining machine learning with phase-field simulations to predict ferroelectric domain evolution in hafnia-based thin films.",
-    category: "AI & Materials",
-    image: "./images/ferroelectric_films_1.png",
-    doi: "https://www.nature.com/nmat/"
-  },
-  {
-    title: "Multi-phase Solidification Modeling in NdFeB Strip Casting",
-    authors: "Kim D.U., Pankaj, Cha P.R.",
-    journal: "Acta Materialia",
-    year: "2024",
-    description: "Advanced CALPHAD-coupled phase-field modeling for optimizing microstructure in rare-earth permanent magnet production.",
-    category: "Casting & Solidification",
-    image: "./images/phase_field_simulation_1.png",
-    doi: "https://www.sciencedirect.com/journal/acta-materialia"
-  },
-  {
-    title: "Electrochemical Potential Mapping in Biodegradable Mg-Zn Alloys",
-    authors: "Tariq Ali, Kim D.U., Cha P.R.",
-    journal: "Corrosion Science",
-    year: "2024",
-    description: "Novel computational framework for predicting corrosion behavior and biocompatibility of magnesium-zinc alloys for medical implants.",
-    category: "Biomedical Materials",
-    image: "./images/mg_zn_alloys_1.jpeg",
-    doi: "https://www.sciencedirect.com/journal/corrosion-science"
-  },
-  {
-    title: "Eutectic Growth Dynamics in Al-Si Casting Alloys",
-    authors: "Pritan, Bang J.H., Cha P.R.",
-    journal: "Physical Review Materials",
-    year: "2024",
-    description: "Comprehensive study on eutectic growth mechanisms using advanced phase-field modeling and experimental validation.",
-    category: "Alloy Design",
-    image: "./images/casting_alloys_1.jpeg",
-    doi: "https://journals.aps.org/prmaterials/"
-  }
-];
+// 1. props 인터페이스를 추가합니다.
+interface SliderProps {
+  highlights: ResearchHighlight[];
+}
 
-export function ResearchHighlightsSlider() {
+// 2. 하드코딩된 highlights 배열을 삭제합니다.
+
+export function ResearchHighlightsSlider({ highlights }: SliderProps) { // 3. props로 highlights를 받습니다.
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -84,6 +48,14 @@ export function ResearchHighlightsSlider() {
   
   const handleCardClick = () => { if (highlights[currentIndex].doi) window.open(highlights[currentIndex].doi, '_blank'); };
 
+  if (!highlights || highlights.length === 0) {
+    return (
+      <Card className="bg-white/10 backdrop-blur-sm border-white/20 text-white text-center p-8">
+        <p>No highlights to display.</p>
+      </Card>
+    );
+  }
+  
   const currentHighlight = highlights[currentIndex];
 
   return (

@@ -8,9 +8,7 @@ import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import ImageResize from 'quill-image-resize-module-react';
 import { X } from 'lucide-react';
-
-// Quill 모듈 등록은 App.tsx에서 한 번만 하므로 여기서는 주석 처리하거나 삭제합니다.
-// Quill.register('modules/imageResize', ImageResize);
+import { useParams, useNavigate } from 'react-router-dom';
 
 const sanitizeForStorage = (filename: string) => {
   const cleaned = filename.replace(/[^a-zA-Z0-9._-]/g, '');
@@ -22,20 +20,25 @@ const sanitizeForStorage = (filename: string) => {
 };
 
 interface Attachment { name: string; url: string; }
-interface EditNoticePageProps { noticeId: number; onBack: () => void; }
 
-export function EditNoticePage({ noticeId, onBack }: EditNoticePageProps) {
+export function EditNoticePage() {
+  const { id } = useParams();
+  const noticeId = Number(id);
+  const navigate = useNavigate();
+
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [author, setAuthor] = useState('');
   const [newAttachments, setNewAttachments] = useState<File[]>([]);
   const [existingAttachments, setExistingAttachments] = useState<Attachment[]>([]);
+  const [initialAttachments, setInitialAttachments] = useState<Attachment[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const quillRef = useRef<ReactQuill>(null);
 
   useEffect(() => {
     const fetchNotice = async () => {
+      if (!noticeId) return;
       setLoading(true);
       const { data } = await supabase.from('notices').select('*').eq('id', noticeId).single();
       if (data) {
@@ -43,8 +46,8 @@ export function EditNoticePage({ noticeId, onBack }: EditNoticePageProps) {
         setContent(data.content);
         setAuthor(data.author);
         setExistingAttachments(data.attachments || []);
+        setInitialAttachments(data.attachments || []);
       }
-      // 모든 데이터가 준비된 후에 로딩 상태를 false로 변경합니다.
       setLoading(false);
     };
     fetchNotice();
@@ -62,7 +65,6 @@ export function EditNoticePage({ noticeId, onBack }: EditNoticePageProps) {
     setExistingAttachments(existingAttachments.filter((_, i) => i !== index));
   };
 
-  // imageHandler와 modules를 useMemo로 감싸서 안정성을 높입니다.
   const modules = useMemo(() => {
     const imageHandler = () => {
       const input = document.createElement('input');
@@ -91,7 +93,6 @@ export function EditNoticePage({ noticeId, onBack }: EditNoticePageProps) {
         }
       };
     };
-
     return {
       toolbar: {
         container: [
@@ -101,21 +102,43 @@ export function EditNoticePage({ noticeId, onBack }: EditNoticePageProps) {
         ],
         handlers: { image: imageHandler },
       },
-      imageResize: {
-        parchment: Quill.import('parchment'),
-        modules: ['Resize', 'DisplaySize']
-      }
+      imageResize: { parchment: Quill.import('parchment'), modules: ['Resize', 'DisplaySize'] }
     };
   }, []);
-
+  
   const handleSubmit = async (e: React.FormEvent) => {
-    // ... handleSubmit 로직은 이전과 동일
+    e.preventDefault();
+    setLoading(true);
+    setMessage('');
+    try {
+      const attachmentsToDelete = initialAttachments.filter(
+        initialFile => !existingAttachments.some(existingFile => existingFile.url === initialFile.url)
+      );
+      if (attachmentsToDelete.length > 0) {
+        const filePaths = attachmentsToDelete.map(file => new URL(file.url).pathname.substring(new URL(file.url).pathname.indexOf('public/')));
+        await supabase.storage.from('notice-attachments').remove(filePaths);
+      }
+      let uploadedAttachments: Attachment[] = [];
+      for (const file of newAttachments) {
+        const filePath = `public/files/${Date.now()}_${sanitizeForStorage(file.name)}`;
+        const { error } = await supabase.storage.from('notice-attachments').upload(filePath, file);
+        if (error) throw error;
+        const { data: urlData } = supabase.storage.from('notice-attachments').getPublicUrl(filePath);
+        uploadedAttachments.push({ name: file.name, url: urlData.publicUrl });
+      }
+      const finalAttachments = [...existingAttachments, ...uploadedAttachments];
+      const { error: updateError } = await supabase.from('notices').update({ title, content, author, attachments: finalAttachments }).eq('id', noticeId);
+      if (updateError) throw updateError;
+      setMessage('성공적으로 수정되었습니다.');
+      setTimeout(() => navigate(`/board/news/${noticeId}`), 1500);
+    } catch (err: any) {
+      setMessage(`수정 중 오류 발생: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
   
-  // 데이터 로딩 중에는 에디터를 포함한 폼 전체를 보여주지 않습니다.
-  if (loading) {
-    return <p className="text-center p-8">Loading editor...</p>;
-  }
+  if (loading) return <p className="text-center p-8">Loading editor...</p>;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -171,7 +194,7 @@ export function EditNoticePage({ noticeId, onBack }: EditNoticePageProps) {
             </div>
             <div className="flex justify-between items-center mt-8">
               <Button type="submit" disabled={loading}>{loading ? '수정 중...' : '수정 완료'}</Button>
-              <Button type="button" variant="outline" onClick={onBack}>취소</Button>
+              <Button type="button" variant="outline" onClick={() => navigate(`/board/news/${noticeId}`)}>취소</Button>
             </div>
             {message && <p className="pt-2">{message}</p>}
           </form>

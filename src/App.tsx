@@ -27,6 +27,10 @@ import { AdminPage2 } from '@/components/pages/AdminPage2';
 import { LoginPage } from '@/components/pages/LoginPage';
 import { ForgotPasswordPage } from '@/components/pages/ForgotPasswordPage';
 import { ResetPasswordPage } from '@/components/pages/ResetPasswordPage';
+import { NoticeDetailPage } from '@/components/pages/NoticeDetailPage';
+import { GalleryDetailPage } from '@/components/pages/GalleryDetailPage';
+import { EditNoticePage } from '@/components/pages/EditNoticePage';
+import { EditGalleryPage } from '@/components/pages/EditGalleryPage';
 
 // Quill 설정...
 import { Quill } from 'react-quill';
@@ -62,7 +66,7 @@ function App() {
     <LanguageProvider>
       <div className="min-h-screen bg-background">
         <header className="sticky top-0 z-30 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="w-full max-w-none px-6 lg:px-12 xl:px-16 py-6">
+          <div className="container py-6">
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center space-x-6">
                 <button 
@@ -101,10 +105,15 @@ function App() {
             <Route path="/publications" element={<PublicationsPage />} />
             <Route path="/projects" element={<ProjectsPage />} />
 
-            {/* Board 관련 페이지들 (추후 상세/수정 페이지 라우팅 추가 예정) */}
+            {/* ⬇️ Board 관련 페이지 라우트를 수정합니다. ⬇️ */}
             <Route path="/board/news" element={<NoticeBoardPage session={session} />} />
-            <Route path="/board/gallery" element={<GalleryBoardPage session={session} />} />
-
+          <Route path="/board/news/:id" element={<NoticeDetailPage session={session} />} /> 
+          <Route path="/board/news/:id/edit" element={<EditNoticePage />} />
+          
+          <Route path="/board/gallery" element={<GalleryBoardPage session={session} />} />
+          <Route path="/board/gallery/:id" element={<GalleryDetailPage session={session} />} />
+          <Route path="/board/gallery/:id/edit" element={<EditGalleryPage />} />
+        
             <Route path="/contact" element={<ContactPage />} />
 
             {/* 관리자 페이지 (로그인 상태에 따라 접근 제어) */}
@@ -157,7 +166,7 @@ function App() {
                 <h3 className="text-lg font-semibold text-primary mb-4">Contact</h3>
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <p>Prof. Cha Pil-Ryung</p>
-                  <p>pilryung.cha@university.edu</p>
+                  <p>cprdream@kookmin.ac.kr</p>
                   <p>+82-XX-XXXX-XXXX</p>
                 </div>
               </div>

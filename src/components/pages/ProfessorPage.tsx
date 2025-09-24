@@ -1,184 +1,91 @@
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import React, { useState, useEffect } from 'react';
 import { ScrollAnimation } from '../ScrollAnimation';
-import { Mail, Phone, MapPin, Award, BookOpen, Users } from 'lucide-react';
+import { Mail, Phone, MapPin } from 'lucide-react';
+import { supabase } from '@/lib/supabaseClient';
+import { Badge } from '@/components/ui/badge';
+
+// 페이지 콘텐츠 데이터의 새로운 타입을 정의합니다.
+interface ProfessorContent {
+  name: string;
+  title: string;
+  department: string;
+  profile_image_url: string;
+  contact: {
+    phone: string;
+    email: string;
+    office: string;
+  };
+  research_interests: string[];
+  education: { period: string; description: string }[];
+  experience: { period: string; description: string }[];
+  awards_and_honors: { period: string; description: string }[];
+}
+
+// 이력 목록을 렌더링하는 재사용 가능한 컴포넌트
+const ProfileSection = ({ title, items }: { title: string; items: { period: string; description: string }[] }) => (
+  <section>
+    <h2 className="text-2xl font-bold text-primary border-b-2 border-primary/20 pb-2 mb-6">{title}</h2>
+    <div className="space-y-4">
+      {items.map((item, index) => (
+        <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-x-4">
+          <p className="md:col-span-1 text-sm text-muted-foreground md:text-right">{item.period}</p>
+          <p className="md:col-span-3">{item.description}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+);
 
 export function ProfessorPage() {
+  const [content, setContent] = useState<ProfessorContent | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      setLoading(true);
+      const { data } = await supabase.from('pages').select('content').eq('page_key', 'professor').single();
+      if (data?.content) setContent(data.content);
+      setLoading(false);
+    };
+    fetchContent();
+  }, []);
+
+  if (loading) return <p className="text-center p-20">Loading Professor's Profile...</p>;
+  if (!content) return <p className="text-center p-20">Failed to load content.</p>;
+
   return (
-    <div className="max-w-[1400px] mx-auto px-8 lg:px-16 py-8 space-y-8">
-      {/* Header */}
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
+      {/* 상단 프로필 섹션 */}
       <ScrollAnimation>
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-primary">Professor</h1>
-          <p className="text-xl text-muted-foreground">
-            Meet our distinguished faculty member leading computational materials science research
-          </p>
-        </div>
-      </ScrollAnimation>
-
-      {/* Professor Profile */}
-      <ScrollAnimation delay={100}>
-        <Card className="elegant-shadow">
-          <CardContent className="p-8">
-            <div className="grid md:grid-cols-3 gap-8">
-              {/* Photo */}
-              <div className="space-y-4">
-                <div className="aspect-square bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg flex items-center justify-center">
-                  <div className="w-32 h-32 bg-primary/10 rounded-full flex items-center justify-center">
-                    <span className="text-4xl font-bold text-primary">P.R.C</span>
-                  </div>
-                </div>
-                <div className="text-center space-y-2">
-                  <h2 className="text-2xl font-bold text-primary">Prof. Pil-Ryung Cha</h2>
-                  <p className="text-muted-foreground">Principal Investigator</p>
-                  <Badge className="bg-primary/10 text-primary">Director, CMSL</Badge>
-                </div>
-              </div>
-
-              {/* Basic Info */}
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-xl font-bold text-primary mb-4">Contact Information</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <Mail className="h-4 w-4 text-primary" />
-                      <span className="text-sm">prcha@kookmin.ac.kr</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Phone className="h-4 w-4 text-primary" />
-                      <span className="text-sm">+82-2-910-4656</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <MapPin className="h-4 w-4 text-primary" />
-                      <span className="text-sm">Room 932, Engineering Building</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-xl font-bold text-primary mb-4">Education</h3>
-                  <div className="space-y-2">
-                    <div>
-                      <p className="font-medium">Ph.D. Materials Science & Engineering</p>
-                      <p className="text-sm text-muted-foreground">Northwestern University, USA (1998)</p>
-                    </div>
-                    <div>
-                      <p className="font-medium">M.S. Materials Science & Engineering</p>
-                      <p className="text-sm text-muted-foreground">KAIST, Korea (1992)</p>
-                    </div>
-                    <div>
-                      <p className="font-medium">B.S. Materials Science & Engineering</p>
-                      <p className="text-sm text-muted-foreground">Seoul National University, Korea (1990)</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Research Interests */}
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-xl font-bold text-primary mb-4">Research Interests</h3>
-                  <div className="space-y-2">
-                    <Badge variant="outline">Phase-Field Modeling</Badge>
-                    <Badge variant="outline">Computational Thermodynamics</Badge>
-                    <Badge variant="outline">Ferroelectric Materials</Badge>
-                    <Badge variant="outline">Solidification Processes</Badge>
-                    <Badge variant="outline">AI-Materials Integration</Badge>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-xl font-bold text-primary mb-4">Professional Experience</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <p className="font-medium">Professor (2008-Present)</p>
-                      <p className="text-sm text-muted-foreground">Kookmin University</p>
-                    </div>
-                    <div>
-                      <p className="font-medium">Associate Professor (2003-2008)</p>
-                      <p className="text-sm text-muted-foreground">Kookmin University</p>
-                    </div>
-                    <div>
-                      <p className="font-medium">Assistant Professor (1999-2003)</p>
-                      <p className="text-sm text-muted-foreground">Kookmin University</p>
-                    </div>
-                  </div>
-                </div>
+        <section className="flex flex-col md:flex-row items-center gap-8">
+          <img 
+            src={content.profile_image_url} 
+            alt={content.name} 
+            className="w-48 h-56 object-cover rounded-lg shadow-md"
+          />
+          <div className="flex-1 space-y-4">
+            <h1 className="text-4xl font-bold text-gray-800 dark:text-white">{content.name}</h1>
+            <p className="text-xl font-medium text-primary">{content.title}</p>
+            <p className="text-muted-foreground">{content.department}</p>
+            <div className="border-t pt-4 space-y-3 text-sm">
+              <div className="flex items-center gap-3 text-muted-foreground"><Phone className="h-4 w-4 text-primary" /><span>{content.contact.phone}</span></div>
+              <div className="flex items-center gap-3 text-muted-foreground"><Mail className="h-4 w-4 text-primary" /><span>{content.contact.email}</span></div>
+              <div className="flex items-center gap-3 text-muted-foreground"><MapPin className="h-4 w-4 text-primary" /><span>{content.contact.office}</span></div>
+            </div>
+            <div className="pt-2">
+              <h3 className="font-semibold mb-2">Research Interests</h3>
+              <div className="flex flex-wrap gap-2">
+                {(content.research_interests || []).map((interest, i) => <Badge key={i} variant="secondary">{interest}</Badge>)}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       </ScrollAnimation>
 
-      {/* Research Achievements */}
-      <ScrollAnimation delay={200}>
-        <div className="grid md:grid-cols-3 gap-6">
-          <Card className="elegant-shadow text-center">
-            <CardContent className="pt-6">
-              <BookOpen className="h-12 w-12 mx-auto text-primary mb-4" />
-              <div className="text-3xl font-bold text-primary mb-2">150+</div>
-              <p className="text-muted-foreground">Publications</p>
-            </CardContent>
-          </Card>
-
-          <Card className="elegant-shadow text-center">
-            <CardContent className="pt-6">
-              <Award className="h-12 w-12 mx-auto text-primary mb-4" />
-              <div className="text-3xl font-bold text-primary mb-2">25+</div>
-              <p className="text-muted-foreground">Awards & Honors</p>
-            </CardContent>
-          </Card>
-
-          <Card className="elegant-shadow text-center">
-            <CardContent className="pt-6">
-              <Users className="h-12 w-12 mx-auto text-primary mb-4" />
-              <div className="text-3xl font-bold text-primary mb-2">50+</div>
-              <p className="text-muted-foreground">Graduated Students</p>
-            </CardContent>
-          </Card>
-        </div>
-      </ScrollAnimation>
-
-      {/* Recent Achievements */}
-      <ScrollAnimation delay={300}>
-        <Card className="elegant-shadow">
-          <CardHeader>
-            <CardTitle className="text-2xl text-primary">Recent Research Achievements</CardTitle>
-            <CardDescription>
-              Highlighting major contributions to computational materials science
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              <div className="border-l-4 border-primary pl-4">
-                <h4 className="font-bold text-lg">AI-Accelerated Phase-Field Modeling</h4>
-                <p className="text-muted-foreground mb-2">Nature Materials (2024)</p>
-                <p className="text-sm">
-                  Pioneered the integration of machine learning with phase-field simulations, 
-                  achieving unprecedented accuracy in ferroelectric domain prediction.
-                </p>
-              </div>
-
-              <div className="border-l-4 border-primary pl-4">
-                <h4 className="font-bold text-lg">NRF Distinguished Research Grant</h4>
-                <p className="text-muted-foreground mb-2">National Research Foundation (2024)</p>
-                <p className="text-sm">
-                  Awarded 5-year research grant for developing AI-accelerated materials design platform.
-                </p>
-              </div>
-
-              <div className="border-l-4 border-primary pl-4">
-                <h4 className="font-bold text-lg">Samsung Electronics Collaboration</h4>
-                <p className="text-muted-foreground mb-2">Industry Partnership (2024)</p>
-                <p className="text-sm">
-                  Leading joint research on ferroelectric memory device optimization using computational modeling.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </ScrollAnimation>
+      {/* 학력, 경력, 수상내역 섹션 */}
+      <ScrollAnimation delay={100}><ProfileSection title="Education" items={content.education || []} /></ScrollAnimation>
+      <ScrollAnimation delay={200}><ProfileSection title="Experience" items={content.experience || []} /></ScrollAnimation>
+      <ScrollAnimation delay={300}><ProfileSection title="Awards & Honors" items={content.awards_and_honors || []} /></ScrollAnimation>
     </div>
   );
 }
