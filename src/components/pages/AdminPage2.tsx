@@ -8,6 +8,8 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Session } from '@supabase/supabase-js';
 import { EditPageContentForm } from './EditPageContentForm';
 import { EditHomePageForm } from './EditHomePageForm';
+import { EditIntroductionPageForm } from './EditIntroductionPageForm'; // 1. 새로 만든 폼 import
+
 
 interface AdminPage2Props {
   onNavigate: (page: string) => void;
@@ -74,6 +76,14 @@ export function AdminPage2({  onNavigate }: AdminPage2Props) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <EditHomePageForm onBack={handleBackToList} />
+      </div>
+    );
+  }
+
+  if (editView.type === 'page' && editView.key === 'introduction') {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <EditIntroductionPageForm onBack={handleBackToList} />
       </div>
     );
   }
@@ -170,6 +180,10 @@ export function AdminPage2({  onNavigate }: AdminPage2Props) {
                     </div>
                     <div className="space-x-2">
                       <Button variant="outline" size="sm" onClick={() => setEditView({ type: 'page', key: page.page_key })}>Edit</Button>
+                    </div>
+                    <div className="flex items-center justify-between p-2 border rounded-md">
+                      <p className="font-semibold">Introduction Page</p>
+                      <Button variant="outline" size="sm" onClick={() => setEditView({ type: 'page', key: 'introduction' })}>Edit</Button>
                     </div>
                   </div>
                 ))}

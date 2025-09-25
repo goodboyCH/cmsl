@@ -196,7 +196,7 @@ export function HomePage({ onPageChange }: HomePageProps) {
             <section>
               <div className="flex justify-between items-center mb-8">
                 <h2 className="text-3xl font-bold text-primary">Latest News</h2>
-                <Button variant="link" onClick={() => onPageChange('/board/news')}>All News →</Button>
+                <Button variant="link" onClick={() => onPageChange('/board/news')}>View All →</Button>
               </div>
               
               {latestNews.length > 0 && (

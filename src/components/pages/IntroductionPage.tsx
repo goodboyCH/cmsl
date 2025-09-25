@@ -1,188 +1,107 @@
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { ScrollAnimation } from '../ScrollAnimation';
+import { supabase } from '@/lib/supabaseClient';
+import { Aperture, Atom, FlaskConical, Users, LucideProps } from 'lucide-react';
+
+const iconMap: { [key: string]: React.ElementType<LucideProps> } = {
+  Clarity: Aperture,
+  Collaboration: Users,
+  Industry: Atom,
+  Talent: FlaskConical,
+};
+
+// 1. 타입 정의를 더 안정적으로 만듭니다. (모든 속성이 선택적일 수 있도록)
+interface IntroductionContent {
+  header?: { title: string; subtitle: string; };
+  mission_section?: { image_url: string; title: string; korean_mission: string; english_mission: string; };
+  core_values_section?: { title: string; values: { icon: string; title: string; description: string }[]; };
+  vision_section?: { title: string; paragraphs: string[]; };
+}
 
 export function IntroductionPage() {
+  const [content, setContent] = useState<IntroductionContent | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      setLoading(true);
+      const { data } = await supabase.from('pages').select('content').eq('page_key', 'introduction').single();
+      if (data?.content) {
+        setContent(data.content);
+      }
+      setLoading(false);
+    };
+    fetchContent();
+  }, []);
+
+  // 2. 로딩 중이거나, content 객체가 아직 없을 경우 로딩 화면을 표시합니다.
+  if (loading || !content) {
+    return <div className="text-center p-20">Loading Introduction...</div>;
+  }
+
+  // 3. 이제 이 아래에서는 content 객체와 그 속성들이 존재한다고 보장할 수 있습니다.
   return (
-    <div className="max-w-[1400px] mx-auto px-8 lg:px-20 py-8 space-y-12">
-      <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold text-primary">Introduction</h1>
-        <p className="text-xl text-muted-foreground max-w-4xl mx-auto">
-          Computational Materials Science Laboratory (CMSL) is dedicated to advancing 
-          materials science through computational modeling and simulation.
-        </p>
-      </div>
-
-      {/* Mission Statement */}
-      <section className="relative py-12 rounded-lg elegant-shadow overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <img 
-            src="./images/scientific_visualization_1.jpeg" 
-            alt="Scientific Visualization"
-            className="w-full h-full object-cover opacity-15"
-          />
-          <div className="absolute inset-0 academic-gradient opacity-95"></div>
+    <div className="container py-12 space-y-24">
+      <ScrollAnimation>
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl font-bold text-primary">{content.header?.title}</h1>
+          <p className="text-xl text-muted-foreground max-w-4xl mx-auto">{content.header?.subtitle}</p>
         </div>
-        <div className="relative z-10 max-w-4xl mx-auto text-center space-y-6 px-6 text-white">
-          <h2 className="text-3xl font-bold">Our Mission</h2>
-          <p className="text-2xl opacity-90 leading-relaxed">
-            "미세조직의 물리로부터 예측가능한 재료설계를 구현한다"
-          </p>
-          <p className="text-xl opacity-80">
-            "Implement predictable material design from the physics of microstructure"
-          </p>
-        </div>
-      </section>
+      </ScrollAnimation>
 
-      {/* Research Philosophy */}
-      <section className="grid lg:grid-cols-2 gap-8">
-        <Card className="elegant-shadow smooth-transition hover:shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-2xl text-primary">Research Philosophy</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-lg leading-relaxed text-muted-foreground">
-              Our laboratory focuses on <strong>clear, verifiable, and reproducible</strong> research 
-              centered on computational materials science. We prioritize English-first communication 
-              with Korean annotations to ensure global accessibility.
-            </p>
-            <div className="space-y-2">
-              <Badge variant="outline" className="mr-2">Clarity</Badge>
-              <Badge variant="outline" className="mr-2">Verification</Badge>
-              <Badge variant="outline" className="mr-2">Reproducibility</Badge>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="elegant-shadow smooth-transition hover:shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-2xl text-primary">Target Audience</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-lg leading-relaxed text-muted-foreground">
-              We welcome collaboration with diverse stakeholders in the materials science community.
-            </p>
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">Graduate Students</Badge>
-                <span className="text-sm text-muted-foreground">Seeking advanced research opportunities</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">Research Collaborators</Badge>
-                <span className="text-sm text-muted-foreground">Materials/Computation/Alloys/Devices/Corrosion/Ferroelectrics/Magnets</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">Industry R&D</Badge>
-                <span className="text-sm text-muted-foreground">Technology transfer and application</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">Undergraduate Interns</Badge>
-                <span className="text-sm text-muted-foreground">Research experience and training</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </section>
-
-      {/* Core Capabilities */}
-      <section className="space-y-8">
-        <h2 className="text-3xl font-bold text-center text-primary">Core Capabilities</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="elegant-shadow smooth-transition hover:shadow-lg text-center">
-            <CardHeader>
-              <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                <span className="text-2xl font-bold text-primary">PF</span>
-              </div>
-              <CardTitle className="text-xl">Phase-Field Modeling</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription className="text-base">
-                Multi-phase, multi-physics simulations for microstructure evolution prediction
-              </CardDescription>
-            </CardContent>
-          </Card>
-
-          <Card className="elegant-shadow smooth-transition hover:shadow-lg text-center">
-            <CardHeader>
-              <div className="w-16 h-16 mx-auto bg-accent/10 rounded-full flex items-center justify-center mb-4">
-                <span className="text-sm font-bold text-accent">CALPHAD</span>
-              </div>
-              <CardTitle className="text-xl">Thermodynamics</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription className="text-base">
-                Computational thermodynamics and phase diagram calculations
-              </CardDescription>
-            </CardContent>
-          </Card>
-
-          <Card className="elegant-shadow smooth-transition hover:shadow-lg text-center">
-            <CardHeader>
-              <div className="w-16 h-16 mx-auto bg-secondary/50 rounded-full flex items-center justify-center mb-4">
-                <span className="text-2xl font-bold text-primary">AI</span>
-              </div>
-              <CardTitle className="text-xl">AI Integration</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription className="text-base">
-                Machine learning for materials optimization and accelerated discovery
-              </CardDescription>
-            </CardContent>
-          </Card>
-
-          <Card className="elegant-shadow smooth-transition hover:shadow-lg text-center">
-            <CardHeader>
-              <div className="w-16 h-16 mx-auto bg-muted/50 rounded-full flex items-center justify-center mb-4">
-                <span className="text-xl font-bold text-primary">📊</span>
-              </div>
-              <CardTitle className="text-xl">Open Science</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription className="text-base">
-                Data and code sharing for reproducible research and collaboration
-              </CardDescription>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      {/* Research Impact */}
-      <section className="py-12 bg-gradient-to-r from-secondary/50 to-muted/50 rounded-lg">
-        <div className="max-w-6xl mx-auto px-6 space-y-8">
-          <h2 className="text-3xl font-bold text-center text-primary">Research Impact</h2>
-          <div className="grid md:grid-cols-3 gap-8 text-center">
-            <div className="space-y-2">
-              <div className="text-4xl font-bold text-primary">50+</div>
-              <p className="text-muted-foreground">Research Publications</p>
-            </div>
-            <div className="space-y-2">
-              <div className="text-4xl font-bold text-primary">10+</div>
-              <p className="text-muted-foreground">Industry Collaborations</p>
-            </div>
-            <div className="space-y-2">
-              <div className="text-4xl font-bold text-primary">25+</div>
-              <p className="text-muted-foreground">Graduated Students</p>
-            </div>
+      {/* Mission Section */}
+      <ScrollAnimation delay={100}>
+        <section className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="rounded-lg overflow-hidden elegant-shadow aspect-video">
+            <img 
+              src={content.mission_section?.image_url} 
+              alt="Mission"
+              className="w-full h-full object-cover"
+            />
           </div>
-        </div>
-      </section>
+          <div className="space-y-4 text-center lg:text-left">
+            <h2 className="text-3xl font-bold text-primary">{content.mission_section?.title}</h2>
+            <p className="text-2xl font-semibold leading-relaxed">"{content.mission_section?.korean_mission}"</p>
+            <p className="text-xl text-muted-foreground">"{content.mission_section?.english_mission}"</p>
+          </div>
+        </section>
+      </ScrollAnimation>
+      
+      {/* Core Values Section */}
+      <ScrollAnimation delay={200}>
+        <section className="space-y-12">
+          <h2 className="text-3xl font-bold text-center text-primary">{content.core_values_section?.title}</h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {(content.core_values_section?.values || []).map((value, index) => {
+              const IconComponent = iconMap[value.icon] || Atom;
+              return (
+                <Card key={index} className="elegant-shadow text-center">
+                  <CardHeader>
+                    <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                      <IconComponent className="h-8 w-8 text-primary" />
+                    </div>
+                    <CardTitle>{value.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription>{value.description}</CardDescription>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </section>
+      </ScrollAnimation>
 
-      {/* Laboratory Vision */}
-      <section className="text-center space-y-6">
-        <h2 className="text-3xl font-bold text-primary">Laboratory Vision</h2>
-        <div className="max-w-4xl mx-auto space-y-4">
-          <p className="text-xl text-muted-foreground leading-relaxed">
-            CMSL strives to be a leading research laboratory in computational materials science, 
-            bridging fundamental physics with practical materials design through advanced modeling 
-            and simulation techniques.
-          </p>
-          <p className="text-lg text-muted-foreground leading-relaxed">
-            We are committed to fostering international collaboration, training the next generation 
-            of materials scientists, and contributing to sustainable materials development for 
-            societal benefit.
-          </p>
-        </div>
-      </section>
+      {/* Vision Section */}
+      <ScrollAnimation delay={300}>
+        <section className="text-center space-y-6 max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold text-primary">{content.vision_section?.title}</h2>
+          <div className="space-y-4 text-lg text-muted-foreground leading-relaxed">
+            {(content.vision_section?.paragraphs || []).map((p, i) => <p key={i}>{p}</p>)}
+          </div>
+        </section>
+      </ScrollAnimation>
     </div>
   );
 }
