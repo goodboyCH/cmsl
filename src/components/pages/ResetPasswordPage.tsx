@@ -15,19 +15,21 @@ export function ResetPasswordPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // onAuthStateChange 리스너는 Supabase가 URL의 토큰을 처리하고
-    // 세션 상태를 변경할 때마다 호출됩니다.
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      // 'PASSWORD_RECOVERY' 이벤트가 발생하거나, 세션이 성공적으로 설정되면
-      // 검증이 완료된 것으로 간주합니다.
-      if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
-        setIsVerified(true);
-      }
-    });
+    // 1. 페이지가 로드되면, Supabase가 URL의 토큰을 처리할 시간을 잠시 줍니다. (예: 500ms)
+    //    그 후, 현재 세션 정보가 있는지 직접 확인합니다.
+    const timer = setTimeout(() => {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          // 세션이 성공적으로 복구되었으면, 검증 완료로 처리합니다.
+          setIsVerified(true);
+        } else {
+          // 시간이 지나도 세션이 없으면, 링크가 만료되었거나 잘못된 것으로 간주합니다.
+          setError("유효하지 않거나 만료된 재설정 링크입니다. 다시 시도해주세요.");
+        }
+      });
+    }, 500);
 
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
+    return () => clearTimeout(timer); // 컴포넌트가 사라지면 타이머 정리
   }, []);
 
   const handlePasswordUpdate = async (e: React.FormEvent) => {
@@ -42,11 +44,7 @@ export function ResetPasswordPage() {
       setTimeout(() => navigate('/cmsl2004'), 2000);
     } catch (err) {
       if (err instanceof Error) {
-        if (err.message.includes('Auth session missing')) {
-          setError("세션이 만료되었거나 유효하지 않습니다. 다시 비밀번호 재설정을 요청해주세요.");
-        } else {
-          setError(err.message);
-        }
+        setError(err.message);
       } else {
         setError('An unexpected error occurred.');
       }
@@ -55,25 +53,25 @@ export function ResetPasswordPage() {
     }
   };
 
-  // 검증이 완료되기 전까지는 "Verifying..." 메시지를 표시합니다.
+  // 2. 검증이 완료되기 전까지는 "Verifying..." 또는 에러 메시지를 표시합니다.
   if (!isVerified) {
-    // URL에 토큰 정보가 없으면 잘못된 접근으로 간주합니다.
-    if (!window.location.hash.includes('access_token')) {
-      return (
-         <div className="max-w-sm mx-auto px-4 py-20 text-center">
-           <Card>
-             <CardHeader>
-               <CardTitle>오류</CardTitle>
-               <CardDescription>유효하지 않거나 만료된 재설정 링크입니다.</CardDescription>
-             </CardHeader>
-           </Card>
-         </div>
-      );
-    }
-    return <p className="text-center p-20">Verifying...</p>;
+    return (
+      <div className="max-w-sm mx-auto px-4 py-20 text-center">
+        {error ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>오류</CardTitle>
+              <CardDescription>{error}</CardDescription>
+            </CardHeader>
+          </Card>
+        ) : (
+          <p>Verifying...</p>
+        )}
+      </div>
+    );
   }
-
-  // 검증이 완료된 후에만 폼을 보여줍니다.
+  
+  // 3. 검증이 완료된 후에만 폼을 보여줍니다.
   return (
     <div className="max-w-sm mx-auto px-4 py-20">
       <Card>
@@ -90,8 +88,8 @@ export function ResetPasswordPage() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? '변경 중...' : '비밀번호 변경 완료'}
             </Button>
-            {error && <p className="text-sm text-red-500 pt-2">{error}</p>}
-            {message && <p className="text-sm text-green-600 pt-2">{message}</p>}
+            {/* 비밀번호 업데이트 시 발생하는 오류는 여기에 표시됩니다. */}
+            {message ? <p className="text-sm text-green-600 pt-2">{message}</p> : <p className="text-sm text-red-500 pt-2">{error}</p>}
           </form>
         </CardContent>
       </Card>
