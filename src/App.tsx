@@ -50,14 +50,13 @@ function App() {
   });
 
   useEffect(() => {
-    // 가장 기본적인 세션 관리 로직만 남깁니다.
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
     });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   const handlePageChange = (path: string) => {
