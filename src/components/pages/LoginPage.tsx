@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabaseClient';
 import { Link } from 'react-router-dom';
-import Turnstile from 'react-turnstile'; // ⬅️ 추가
+import Turnstile from 'react-turnstile';           // ⬅️ 추가
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
@@ -24,9 +24,7 @@ export function LoginPage() {
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
-        options: {
-          captchaToken: captchaToken ?? undefined, // ⬅️ 추가
-        },
+        options: { captchaToken: captchaToken ?? undefined },        // ⬅️ 추가
       });
 
       if (error) throw error;
@@ -56,9 +54,9 @@ export function LoginPage() {
               <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
 
-            {/* Turnstile 위젯 */}
+            {/* Turnstile 위젯: 비번 재설정 페이지와 동일한 sitekey 사용 */}
             <Turnstile
-              sitekey="0x4AAAAAAB3LouKPKufvRqXV"        // 동일한 site key 사용
+              sitekey="0x4AAAAAAB3LouKPKufvRqXV"
               onVerify={(token) => setCaptchaToken(token)}
               onExpire={() => setCaptchaToken(null)}
               onError={() => setCaptchaToken(null)}
