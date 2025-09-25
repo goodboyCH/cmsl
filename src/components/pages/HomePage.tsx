@@ -108,7 +108,18 @@ export function HomePage({ onPageChange }: HomePageProps) {
                     </motion.div>
                   ))}
                 </div>
-                <AnimatePresence>{/* ... */}</AnimatePresence>
+                <AnimatePresence>
+                  {selectedCapability && (
+                    <motion.div layoutId={`capability-card-${selectedCapability.id}`} className="absolute inset-0 w-full h-full rounded-lg overflow-hidden elegant-shadow bg-card z-10">
+                      <motion.img layoutId={`capability-img-${selectedCapability.id}`} src={selectedCapability.bgImage} alt={selectedCapability.title} className="absolute inset-0 w-full h-full object-cover"/>
+                      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent"/>
+                      <motion.div layout="position" className="relative z-10 p-8 md:p-12 text-white h-full flex flex-col justify-start items-start text-left">
+                        <h3 className="font-bold text-3xl">{selectedCapability.title}</h3>
+                        <p className="mt-2 max-w-md">{selectedCapability.description}</p>
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </section>
           </ScrollAnimation>
