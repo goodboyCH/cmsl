@@ -1,35 +1,44 @@
 import React, { useState } from 'react';
-
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabaseClient';
 import { Link } from 'react-router-dom';
+import  Turnstile  from 'react-turnstile'; // 1. 중괄호를 사용한 named import로 수정
 
 export function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!captchaToken) {
+      setError('CAPTCHA verification failed. Please try again.');
+      return;
+    }
+
     setLoading(true);
     setError('');
     setMessage('');
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        // 사용자가 링크를 클릭한 후, 비밀번호를 재설정할 페이지의 경로를 지정합니다.
-        // 이 경로는 App.tsx의 Route path와 일치해야 합니다.
         redirectTo: `${window.location.origin}/reset-password`,
+        captchaToken: captchaToken,
       });
 
       if (error) throw error;
       setMessage('비밀번호 재설정 링크가 이메일로 전송되었습니다. 이메일을 확인해주세요.');
 
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) { // 2. catch (err: any) -> catch (err)로 변경하고, 올바른 문법을 사용합니다.
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred.');
+      }
     } finally {
       setLoading(false);
     }
@@ -48,9 +57,16 @@ export function ForgotPasswordPage() {
               <Label htmlFor="email">이메일</Label>
               <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            
+            <Turnstile 
+              sitekey="0x4AAAAAAB3LouKPKufvRqXV" // 여기에 Cloudflare에서 발급받은 Site Key를 입력하세요.
+              onVerify={(token) => setCaptchaToken(token)}
+            />
+
+            <Button type="submit" className="w-full" disabled={loading || !captchaToken}>
               {loading ? '전송 중...' : '재설정 링크 받기'}
             </Button>
+            
             {message && <p className="text-sm text-green-600 pt-2">{message}</p>}
             {error && <p className="text-sm text-red-500 pt-2">{error}</p>}
           </form>

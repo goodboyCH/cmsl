@@ -163,7 +163,7 @@ export function HomePage({ onPageChange }: HomePageProps) {
                 {achievements.map(item => (
                   <div key={`${item.id}-${item.title}`} className="cursor-pointer group" onClick={() => onPageChange(item.authors ? '/publications' : '/projects')}>
                     <div className="overflow-hidden rounded-lg mb-4 aspect-[4/3] border">
-                      <img src={item.image_url || item.thumbnail_url || '/images/placeholder.png'} alt={item.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                      <img src={item.image_url || item.thumbnail_url || '/images/logo.png'} alt={item.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
                     </div>
                     <p className="text-sm text-muted-foreground">{item.authors ? 'PUBLICATION' : 'PROJECT'} · {new Date(item.created_at).toLocaleDateString()}</p>
                     {/* ⬇️ 제목 글씨 크기 키움 (text-lg) ⬇️ */}
@@ -197,7 +197,7 @@ export function HomePage({ onPageChange }: HomePageProps) {
                     onClick={() => onPageChange(latestNews[0].type === 'Notice' ? `/board/news/${latestNews[0].id}` : `/board/gallery/${latestNews[0].id}`)}
                   >
                     <div className="overflow-hidden rounded-lg mb-4 aspect-video border">
-                      <img src={latestNews[0].thumbnail_url || '/images/placeholder.png'} alt={latestNews[0].title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"/>
+                      <img src={latestNews[0].thumbnail_url || '/images/logo.png'} alt={latestNews[0].title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"/>
                     </div>
                     <div className="flex flex-col flex-grow">
                       <p className="text-sm text-muted-foreground">{latestNews[0].type.toUpperCase()} · {new Date(latestNews[0].created_at).toLocaleDateString()}</p>
@@ -218,7 +218,7 @@ export function HomePage({ onPageChange }: HomePageProps) {
                             <h4 className="text-lg font-semibold leading-snug group-hover:text-primary transition-colors">{item.title}</h4>
                           </div>
                           <div className="w-32 flex-shrink-0 aspect-video overflow-hidden rounded-lg border">
-                            <img src={item.thumbnail_url || '/images/placeholder.png'} alt={item.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                            <img src={item.thumbnail_url || '/images/logo.png'} alt={item.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
                           </div>
                         </div>
                         <div className="border-b mt-4"></div>

@@ -7,6 +7,7 @@ import { Navigation } from '@/components/Navigation';
 import { MobileNavigation } from '@/components/MobileNavigation';
 import { ScrollToTopButton } from '@/components/ScrollToTopButton';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { useIdleTimer } from '@/hooks/useIdleTimer'; // 1. 자동 로그아웃 훅을 import 합니다.
 
 // 페이지 컴포넌트들 import...
 import { HomePage } from '@/components/pages/HomePage';
@@ -42,6 +43,12 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  useIdleTimer({
+    onIdle: () => supabase.auth.signOut(), // 30분 후 로그아웃 실행
+    idleTime: 30,
+    enabled: !!session, // session이 있을 때만 (로그인 상태일 때만) 타이머 활성화
+  });
+
   useEffect(() => {
     supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
@@ -66,22 +73,32 @@ function App() {
     <LanguageProvider>
       <div className="min-h-screen bg-background">
         <header className="sticky top-0 z-30 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="container py-6">
+          <div className="w-full px-10 lg:px-24 py-6">
             <div className="flex items-center justify-between h-16">
-              <div className="flex items-center space-x-6">
+              
+              {/* 왼쪽: 로고와 연구실 이름 */}
+              <div className="flex items-center space-x-4"> {/* space-x-6 -> space-x-4로 약간 줄임 */}
                 <button 
                   onClick={() => handlePageChange('/')}
-                  className="text-3xl lg:text-4xl font-bold text-primary hover:text-primary/80 smooth-transition"
+                  className="flex-shrink-0" // 로고가 줄어들지 않도록 설정
                 >
-                  CMSL
+                  {/* 2. 로고 크기를 키웁니다. (h-16 이상도 가능) */}
+                  <img 
+                    src="/images/logo1.png" 
+                    alt="CMSL Logo" 
+                    className="h-20 w-auto" // 헤더 높이(h-16)에 꽉 차도록 크기 조정
+                  />
                 </button>
                 <span className="text-lg lg:text-xl text-muted-foreground hidden md:block">
                   Computational Materials Science Laboratory
                 </span>
               </div>
-              <div className="hidden lg:flex justify-end">
+
+              {/* 오른쪽: 네비게이션 메뉴 */}
+              <div className="hidden lg:flex">
                 <Navigation currentPage={currentPage} onPageChange={handlePageChange} />
               </div>
+
             </div>
           </div>
         </header>
@@ -167,7 +184,7 @@ function App() {
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <p>Prof. Cha Pil-Ryung</p>
                   <p>cprdream@kookmin.ac.kr</p>
-                  <p>+82-XX-XXXX-XXXX</p>
+                  <p>+82-2-910-4656</p>
                 </div>
               </div>
             </div>

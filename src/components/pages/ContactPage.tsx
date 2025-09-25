@@ -61,7 +61,7 @@ export function ContactPage() {
                 <MapPin className="h-5 w-5 text-primary mt-1" />
                 <div>
                   <h4 className="font-semibold text-foreground">Location</h4>
-                  <p>School of Materials Science & Engineering</p>
+                  <p>School of Materials Science & Engineering Room 443</p>
                   <p>Kookmin University</p>
                   <p>77 Jeongneung-ro, Seongbuk-gu, Seoul, 02707, Korea</p>
                 </div>
@@ -71,7 +71,7 @@ export function ContactPage() {
                 <div>
                   <h4 className="font-semibold text-foreground">Principal Investigator</h4>
                   <a href="mailto:pilryung.cha@kookmin.ac.kr" className="hover:text-primary">
-                    pilryung.cha@kookmin.ac.kr
+                    cprdream@kookmin.ac.kr
                   </a>
                 </div>
               </div>
@@ -79,7 +79,7 @@ export function ContactPage() {
                 <Phone className="h-5 w-5 text-primary mt-1" />
                 <div>
                   <h4 className="font-semibold text-foreground">Phone</h4>
-                  <p>+82-2-910-XXXX</p>
+                  <p>+82-2-910-4656</p>
                 </div>
               </div>
             </CardContent>
