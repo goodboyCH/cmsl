@@ -21,12 +21,14 @@ export function ResetPasswordPage() {
     setError('');
     setMessage('');
     try {
+      // 이제 이 페이지는 인증된 세션이 있을 때만 렌더링되므로, 바로 updateUser를 호출하면 됩니다.
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
       setMessage('비밀번호가 성공적으로 변경되었습니다. 2초 후 로그인 페이지로 이동합니다.');
       setTimeout(() => navigate('/cmsl2004'), 2000);
     } catch (err: any) {
-      setError(err.message);
+      if (err instanceof Error) setError(err.message);
+      else setError('An unexpected error occurred.');
     } finally {
       setLoading(false);
     }

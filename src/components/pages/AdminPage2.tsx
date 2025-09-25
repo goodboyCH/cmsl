@@ -171,20 +171,16 @@ export function AdminPage2({  onNavigate }: AdminPage2Props) {
                 <h3 className="text-xl font-bold">Page Content Management</h3>
               </div>
               <div className="space-y-2">
-                {/* ⬇️ 이 부분을 수정합니다. 하드코딩된 'Home Page' 버튼을 삭제하고, DB에서 불러온 목록만 표시합니다. ⬇️ */}
                 {loading ? <p>Loading pages...</p> : pages.map(page => (
+                  // ⬇️ 이 부분을 수정하여 중복된 버튼을 제거합니다. ⬇️
                   <div key={page.page_key} className="flex items-center justify-between p-2 border rounded-md">
-                    <div>
-                      {/* page_key가 'home'일 경우 'Home Page'로 표시합니다. */}
-                      <p className="font-semibold">{page.page_key === 'home' ? 'Home Page' : (page.title || page.page_key)}</p>
-                    </div>
-                    <div className="space-x-2">
-                      <Button variant="outline" size="sm" onClick={() => setEditView({ type: 'page', key: page.page_key })}>Edit</Button>
-                    </div>
-                    <div className="flex items-center justify-between p-2 border rounded-md">
-                      <p className="font-semibold">Introduction Page</p>
-                      <Button variant="outline" size="sm" onClick={() => setEditView({ type: 'page', key: 'introduction' })}>Edit</Button>
-                    </div>
+                    <p className="font-semibold">
+                      {/* 'home' 키는 'Home Page'로, 'introduction' 키는 'Introduction Page' 등으로 표시 */}
+                      {page.page_key === 'home' ? 'Home Page' : 
+                       page.page_key === 'introduction' ? 'Introduction Page' : 
+                       (page.title || page.page_key)}
+                    </p>
+                    <Button variant="outline" size="sm" onClick={() => setEditView({ type: 'page', key: page.page_key })}>Edit</Button>
                   </div>
                 ))}
               </div>

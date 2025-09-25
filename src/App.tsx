@@ -40,6 +40,7 @@ Quill.register('modules/imageResize', ImageResize);
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -50,10 +51,15 @@ function App() {
   });
 
   useEffect(() => {
-    supabase.auth.onAuthStateChange((_event, session) => {
+    supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
+      // 비밀번호 복구 이벤트가 발생하면, 재설정 상태를 true로 변경
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsResettingPassword(true);
+      } else {
+        setIsResettingPassword(false);
+      }
     });
-
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
     });
@@ -137,7 +143,11 @@ function App() {
             <Route path="/cmsl2004" element={session ? <AdminPage onNavigate={handlePageChange} /> : <LoginPage />} />
             <Route path="/cmsl20042" element={session ? <AdminPage2 onNavigate={handlePageChange} /> : <LoginPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route 
+              path="/reset-password" 
+              element={isResettingPassword ? <ResetPasswordPage /> : <div>Verifying...</div>} 
+            />
+            
             {/* 위에 정의되지 않은 모든 경로는 홈으로 리디렉션 */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
