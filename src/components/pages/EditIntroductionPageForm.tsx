@@ -25,6 +25,7 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
     fetchContent();
   }, []);
 
+  // 최상위 객체의 속성을 변경하는 함수 (e.g., mission_section.title)
   const handleNestedChange = (section: string, field: string, value: string) => {
     setContent((prev: any) => ({
       ...prev,
@@ -32,26 +33,31 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
     }));
   };
 
+  // 배열 내부 객체의 속성을 변경하는 함수 (e.g., core_values_section.values[0].title)
   const handleArrayItemChange = (section: string, index: number, field: string, value: string) => {
-    const updatedItems = [...content[section].values];
+    const sectionData = content[section] || { values: [] };
+    const updatedItems = [...sectionData.values];
     updatedItems[index] = { ...updatedItems[index], [field]: value };
-    setContent({ ...content, [section]: { ...content[section], values: updatedItems } });
+    setContent({ ...content, [section]: { ...sectionData, values: updatedItems } });
   };
   
+  // 배열에 새 항목을 추가하는 함수
   const addItemToArray = (section: string, newItem: object) => {
-    const currentSection = content[section] || { values: [] };
-    setContent({ ...content, [section]: { ...currentSection, values: [...(currentSection.values || []), newItem] }});
+    const sectionData = content[section] || { values: [] };
+    setContent({ ...content, [section]: { ...sectionData, values: [...(sectionData.values || []), newItem] }});
   };
   
+  // 배열에서 항목을 삭제하는 함수
   const removeItemFromArray = (section: string, indexToRemove: number) => {
     setContent({ ...content, [section]: { ...content[section], values: content[section].values.filter((_: any, index: number) => index !== indexToRemove) }});
   };
 
+  // Vision 섹션의 문단들을 관리하는 함수
   const handleVisionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const paragraphs = e.target.value.split('\n');
     setContent({ ...content, vision_section: { ...content.vision_section, paragraphs } });
   };
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -79,6 +85,7 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <Accordion type="multiple" defaultValue={['item-1']} className="w-full">
+            
             <AccordionItem value="item-1">
               <AccordionTrigger>Section 1: Mission</AccordionTrigger>
               <AccordionContent className="space-y-4 pt-2">
@@ -116,6 +123,7 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
                 </div>
               </AccordionContent>
             </AccordionItem>
+            
           </Accordion>
 
           <div className="flex justify-end gap-2 pt-4">
