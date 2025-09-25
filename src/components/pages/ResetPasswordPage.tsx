@@ -11,19 +11,20 @@ export function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-  const [sessionReady, setSessionReady] = useState(false); // 1. 세션 준비 상태 추가
+  const [sessionReady, setSessionReady] = useState(false); // 1. 세션 준비 상태를 관리
   const navigate = useNavigate();
 
   useEffect(() => {
-    // 2. onAuthStateChange 리스너를 이 페이지 내에서 직접 사용합니다.
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      // Supabase가 URL 토큰을 처리하고 'PASSWORD_RECOVERY' 이벤트를 보내면,
-      // 세션이 준비되었다고 판단합니다.
+    // 2. onAuthStateChange 리스너를 이 페이지에서 직접 사용합니다.
+    const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
+      // Supabase가 URL 토큰 처리를 마치면 'PASSWORD_RECOVERY' 이벤트를 보냅니다.
+      // 이 신호를 받으면, 세션이 준비되었다고 판단합니다.
       if (event === 'PASSWORD_RECOVERY') {
         setSessionReady(true);
       }
     });
 
+    // 컴포넌트가 사라질 때 리스너를 정리합니다.
     return () => {
       authListener.subscription.unsubscribe();
     };
@@ -39,9 +40,8 @@ export function ResetPasswordPage() {
       if (error) throw error;
       setMessage('비밀번호가 성공적으로 변경되었습니다. 2초 후 로그인 페이지로 이동합니다.');
       setTimeout(() => navigate('/cmsl2004'), 2000);
-    } catch (err: any) {
+    } catch (err) {
       if (err instanceof Error) {
-        // "Auth session missing!" 에러를 더 친절한 메시지로 변경
         if (err.message.includes('Auth session missing')) {
           setError("세션이 만료되었습니다. 다시 비밀번호 재설정을 요청해주세요.");
         } else {
