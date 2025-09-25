@@ -11,16 +11,15 @@ export function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-  const [isVerified, setIsVerified] = useState(false);
+  const [isVerified, setIsVerified] = useState(false); // 1. 검증 완료 상태만 관리
   const navigate = useNavigate();
 
   useEffect(() => {
-    // onAuthStateChange 리스너는 Supabase가 URL의 토큰을 처리하고
-    // 세션 상태를 변경할 때마다 호출됩니다.
+    // 2. onAuthStateChange는 세션이 바뀔 때마다 호출됩니다.
+    // 사용자가 링크를 타고 들어오면, Supabase가 토큰을 처리하고 세션을 설정하면서 이 함수가 호출됩니다.
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      // 'PASSWORD_RECOVERY' 이벤트가 발생하거나, 세션이 성공적으로 설정되면
-      // 검증이 완료된 것으로 간주합니다.
-      if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
+      // 세션이 성공적으로 설정되면 (로그인 되면), 검증 완료로 처리합니다.
+      if (session) {
         setIsVerified(true);
       }
     });
@@ -40,10 +39,10 @@ export function ResetPasswordPage() {
       if (error) throw error;
       setMessage('비밀번호가 성공적으로 변경되었습니다. 2초 후 로그인 페이지로 이동합니다.');
       setTimeout(() => navigate('/cmsl2004'), 2000);
-    } catch (err: any) {
+    } catch (err) {
       if (err instanceof Error) {
         if (err.message.includes('Auth session missing')) {
-          setError("세션이 만료되었거나 유효하지 않습니다. 다시 비밀번호 재설정을 요청해주세요.");
+          setError("세션이 만료되었습니다. 다시 비밀번호 재설정을 요청해주세요.");
         } else {
           setError(err.message);
         }
@@ -55,8 +54,9 @@ export function ResetPasswordPage() {
     }
   };
 
-  // 검증이 완료되기 전까지는 "Verifying..." 메시지를 표시합니다.
+  // 3. 검증이 완료되기 전까지는 "Verifying..." 메시지를 표시합니다.
   if (!isVerified) {
+    // URL에 토큰이 없으면 잘못된 접근으로 간주합니다.
     if (!window.location.hash.includes('access_token')) {
       return (
          <div className="max-w-sm mx-auto px-4 py-20 text-center">
@@ -72,7 +72,7 @@ export function ResetPasswordPage() {
     return <p className="text-center p-20">Verifying...</p>;
   }
 
-  // 검증이 완료된 후에만 폼을 보여줍니다.
+  // 4. 검증이 완료된 후에만 폼을 보여줍니다.
   return (
     <div className="max-w-sm mx-auto px-4 py-20">
       <Card>
