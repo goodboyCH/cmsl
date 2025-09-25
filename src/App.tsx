@@ -40,7 +40,6 @@ Quill.register('modules/imageResize', ImageResize);
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
-  const [isResettingPassword, setIsResettingPassword] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -51,19 +50,14 @@ function App() {
   });
 
   useEffect(() => {
-    // 1. 세션 상태를 업데이트하는 리스너만 남겨둡니다.
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    // 가장 기본적인 세션 관리 로직만 남깁니다.
+    supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
 
-    // 2. 초기 세션을 가져옵니다.
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
     });
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
   }, []);
 
   const handlePageChange = (path: string) => {
@@ -144,11 +138,8 @@ function App() {
             <Route path="/cmsl2004" element={session ? <AdminPage onNavigate={handlePageChange} /> : <LoginPage />} />
             <Route path="/cmsl20042" element={session ? <AdminPage2 onNavigate={handlePageChange} /> : <LoginPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route 
-              path="/reset-password" 
-              element={<ResetPasswordPage />} 
-            />
-            
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+
             {/* 위에 정의되지 않은 모든 경로는 홈으로 리디렉션 */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
