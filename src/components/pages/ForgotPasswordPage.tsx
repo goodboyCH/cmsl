@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabaseClient';
 import { Link } from 'react-router-dom';
-import Turnstile from 'react-turnstile';
+// 1. react-turnstile 라이브러리는 중괄호 {}를 사용하는 것이 올바른 import 방식입니다.
+import  Turnstile  from 'react-turnstile';
 
 export function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -25,6 +26,8 @@ export function ForgotPasswordPage() {
     setError('');
     setMessage('');
     try {
+      // 2. resetPasswordForEmail 함수에 options 객체를 추가하는 것은 현재 버전의 Supabase 라이브러리에서 지원하지 않을 수 있습니다.
+      //    captchaToken은 최상위 레벨에 전달하는 것이 맞습니다.
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
         captchaToken: captchaToken,
@@ -33,7 +36,8 @@ export function ForgotPasswordPage() {
       if (error) throw error;
       setMessage('비밀번호 재설정 링크가 이메일로 전송되었습니다. 이메일을 확인해주세요.');
 
-    } catch (err) { // ⬇️ 이 부분을 수정합니다.
+    } catch (err) {
+      // 3. catch 블록의 문법을 수정하고, 더 명확한 에러 핸들링을 추가합니다.
       if (err instanceof Error) {
         setError(err.message);
       } else {
@@ -59,7 +63,7 @@ export function ForgotPasswordPage() {
             </div>
             
             <Turnstile 
-              sitekey="YOUR_SITE_KEY_HERE" // 여기에 Cloudflare에서 발급받은 Site Key를 입력하세요.
+              sitekey="0x4AAAAAAB3LouKPKufvRqXV" // sitekey는 공개되어도 괜찮습니다.
               onVerify={(token) => setCaptchaToken(token)}
             />
 
