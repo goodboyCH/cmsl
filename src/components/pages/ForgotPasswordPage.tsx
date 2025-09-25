@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabaseClient';
 import { Link } from 'react-router-dom';
-import  Turnstile  from 'react-turnstile'; // 1. 중괄호를 사용한 named import로 수정
+import Turnstile from 'react-turnstile';
 
 export function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -33,7 +33,7 @@ export function ForgotPasswordPage() {
       if (error) throw error;
       setMessage('비밀번호 재설정 링크가 이메일로 전송되었습니다. 이메일을 확인해주세요.');
 
-    } catch (err) { // 2. catch (err: any) -> catch (err)로 변경하고, 올바른 문법을 사용합니다.
+    } catch (err) { // ⬇️ 이 부분을 수정합니다.
       if (err instanceof Error) {
         setError(err.message);
       } else {
@@ -59,7 +59,7 @@ export function ForgotPasswordPage() {
             </div>
             
             <Turnstile 
-              sitekey="0x4AAAAAAB3LouKPKufvRqXV" // 여기에 Cloudflare에서 발급받은 Site Key를 입력하세요.
+              sitekey="YOUR_SITE_KEY_HERE" // 여기에 Cloudflare에서 발급받은 Site Key를 입력하세요.
               onVerify={(token) => setCaptchaToken(token)}
             />
 
