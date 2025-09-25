@@ -1,95 +1,118 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ScrollAnimation } from '../ScrollAnimation';
-import { supabase } from '@/lib/supabaseClient';
-import { Aperture, Atom, FlaskConical, Users, LucideProps } from 'lucide-react';
+import React from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { ScrollingFocusSection } from '@/components/ScrollingFocusSection'; // 새로 만든 컴포넌트 import
+import { Cpu, Atom, TestTube2, BrainCircuit, Car, Film, HeartPulse, Magnet, Building, Users } from 'lucide-react';
 
-const iconMap: { [key: string]: React.ElementType<LucideProps> } = {
-  Clarity: Aperture,
-  Collaboration: Users,
-  Industry: Atom,
-  Talent: FlaskConical,
+// --- 페이지 콘텐츠 데이터 ---
+const pageContent = {
+  mission: {
+    video_url: "/videos/abstract-background.mp4",
+    korean_mission: "미세조직의 물리로부터 예측가능한 재료설계를 구현한다",
+    english_mission: "Achieving Predictable Materials Design from the Physics of Microstructure"
+  },
+  capabilities: {
+    title: "Our Core Capabilities",
+    items: [
+      { icon: Cpu, title: "Multi-scale Phase-Field Modeling", description: "다중 스케일에서 미세조직의 상변태 및 동적 거동을 정밀하게 예측하여, NdFeB 자성재료, Al-Si 합금 등 다양한 소재의 특성을 제어합니다." },
+      { icon: BrainCircuit, title: "AI-driven Active Learning", description: "KISTI 슈퍼컴퓨터를 활용한 대규모 시뮬레이션과 AI 액티브 러닝을 통해, 실험적 한계를 뛰어넘는 새로운 재료 물성 및 Landau 계수를 효율적으로 탐색합니다." },
+      { icon: TestTube2, title: "Electrochemical Potential Mapping", description: "부식 현상 예측을 위해 Mg-Ca, Silafont 합금 등의 전기화학적 전위 분포를 분석하고, KPFM 측정 데이터와 비교하여 모델의 정확도를 검증합니다." },
+      { icon: Atom, title: "Thermodynamic & Kinetic Analysis", description: "계면 에너지 이방성(Anisotropy), Jackson-Hunt 이론 등 재료의 열역학 및 반응속도론적 원리를 깊이 있게 탐구하여 시뮬레이션의 물리적 기반을 다집니다." }
+    ]
+  },
+  research: {
+    title: "Major Research Areas",
+    items: [
+      { icon: Car, title: "Advanced Automotive Alloys", description: "현대자동차와 협력하여 Al-Fe-Mn-Si 합금의 응고 거동을 시뮬레이션하고, 고강도 경량 차체 및 부품 소재 개발에 기여합니다.", imageUrl: "/images/research-auto.jpg" },
+      { icon: Magnet, title: "Next-Gen Magnetic Materials", description: "NdFeB 스트립 캐스팅 공정 시뮬레이션을 통해 차세대 고성능 영구자석의 미세조직 제어 기술을 확보하고, 전기차 모터 및 풍력 발전기 효율 향상에 기여합니다.", imageUrl: "/images/research-magnet.jpg" },
+      { icon: Film, title: "Functional HZO Thin Films", description: "반강자성(AFE) 특성을 지닌 HZO 박막을 모델링하여, 차세대 메모리 소자 및 센서에 적용 가능한 신소재 개발의 이론적 기반을 제공합니다.", imageUrl: "/images/research-film.jpg" },
+      { icon: HeartPulse, title: "Biomedical & Lightweight Alloys", description: "Mg-Ca 합금의 부식 메커니즘을 분석하여 체내에서 안전하게 분해되는 생분해성 임플란트 및 초경량 항공우주 부품 소재를 설계합니다.", imageUrl: "/images/research-bio.jpg" }
+    ]
+  },
+  impact: {
+    title: "Our Impact",
+    items: [
+        { icon: Building, title: "Bridging Science and Industry", description: "저희 연구실은 심도 있는 물리 기반 모델링과 최신 AI 기술을 융합하여, 기초 과학적 원리 탐구에서부터 산업적 난제 해결에 이르기까지 재료 과학의 새로운 지평을 열어가고 있습니다." },
+        { icon: Users, title: "Fostering Future Leaders", description: "다양한 국책 및 기업 과제 수행을 통해 학생들이 이론과 실제를 겸비한 재료 분야의 전문가로 성장할 수 있도록 지원하며, 국내외 학회에서 연구 성과를 활발히 교류합니다." }
+    ],
+    logos: [
+      { name: "Hyundai Motors", url: "/images/hyundai-logo.png" },
+      { name: "KISTI", url: "/images/kisti-logo.png" },
+    ]
+  }
 };
 
-interface IntroductionContent {
-  mission_section?: { image_url: string; title: string; korean_mission: string; english_mission: string; };
-  core_values_section?: { title: string; values: { icon: string; title: string; description: string }[]; };
-  vision_section?: { title: string; paragraphs: string[]; };
-}
-
 export function IntroductionPage() {
-  const [content, setContent] = useState<IntroductionContent | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchContent = async () => {
-      setLoading(true);
-      const { data } = await supabase.from('pages').select('content').eq('page_key', 'introduction').single();
-      if (data?.content) {
-        setContent(data.content);
-      }
-      setLoading(false);
-    };
-    fetchContent();
-  }, []);
-
-  if (loading) return <p className="text-center p-20">Loading Introduction...</p>;
-  if (!content) return <p className="text-center p-20">Failed to load content. Please add data in the admin panel.</p>;
+  const { scrollYProgress: missionProgress } = useScroll({ offset: ['start start', 'end start'] });
+  const missionBgScale = useTransform(missionProgress, [0, 1], [1, 1.15]);
 
   return (
-    <div className="container py-12 space-y-24">
-      {/* Mission Section */}
-      {content.mission_section && (
-        <ScrollAnimation>
-          <section className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="rounded-lg overflow-hidden elegant-shadow aspect-video">
-              <img src={content.mission_section.image_url} alt="Mission" className="w-full h-full object-cover" />
-            </div>
-            <div className="space-y-4 text-center lg:text-left">
-              <h2 className="text-3xl font-bold text-primary">{content.mission_section.title}</h2>
-              <p className="text-2xl font-semibold leading-relaxed">"{content.mission_section.korean_mission}"</p>
-              <p className="text-xl text-muted-foreground">"{content.mission_section.english_mission}"</p>
-            </div>
-          </section>
-        </ScrollAnimation>
-      )}
-      
-      {/* Core Values Section */}
-      {content.core_values_section && (
-        <ScrollAnimation delay={100}>
-          <section className="space-y-12">
-            <h2 className="text-3xl font-bold text-center text-primary">{content.core_values_section.title}</h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {(content.core_values_section.values || []).map((value, index) => {
-                const IconComponent = iconMap[value.icon] || Atom;
-                return (
-                  <Card key={index} className="elegant-shadow text-center">
-                    <CardHeader>
-                      <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                        <IconComponent className="h-8 w-8 text-primary" />
-                      </div>
-                      <CardTitle>{value.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent><CardDescription>{value.description}</CardDescription></CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </section>
-        </ScrollAnimation>
-      )}
+    <div className="bg-background text-foreground overflow-x-hidden">
+      {/* Section 1: The Mission */}
+      <section className="h-screen w-screen flex items-center justify-center relative text-white text-center p-4">
+        <motion.div
+          className="absolute inset-0 bg-black z-0 overflow-hidden"
+          style={{ scale: missionBgScale }}
+        >
+          <video
+            className="w-full h-full object-cover opacity-40"
+            src={pageContent.mission.video_url}
+            autoPlay loop muted playsInline
+          />
+        </motion.div>
+        <motion.div 
+          className="relative z-10 space-y-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.5 }}
+        >
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-shadow-lg">{pageContent.mission.korean_mission}</h1>
+          <p className="text-xl md:text-2xl text-white/80 font-light text-shadow">"{pageContent.mission.english_mission}"</p>
+        </motion.div>
+      </section>
 
-      {/* Vision Section */}
-      {content.vision_section && (
-        <ScrollAnimation delay={200}>
-          <section className="text-center space-y-6 max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold text-primary">{content.vision_section.title}</h2>
-            <div className="space-y-4 text-lg text-muted-foreground leading-relaxed">
-              {(content.vision_section.paragraphs || []).map((p, i) => <p key={i}>{p}</p>)}
-            </div>
-          </section>
-        </ScrollAnimation>
-      )}
+      {/* Section 2: Core Capabilities */}
+      <ScrollingFocusSection 
+        sectionTitle={pageContent.capabilities.title} 
+        items={pageContent.capabilities.items}
+      />
+      
+      {/* Section 3: Major Research Areas */}
+      <ScrollingFocusSection 
+        sectionTitle={pageContent.research.title} 
+        items={pageContent.research.items}
+        backgroundColor="bg-secondary"
+        textColor="text-secondary-foreground"
+      />
+
+      {/* Section 4: The Impact */}
+      <ScrollingFocusSection 
+        sectionTitle={pageContent.impact.title} 
+        items={pageContent.impact.items}
+      />
+
+      {/* Impact Section의 로고 부분은 별도로 렌더링 */}
+      <section className="container pb-20 md:pb-32 text-center space-y-8">
+        <h3 className='text-2xl font-bold text-muted-foreground'>Key Partners</h3>
+        <motion.div 
+          className="flex justify-center items-center gap-12 flex-wrap"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ staggerChildren: 0.3 }}
+        >
+          {pageContent.impact.logos.map((logo, index) => (
+            <motion.div
+              key={index}
+              variants={{
+                hidden: { opacity: 0, scale: 0.5 },
+                visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: 'easeOut' } }
+              }}
+            >
+              <img src={logo.url} alt={logo.name} className="h-12 lg:h-16 opacity-70 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-300" />
+            </motion.div>
+          ))}
+        </motion.div>
+      </section>
     </div>
   );
 }

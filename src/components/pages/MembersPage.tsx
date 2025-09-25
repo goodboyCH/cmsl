@@ -95,45 +95,59 @@ export function MembersPage() {
           <ScrollAnimation key={group.title} delay={200}>
             <div className="space-y-6">
               <h2 className="text-2xl font-bold text-primary">{group.title}</h2>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* 한 줄에 2개의 카드를 표시하도록 그리드 설정 */}
+              <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-6">
                 {group.members.map((member) => (
                   <Card 
                     key={member.id}
-                    className="elegant-shadow smooth-transition hover:shadow-lg cursor-pointer flex flex-col h-full"
+                    className="elegant-shadow smooth-transition hover:shadow-lg cursor-pointer"
                     onClick={() => setSelectedMember(member)}
                   >
-                    <CardHeader className="pb-4">
-                      <div className="flex items-start gap-4">
-                        <img src={member.image_url} alt={member.name} className="w-20 h-20 rounded-md object-cover border" />
-                        <div className="flex-1">
-                          <Badge className={`${getPositionColor(member.position)} mb-1`}>
-                            {member.position}
-                          </Badge>
-                          <CardTitle className="text-lg">{member.name}</CardTitle>
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                            <Calendar className="h-3 w-3" />
-                            {member.year}
+                    {/* ⬇️ 여기가 완전히 새로 구성된 카드 레이아웃입니다. ⬇️ */}
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-6">
+                        {/* 1. 프로필 이미지 */}
+                        <img 
+                          src={member.image_url} 
+                          alt={member.name} 
+                          className="w-36 h-48 rounded-md object-cover border flex-shrink-0" // 3:4 비율 (w-24 h-32)
+                        />
+                        {/* 2. 텍스트 정보 전체 영역 */}
+                        <div className="flex flex-col justify-between h-full w-full">
+                          {/* 2a. 상단 정보 (이름, 직책, 기간) */}
+                          <div>
+                            <Badge className={`${getPositionColor(member.position)} mb-2`}>
+                              {member.position}
+                            </Badge>
+                            <CardTitle className="text-xl">{member.name}</CardTitle>
+                            <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+                              <Calendar className="h-4 w-4" />
+                              {member.year}
+                            </div>
+                          </div>
+                          
+                          {/* 2b. 중간 정보 (Research) */}
+                          <div className="mt-3">
+                            <h4 className="font-medium text-primary text-sm mb-1 flex items-center gap-2">
+                              <GraduationCap className="h-4 w-4" />
+                              Research
+                            </h4>
+                            <p className="text-muted-foreground leading-snug text-sm">
+                              {member.research_focus}
+                            </p>
+                          </div>
+
+                          {/* 2c. 하단 정보 (이메일) */}
+                          <div className="pt-3 border-t mt-3">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Mail className="h-4 w-4" />
+                              <span>{member.email}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </CardHeader>
-                    <CardContent className="space-y-3 flex-grow flex flex-col justify-between text-sm">
-                      <div>
-                        <h4 className="font-medium text-primary mb-1 flex items-center gap-2">
-                          <GraduationCap className="h-4 w-4" />
-                          Research
-                        </h4>
-                        <p className="text-muted-foreground leading-snug">
-                          {member.research_focus}
-                        </p>
-                      </div>
-                      <div className="pt-2 border-t">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Mail className="h-3 w-3" />
-                          <span>{member.email}</span>
-                        </div>
-                      </div>
                     </CardContent>
+                    {/* ⬆️ 카드 레이아웃 끝 ⬆️ */}
                   </Card>
                 ))}
               </div>

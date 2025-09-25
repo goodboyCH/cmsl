@@ -7,8 +7,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/lib/supabaseClient';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Trash2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface EditIntroductionPageFormProps { onBack: () => void; }
+
+// 사용 가능한 아이콘 목록을 늘립니다.
+const iconOptions = ["Cpu", "Atom", "FlaskConical", "TestTube2", "BrainCircuit", "Car", "Film", "HeartPulse", "Magnet", "Building", "Users"];
 
 export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormProps) {
   const [content, setContent] = useState<any>(null);
@@ -25,37 +29,27 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
     fetchContent();
   }, []);
 
-  // 최상위 객체의 속성을 변경하는 함수 (e.g., mission_section.title)
-  const handleNestedChange = (section: string, field: string, value: string) => {
+  const handleSectionChange = (section: string, field: string, value: any) => {
     setContent((prev: any) => ({
       ...prev,
       [section]: { ...prev[section], [field]: value }
     }));
   };
 
-  // 배열 내부 객체의 속성을 변경하는 함수 (e.g., core_values_section.values[0].title)
-  const handleArrayItemChange = (section: string, index: number, field: string, value: string) => {
-    const sectionData = content[section] || { values: [] };
-    const updatedItems = [...sectionData.values];
+  const handleArrayItemChange = (section: string, arrayName: string, index: number, field: string, value: string) => {
+    const updatedItems = [...(content[section]?.[arrayName] || [])];
     updatedItems[index] = { ...updatedItems[index], [field]: value };
-    setContent({ ...content, [section]: { ...sectionData, values: updatedItems } });
+    handleSectionChange(section, arrayName, updatedItems);
   };
   
-  // 배열에 새 항목을 추가하는 함수
-  const addItemToArray = (section: string, newItem: object) => {
-    const sectionData = content[section] || { values: [] };
-    setContent({ ...content, [section]: { ...sectionData, values: [...(sectionData.values || []), newItem] }});
+  const addItemToArray = (section: string, arrayName: string, newItem: object) => {
+    const updatedItems = [...(content[section]?.[arrayName] || []), newItem];
+    handleSectionChange(section, arrayName, updatedItems);
   };
   
-  // 배열에서 항목을 삭제하는 함수
-  const removeItemFromArray = (section: string, indexToRemove: number) => {
-    setContent({ ...content, [section]: { ...content[section], values: content[section].values.filter((_: any, index: number) => index !== indexToRemove) }});
-  };
-
-  // Vision 섹션의 문단들을 관리하는 함수
-  const handleVisionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const paragraphs = e.target.value.split('\n');
-    setContent({ ...content, vision_section: { ...content.vision_section, paragraphs } });
+  const removeItemFromArray = (section: string, arrayName: string, indexToRemove: number) => {
+    const updatedItems = (content[section]?.[arrayName] || []).filter((_: any, index: number) => index !== indexToRemove);
+    handleSectionChange(section, arrayName, updatedItems);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,63 +68,104 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
     }
   };
 
-  if (loading) return <p className="text-center p-8">Loading Introduction Page Editor...</p>;
+  if (loading) return <p className="text-center p-8">Loading Editor...</p>;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Introduction 페이지 수정</CardTitle>
-        <CardDescription>페이지의 각 섹션별 내용을 수정합니다.</CardDescription>
+        <CardDescription>페이지의 각 섹션별 내용을 수정합니다. (Scrollytelling 버전)</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <Accordion type="multiple" defaultValue={['item-1']} className="w-full">
             
             <AccordionItem value="item-1">
+              {/* Mission 섹션 폼은 이전과 동일 */}
               <AccordionTrigger>Section 1: Mission</AccordionTrigger>
-              <AccordionContent className="space-y-4 pt-2">
-                <div className="space-y-2"><Label>Background Image URL</Label><Input value={content?.mission_section?.image_url || ''} onChange={(e) => handleNestedChange('mission_section', 'image_url', e.target.value)} /></div>
-                <div className="space-y-2"><Label>Title</Label><Input value={content?.mission_section?.title || ''} onChange={(e) => handleNestedChange('mission_section', 'title', e.target.value)} /></div>
-                <div className="space-y-2"><Label>Korean Mission</Label><Textarea value={content?.mission_section?.korean_mission || ''} onChange={(e) => handleNestedChange('mission_section', 'korean_mission', e.target.value)} /></div>
-                <div className="space-y-2"><Label>English Mission</Label><Textarea value={content?.mission_section?.english_mission || ''} onChange={(e) => handleNestedChange('mission_section', 'english_mission', e.target.value)} /></div>
+               <AccordionContent className="space-y-4 pt-2">
+                <div className="space-y-2"><Label>Background Video URL</Label><Input value={content?.mission?.video_url || ''} onChange={(e) => handleSectionChange('mission', 'video_url', e.target.value)} /></div>
+                <div className="space-y-2"><Label>Korean Mission</Label><Textarea value={content?.mission?.korean_mission || ''} onChange={(e) => handleSectionChange('mission', 'korean_mission', e.target.value)} /></div>
+                <div className="space-y-2"><Label>English Mission</Label><Textarea value={content?.mission?.english_mission || ''} onChange={(e) => handleSectionChange('mission', 'english_mission', e.target.value)} /></div>
               </AccordionContent>
             </AccordionItem>
 
+            {/* Core Capabilities 섹션 폼 */}
             <AccordionItem value="item-2">
-              <AccordionTrigger>Section 2: Core Values</AccordionTrigger>
+              <AccordionTrigger>Section 2: Core Capabilities</AccordionTrigger>
               <AccordionContent className="space-y-4 pt-2">
-                <div className="space-y-2"><Label>Section Title</Label><Input value={content?.core_values_section?.title || ''} onChange={(e) => handleNestedChange('core_values_section', 'title', e.target.value)} /></div>
-                {(content?.core_values_section?.values || []).map((item: any, index: number) => (
-                  <div key={index} className="p-3 border rounded-md space-y-2 relative">
-                    <Label>Value #{index + 1}</Label>
-                    <Input placeholder="Icon Name (e.g., Clarity, Atom)" value={item.icon} onChange={(e) => handleArrayItemChange('core_values_section', index, 'icon', e.target.value)} />
-                    <Input placeholder="Title" value={item.title} onChange={(e) => handleArrayItemChange('core_values_section', index, 'title', e.target.value)} />
-                    <Textarea placeholder="Description" value={item.description} onChange={(e) => handleArrayItemChange('core_values_section', index, 'description', e.target.value)} />
-                    <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-6 w-6" onClick={() => removeItemFromArray('core_values_section', index)}><Trash2 className="h-4 w-4"/></Button>
+                <div className="space-y-2"><Label>Section Title</Label><Input value={content?.capabilities?.title || ''} onChange={(e) => handleSectionChange('capabilities', 'title', e.target.value)} /></div>
+                {(content?.capabilities?.items || []).map((item: any, index: number) => (
+                  <div key={index} className="p-4 border rounded-md space-y-3 relative">
+                     <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeItemFromArray('capabilities', 'items', index)}><Trash2 className="h-4 w-4"/></Button>
+                    <div className="space-y-2"><Label>Icon</Label><Select value={item.icon} onValueChange={(value) => handleArrayItemChange('capabilities', 'items', index, 'icon', value)}><SelectTrigger><SelectValue placeholder="Select an icon" /></SelectTrigger><SelectContent>{iconOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}</SelectContent></Select></div>
+                    <div className="space-y-2"><Label>Title</Label><Input value={item.title} onChange={(e) => handleArrayItemChange('capabilities', 'items', index, 'title', e.target.value)} /></div>
+                    <div className="space-y-2"><Label>Description</Label><Textarea value={item.description} onChange={(e) => handleArrayItemChange('capabilities', 'items', index, 'description', e.target.value)} /></div>
                   </div>
                 ))}
-                <Button type="button" variant="outline" size="sm" onClick={() => addItemToArray('core_values_section', {icon: '', title: '', description: ''})}>Add Value</Button>
+                <Button type="button" variant="outline" size="sm" onClick={() => addItemToArray('capabilities', 'items', {icon: 'Cpu', title: '', description: ''})}>Add Capability</Button>
               </AccordionContent>
             </AccordionItem>
-            
+
+            {/* Research Areas 섹션 폼 */}
             <AccordionItem value="item-3">
-              <AccordionTrigger>Section 3: Vision</AccordionTrigger>
+              <AccordionTrigger>Section 3: Research Areas</AccordionTrigger>
               <AccordionContent className="space-y-4 pt-2">
-                <div className="space-y-2"><Label>Section Title</Label><Input value={content?.vision_section?.title || ''} onChange={(e) => handleNestedChange('vision_section', 'title', e.target.value)} /></div>
-                <div className="space-y-2">
-                  <Label>Paragraphs (한 줄에 한 문단씩)</Label>
-                  <Textarea value={(content?.vision_section?.paragraphs || []).join('\n')} onChange={handleVisionChange} rows={6} />
+                <div className="space-y-2"><Label>Section Title</Label><Input value={content?.research?.title || ''} onChange={(e) => handleSectionChange('research', 'title', e.target.value)} /></div>
+                {(content?.research?.items || []).map((item: any, index: number) => (
+                  <div key={index} className="p-4 border rounded-md space-y-3 relative">
+                     <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeItemFromArray('research', 'items', index)}><Trash2 className="h-4 w-4"/></Button>
+                     <div className="space-y-2"><Label>Icon</Label><Select value={item.icon} onValueChange={(value) => handleArrayItemChange('research', 'items', index, 'icon', value)}><SelectTrigger><SelectValue placeholder="Select an icon" /></SelectTrigger><SelectContent>{iconOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}</SelectContent></Select></div>
+                    <div className="space-y-2"><Label>Title</Label><Input value={item.title} onChange={(e) => handleArrayItemChange('research', 'items', index, 'title', e.target.value)} /></div>
+                    <div className="space-y-2"><Label>Description</Label><Textarea value={item.description} onChange={(e) => handleArrayItemChange('research', 'items', index, 'description', e.target.value)} /></div>
+                    <div className="space-y-2"><Label>Image URL (Optional)</Label><Input value={item.imageUrl} onChange={(e) => handleArrayItemChange('research', 'items', index, 'imageUrl', e.target.value)} /></div>
+                  </div>
+                ))}
+                <Button type="button" variant="outline" size="sm" onClick={() => addItemToArray('research', 'items', {icon: 'Car', title: '', description: '', imageUrl: ''})}>Add Research Area</Button>
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* Impact 섹션 폼 */}
+            <AccordionItem value="item-4">
+              <AccordionTrigger>Section 4: Impact</AccordionTrigger>
+              <AccordionContent className="space-y-6 pt-2">
+                <div>
+                  <Label className="text-lg font-semibold">Impact Points</Label>
+                  <div className="space-y-4 mt-2">
+                    {(content?.impact?.items || []).map((item: any, index: number) => (
+                      <div key={index} className="p-4 border rounded-md space-y-3 relative">
+                        <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeItemFromArray('impact', 'items', index)}><Trash2 className="h-4 w-4"/></Button>
+                        <div className="space-y-2"><Label>Icon</Label><Select value={item.icon} onValueChange={(value) => handleArrayItemChange('impact', 'items', index, 'icon', value)}><SelectTrigger><SelectValue placeholder="Select an icon" /></SelectTrigger><SelectContent>{iconOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}</SelectContent></Select></div>
+                        <div className="space-y-2"><Label>Title</Label><Input value={item.title} onChange={(e) => handleArrayItemChange('impact', 'items', index, 'title', e.target.value)} /></div>
+                        <div className="space-y-2"><Label>Description</Label><Textarea value={item.description} onChange={(e) => handleArrayItemChange('impact', 'items', index, 'description', e.target.value)} /></div>
+                      </div>
+                    ))}
+                    <Button type="button" variant="outline" size="sm" onClick={() => addItemToArray('impact', 'items', {icon: 'Building', title: '', description: ''})}>Add Impact Point</Button>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-lg font-semibold">Partner Logos</Label>
+                  <div className="space-y-4 mt-2">
+                    {(content?.impact?.logos || []).map((logo: any, index: number) => (
+                      <div key={index} className="p-4 border rounded-md space-y-3 relative">
+                         <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeItemFromArray('impact', 'logos', index)}><Trash2 className="h-4 w-4"/></Button>
+                        <div className="space-y-2"><Label>Partner Name</Label><Input value={logo.name} onChange={(e) => handleArrayItemChange('impact', 'logos', index, 'name', e.target.value)} /></div>
+                        <div className="space-y-2"><Label>Logo Image URL</Label><Input value={logo.url} onChange={(e) => handleArrayItemChange('impact', 'logos', index, 'url', e.target.value)} /></div>
+                      </div>
+                    ))}
+                    <Button type="button" variant="outline" size="sm" onClick={() => addItemToArray('impact', 'logos', {name: '', url: ''})}>Add Partner Logo</Button>
+                  </div>
                 </div>
               </AccordionContent>
             </AccordionItem>
-            
+
           </Accordion>
 
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={onBack}>취소</Button>
             <Button type="submit" disabled={loading}>{loading ? '저장 중...' : '페이지 저장'}</Button>
           </div>
-          {message && <p className="text-sm text-center pt-2">{message}</p>}
+          {message && <p className="text-sm text-center pt-2 text-green-600">{message}</p>}
         </form>
       </CardContent>
     </Card>
