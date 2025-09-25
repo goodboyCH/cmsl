@@ -1,16 +1,19 @@
+// LoginPage.tsx
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabaseClient';
-import { Link } from 'react-router-dom'; // Link를 import 합니다.
+import { Link } from 'react-router-dom';
+import Turnstile from 'react-turnstile'; // ⬅️ 추가
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null); // ⬅️ 추가
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,15 +24,15 @@ export function LoginPage() {
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
+        options: {
+          captchaToken: captchaToken ?? undefined, // ⬅️ 추가
+        },
       });
 
       if (error) throw error;
-      // 로그인은 자동으로 처리되므로, App.tsx에서 상태 변화를 감지합니다.
-      // 페이지 새로고침을 통해 App.tsx에서 로그인 상태를 확인하게 할 수 있습니다.
       window.location.reload();
-
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || '로그인 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
@@ -46,30 +49,27 @@ export function LoginPage() {
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="email">이메일</Label>
-              <Input 
-                id="email" 
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required 
-              />
+              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">비밀번호</Label>
-              <Input 
-                id="password" 
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required 
-              />
+              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+
+            {/* Turnstile 위젯 */}
+            <Turnstile
+              sitekey="0x4AAAAAAB3LouKPKufvRqXV"        // 동일한 site key 사용
+              onVerify={(token) => setCaptchaToken(token)}
+              onExpire={() => setCaptchaToken(null)}
+              onError={() => setCaptchaToken(null)}
+            />
+
+            <Button type="submit" className="w-full" disabled={loading || !captchaToken}>
               {loading ? '로그인 중...' : '로그인'}
             </Button>
             {error && <p className="text-sm text-red-500 pt-2">{error}</p>}
           </form>
-          {/* ⬇️ 이 부분을 추가합니다 ⬇️ */}
+
           <div className="text-center mt-4">
             <Button variant="link" asChild>
               <Link to="/forgot-password">비밀번호를 잊으셨나요?</Link>
