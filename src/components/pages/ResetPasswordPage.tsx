@@ -11,29 +11,65 @@ export function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const [sessionReady, setSessionReady] = useState(false); // 1. 세션 준비 상태를 관리하는 state 추가
   const navigate = useNavigate();
 
-  // Supabase는 재설정 링크를 통해 접속하면 자동으로 세션을 복구해줍니다.
-  // 우리는 그저 새 비밀번호를 업데이트 해주기만 하면 됩니다.
+  useEffect(() => {
+    // 2. Supabase의 인증 상태 변경 이벤트를 감지하는 리스너를 설정합니다.
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      // 'PASSWORD_RECOVERY' 이벤트가 발생하면 Supabase가 토큰 처리를 완료하고
+      // 임시 세션을 생성했다는 의미입니다.
+      if (event === 'PASSWORD_RECOVERY') {
+        setSessionReady(true);
+      }
+    });
+
+    return () => {
+      // 컴포넌트가 사라질 때 리스너를 정리합니다.
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
   const handlePasswordUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     setMessage('');
     try {
-      // 이제 이 페이지는 인증된 세션이 있을 때만 렌더링되므로, 바로 updateUser를 호출하면 됩니다.
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
       setMessage('비밀번호가 성공적으로 변경되었습니다. 2초 후 로그인 페이지로 이동합니다.');
       setTimeout(() => navigate('/cmsl2004'), 2000);
-    } catch (err: any) {
-      if (err instanceof Error) setError(err.message);
-      else setError('An unexpected error occurred.');
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  // 3. 세션이 준비되지 않았다면, "Verifying..." 메시지를 표시합니다.
+  if (!sessionReady) {
+    // URL에 토큰이 있는지 간단히 확인하여 유효하지 않은 접근을 걸러낼 수 있습니다.
+    if (!window.location.hash.includes('access_token')) {
+      return (
+         <div className="max-w-sm mx-auto px-4 py-20 text-center">
+           <Card>
+             <CardHeader>
+               <CardTitle>Error</CardTitle>
+               <CardDescription>Invalid or expired password reset link.</CardDescription>
+             </CardHeader>
+           </Card>
+         </div>
+      );
+    }
+    return <p className="text-center p-20">Verifying...</p>;
+  }
+
+  // 4. 세션이 준비된 후에만 비밀번호 설정 폼을 보여줍니다.
   return (
     <div className="max-w-sm mx-auto px-4 py-20">
       <Card>
