@@ -25,7 +25,7 @@ export function ForgotPasswordPage() {
     setError('');
     setMessage('');
     try {
-      // ⬇️ 이 부분을 수정합니다. options 객체를 제거하고 인자를 직접 전달합니다. ⬇️
+      // ⬇️ PKCE flow를 사용하도록 options를 추가합니다. ⬇️
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
         captchaToken: captchaToken,
@@ -60,7 +60,7 @@ export function ForgotPasswordPage() {
             </div>
             
             <Turnstile 
-              sitekey="0x4AAAAAAB3LouKPKufvRqXV"
+              sitekey="0x4AAAAAAB3LouKPKufvRqXV" // sitekey는 공개되어도 괜찮습니다.
               onVerify={(token) => setCaptchaToken(token)}
             />
 
