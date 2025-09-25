@@ -51,18 +51,19 @@ function App() {
   });
 
   useEffect(() => {
-    supabase.auth.onAuthStateChange((event, session) => {
+    // 1. 세션 상태를 업데이트하는 리스너만 남겨둡니다.
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      // 비밀번호 복구 이벤트가 발생하면, 재설정 상태를 true로 변경
-      if (event === 'PASSWORD_RECOVERY') {
-        setIsResettingPassword(true);
-      } else {
-        setIsResettingPassword(false);
-      }
     });
+
+    // 2. 초기 세션을 가져옵니다.
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
     });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
   const handlePageChange = (path: string) => {
@@ -145,7 +146,7 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route 
               path="/reset-password" 
-              element={isResettingPassword ? <ResetPasswordPage /> : <div>Verifying...</div>} 
+              element={<ResetPasswordPage />} 
             />
             
             {/* 위에 정의되지 않은 모든 경로는 홈으로 리디렉션 */}
