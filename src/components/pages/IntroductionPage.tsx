@@ -11,12 +11,10 @@ const iconMap: { [key: string]: React.ElementType<LucideProps> } = {
   Talent: FlaskConical,
 };
 
-// 1. 타입 정의를 더 안정적으로 만듭니다. (모든 속성이 선택적일 수 있도록)
 interface IntroductionContent {
-  header?: { title: string; subtitle: string; };
-  mission_section?: { image_url: string; title: string; korean_mission: string; english_mission: string; };
-  core_values_section?: { title: string; values: { icon: string; title: string; description: string }[]; };
-  vision_section?: { title: string; paragraphs: string[]; };
+  mission_section: { image_url: string; title: string; korean_mission: string; english_mission: string; };
+  core_values_section: { title: string; values: { icon: string; title: string; description: string }[]; };
+  vision_section: { title: string; paragraphs: string[]; };
 }
 
 export function IntroductionPage() {
@@ -35,23 +33,12 @@ export function IntroductionPage() {
     fetchContent();
   }, []);
 
-  // 2. 로딩 중이거나, content 객체가 아직 없을 경우 로딩 화면을 표시합니다.
-  if (loading || !content) {
-    return <div className="text-center p-20">Loading Introduction...</div>;
-  }
+  if (loading) return <p className="text-center p-20">Loading Introduction...</p>;
+  if (!content) return <p className="text-center p-20">Failed to load content. Please add data in the admin panel.</p>;
 
-  // 3. 이제 이 아래에서는 content 객체와 그 속성들이 존재한다고 보장할 수 있습니다.
   return (
     <div className="container py-12 space-y-24">
       <ScrollAnimation>
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-primary">{content.header?.title}</h1>
-          <p className="text-xl text-muted-foreground max-w-4xl mx-auto">{content.header?.subtitle}</p>
-        </div>
-      </ScrollAnimation>
-
-      {/* Mission Section */}
-      <ScrollAnimation delay={100}>
         <section className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="rounded-lg overflow-hidden elegant-shadow aspect-video">
             <img 
@@ -68,8 +55,7 @@ export function IntroductionPage() {
         </section>
       </ScrollAnimation>
       
-      {/* Core Values Section */}
-      <ScrollAnimation delay={200}>
+      <ScrollAnimation delay={100}>
         <section className="space-y-12">
           <h2 className="text-3xl font-bold text-center text-primary">{content.core_values_section?.title}</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -93,8 +79,7 @@ export function IntroductionPage() {
         </section>
       </ScrollAnimation>
 
-      {/* Vision Section */}
-      <ScrollAnimation delay={300}>
+      <ScrollAnimation delay={200}>
         <section className="text-center space-y-6 max-w-4xl mx-auto">
           <h2 className="text-3xl font-bold text-primary">{content.vision_section?.title}</h2>
           <div className="space-y-4 text-lg text-muted-foreground leading-relaxed">

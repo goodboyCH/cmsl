@@ -25,7 +25,6 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
     fetchContent();
   }, []);
 
-  // 최상위 객체의 속성을 변경하는 함수 (e.g., header.title)
   const handleNestedChange = (section: string, field: string, value: string) => {
     setContent((prev: any) => ({
       ...prev,
@@ -33,23 +32,26 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
     }));
   };
 
-  // 배열 내부 객체의 속성을 변경하는 함수 (e.g., core_values[0].title)
   const handleArrayItemChange = (section: string, index: number, field: string, value: string) => {
-    const updatedItems = [...content[section]];
+    const updatedItems = [...content[section].values];
     updatedItems[index] = { ...updatedItems[index], [field]: value };
-    setContent({ ...content, [section]: updatedItems });
+    setContent({ ...content, [section]: { ...content[section], values: updatedItems } });
   };
   
-  // 배열에 새 항목을 추가하는 함수
   const addItemToArray = (section: string, newItem: object) => {
-    setContent({ ...content, [section]: [...(content[section] || []), newItem] });
+    const currentSection = content[section] || { values: [] };
+    setContent({ ...content, [section]: { ...currentSection, values: [...(currentSection.values || []), newItem] }});
   };
   
-  // 배열에서 항목을 삭제하는 함수
   const removeItemFromArray = (section: string, indexToRemove: number) => {
-    setContent({ ...content, [section]: content[section].filter((_: any, index: number) => index !== indexToRemove) });
+    setContent({ ...content, [section]: { ...content[section], values: content[section].values.filter((_: any, index: number) => index !== indexToRemove) }});
   };
 
+  const handleVisionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const paragraphs = e.target.value.split('\n');
+    setContent({ ...content, vision_section: { ...content.vision_section, paragraphs } });
+  };
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -77,7 +79,6 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <Accordion type="multiple" defaultValue={['item-1']} className="w-full">
-            
             <AccordionItem value="item-1">
               <AccordionTrigger>Section 1: Mission</AccordionTrigger>
               <AccordionContent className="space-y-4 pt-2">
@@ -105,8 +106,16 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
               </AccordionContent>
             </AccordionItem>
             
-            {/* Application 및 Impact 섹션도 위와 동일한 패턴으로 추가 가능합니다. */}
-
+            <AccordionItem value="item-3">
+              <AccordionTrigger>Section 3: Vision</AccordionTrigger>
+              <AccordionContent className="space-y-4 pt-2">
+                <div className="space-y-2"><Label>Section Title</Label><Input value={content?.vision_section?.title || ''} onChange={(e) => handleNestedChange('vision_section', 'title', e.target.value)} /></div>
+                <div className="space-y-2">
+                  <Label>Paragraphs (한 줄에 한 문단씩)</Label>
+                  <Textarea value={(content?.vision_section?.paragraphs || []).join('\n')} onChange={handleVisionChange} rows={6} />
+                </div>
+              </AccordionContent>
+            </AccordionItem>
           </Accordion>
 
           <div className="flex justify-end gap-2 pt-4">
