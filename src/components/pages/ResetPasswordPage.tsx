@@ -33,17 +33,41 @@ export function ResetPasswordPage() {
   }, []);
 
   useEffect(() => {
-    // URL의 ?code=... 부분을 추출합니다.
-    const params = new URLSearchParams(location.search);
-    const code = params.get('code');
-
-    if (code) {
-      verifyAndExchangeCode(code);
-    } else {
-      setError("유효하지 않은 접근입니다.");
-      setIsVerifying(false);
-    }
-  }, [location.search, verifyAndExchangeCode]);
+    const searchParams = new URLSearchParams(location.search);
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+  
+    // case A: PKCE code in query or hash
+    const code = searchParams.get('code') || hashParams.get('code');
+  
+    // case B: token-based recovery in hash
+    const access_token = hashParams.get('access_token');
+    const refresh_token = hashParams.get('refresh_token');
+  
+    const run = async () => {
+      try {
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) throw error;
+          setIsVerifying(false);
+          return;
+        }
+        if (access_token && refresh_token) {
+          const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+          if (error) throw error;
+          setIsVerifying(false);
+          return;
+        }
+        // nothing found
+        setError('유효하지 않은 접근입니다.');
+        setIsVerifying(false);
+      } catch (err) {
+        setError('유효하지 않거나 만료된 재설정 링크입니다. 다시 시도해주세요.');
+        setIsVerifying(false);
+      }
+    };
+  
+    run();
+  }, [location.search]);
 
   const handlePasswordUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
