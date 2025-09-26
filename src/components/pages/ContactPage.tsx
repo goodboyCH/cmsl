@@ -37,18 +37,18 @@ export function ContactPage() {
   };
 
   return (
-    <div className="max-w-[1400px] mx-auto px-8 lg:px-16 py-12 space-y-12">
-      {/* Header */}
+    <div className="container px-4 sm:px-8 py-8 md:py-12 space-y-12">
       <ScrollAnimation>
         <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-primary">Contact Us</h1>
-          <p className="text-xl text-muted-foreground">
+          <h1 className="text-3xl sm:text-4xl font-bold text-primary">Contact Us</h1>
+          <p className="text-lg sm:text-xl text-muted-foreground">
             Get in touch with our lab for collaborations, inquiries, or visits.
           </p>
         </div>
       </ScrollAnimation>
-
-      <div className="grid md:grid-cols-2 gap-12">
+      
+      {/* --- ⬇️ 모바일에서는 1열, md 이상에서는 2열 그리드로 수정 ⬇️ --- */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
         {/* Left Side: Information & Map */}
         <ScrollAnimation delay={100} className="space-y-8">
           {/* Laboratory Information */}

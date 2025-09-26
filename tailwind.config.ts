@@ -110,5 +110,8 @@ export default {
       }
 		}
 	},
-	plugins: [require("tailwindcss-animate")],
-} satisfies Config;
+	plugins: [
+		require("tailwindcss-animate"),
+		require("@tailwindcss/typography"), // ⬅️ 이 줄을 추가해주세요.
+	  ],
+	} satisfies Config;

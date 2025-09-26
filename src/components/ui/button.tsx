@@ -20,10 +20,12 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-md px-3",
-        lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10",
+        // --- ⬇️ 반응형 사이즈 추가 ⬇️ ---
+        default: "h-9 px-4 py-2 md:h-10", // 모바일 기본(h-9), md 이상에선 h-10
+        sm: "h-8 rounded-md px-3 md:h-9", // 모바일 기본(h-8), md 이상에선 h-9
+        lg: "h-10 rounded-md px-8 md:h-11",
+        icon: "h-9 w-9 md:h-10 md:w-10", // 아이콘 버튼도 반응형으로
+        // --- ⬆️ 반응형 사이즈 추가 ⬆️ ---
       },
     },
     defaultVariants: {

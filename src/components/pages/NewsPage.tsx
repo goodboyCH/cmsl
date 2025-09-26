@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollAnimation } from '../ScrollAnimation';
 import { Session } from '@supabase/supabase-js';
-import { Star, Pin } from 'lucide-react';
+import { Star, Edit, Trash2 } from 'lucide-react';
 import { 
   Pagination,
   PaginationContent,
@@ -43,22 +43,9 @@ interface NewsPageProps {
 }
 
 export function NewsPage({ 
-  notices, 
-  loading, 
-  error, 
-  session, 
-  currentPage, 
-  totalPosts, 
-  totalPinned,
-  postsPerPage, 
-  searchTerm, 
-  setSearchTerm, 
-  handleSearch, 
-  onPageChange, 
-  onPostClick, 
-  onEdit, 
-  onDelete, 
-  onTogglePin 
+  notices, loading, error, session, currentPage, totalPosts, totalPinned, 
+  postsPerPage, searchTerm, setSearchTerm, handleSearch, onPageChange, 
+  onPostClick, onEdit, onDelete, onTogglePin 
 }: NewsPageProps) {
   
   const totalPages = Math.ceil(totalPosts / postsPerPage);
@@ -67,21 +54,18 @@ export function NewsPage({
 
   const renderPageNumbers = () => {
     const pageNumbers = [];
-    let startPage = Math.max(1, currentPage - 4);
-    let endPage = Math.min(totalPages, currentPage + 5);
+    const maxPagesToShow = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
 
-    if (totalPages > 10 && endPage - startPage < 9) {
-      if (currentPage < 5) {
-        endPage = 10;
-      } else {
-        startPage = Math.max(1, totalPages - 9);
-      }
+    if (endPage - startPage + 1 < maxPagesToShow) {
+      startPage = Math.max(1, endPage - maxPagesToShow + 1);
     }
-
+    
     for (let i = startPage; i <= endPage; i++) {
       pageNumbers.push(
         <PaginationItem key={i}>
-          <PaginationLink href="#" onClick={(e) => { e.preventDefault(); onPageChange(i); }} isActive={currentPage === i}>
+          <PaginationLink href="#" isActive={i === currentPage} onClick={(e) => { e.preventDefault(); onPageChange(i); }}>
             {i}
           </PaginationLink>
         </PaginationItem>
@@ -91,86 +75,95 @@ export function NewsPage({
   };
 
   return (
-    <div className="max-w-[1400px] mx-auto px-8 lg:px-16 py-8 space-y-8">
+    <div className="container px-4 sm:px-8 py-8 md:py-12 space-y-8">
       <ScrollAnimation>
-        <div className="space-y-4">
-          <h1 className="text-4xl font-bold text-primary">Notices & News</h1>
-          <p className="text-xl text-muted-foreground">Stay updated with the latest news and announcements.</p>
+        <div className="text-center sm:text-left space-y-4">
+          <h1 className="text-3xl sm:text-4xl font-bold text-primary">Notices & News</h1>
+          <p className="text-lg sm:text-xl text-muted-foreground">Stay updated with the latest news and announcements.</p>
         </div>
       </ScrollAnimation>
       <ScrollAnimation delay={100}>
         <Card className="elegant-shadow">
           <CardHeader>
-            <CardTitle>공지사항</CardTitle>
+            <CardTitle className="text-xl sm:text-2xl">공지사항</CardTitle>
             <CardDescription>총 {totalPosts}개의 게시글이 있습니다.</CardDescription>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent>
             {loading && <p className="text-center p-8">Loading notices...</p>}
             {error && <p className="text-center text-red-500 p-8">Error: {error}</p>}
             {!loading && !error && (
               <>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left min-w-[600px]">
-                    <thead className="border-b text-muted-foreground">
-                      <tr>
-                        <th className="p-3 w-[10%] text-center">번호</th>
-                        <th className="p-3 w-[45%]">제목</th>
-                        <th className="p-3 w-[15%] text-center">작성자</th>
-                        <th className="p-3 w-[15%] text-center">등록일</th>
-                        {session && <th className="p-3 w-[15%] text-center">관리</th>}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {notices.length > 0 ? (
-                        notices.map((notice, index) => (
-                          <tr key={notice.id} className={`border-b ${notice.is_pinned ? 'bg-muted/50' : 'hover:bg-muted/50'}`}>
-                            <td className="p-3 text-center font-medium">
-                              {notice.is_pinned ? (
-                                <Badge variant="secondary">공지</Badge>
-                              ) : (
-                                <span className="text-muted-foreground">
-                                  {totalRegularPosts - ((currentPage - 1) * postsPerPage) - (index - pinnedOnThisPage)}
-                                </span>
-                              )}
-                            </td>
-                            <td className="p-3">
-                              <button onClick={() => onPostClick(notice.id)} className="text-left hover:text-primary">{notice.title}</button>
-                            </td>
-                            <td className="p-3 text-center">{notice.author}</td>
-                            <td className="p-3 text-center">{new Date(notice.created_at).toLocaleDateString()}</td>
+                {/* --- ⬇️ 모바일 뷰를 라인 기반 리스트로 변경 ⬇️ --- */}
+                <div className="border-t">
+                  {notices.length > 0 ? (
+                    notices.map((notice, index) => (
+                      <div 
+                        key={notice.id} 
+                        className={`border-b cursor-pointer ${notice.is_pinned ? 'bg-muted/50' : 'hover:bg-muted/50'}`}
+                        onClick={() => onPostClick(notice.id)}
+                      >
+                        {/* Desktop View: Table-like layout */}
+                        <div className="hidden md:flex items-center text-sm">
+                          <div className="p-3 w-[10%] text-center font-medium">
+                            {notice.is_pinned ? <Badge variant="secondary">공지</Badge> : <span className="text-muted-foreground">{totalRegularPosts - ((currentPage - 1) * postsPerPage) - (index - pinnedOnThisPage)}</span>}
+                          </div>
+                          <div className="p-3 w-[45%] hover:text-primary">{notice.title}</div>
+                          <div className="p-3 w-[15%] text-center">{notice.author}</div>
+                          <div className="p-3 w-[15%] text-center">{new Date(notice.created_at).toLocaleDateString()}</div>
+                          {session && (
+                            <div className="p-3 w-[15%] text-center space-x-1">
+                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); onTogglePin(notice.id, notice.is_pinned); }}><Star className={`h-4 w-4 ${notice.is_pinned ? 'text-yellow-500 fill-yellow-400' : 'text-muted-foreground'}`} /></Button>
+                              <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); onEdit(notice.id); }}>수정</Button>
+                              <Button variant="destructive" size="sm" onClick={(e) => { e.stopPropagation(); onDelete(notice.id); }}>삭제</Button>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Mobile View: Vertical list layout */}
+                        <div className="md:hidden p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              {notice.is_pinned && <Badge variant="secondary">공지</Badge>}
+                            </div>
                             {session && (
-                              <td className="p-3 text-center space-x-1">
-                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onTogglePin(notice.id, notice.is_pinned)}>
-                                  <Star className={`h-4 w-4 ${notice.is_pinned ? 'text-yellow-500 fill-yellow-400' : 'text-muted-foreground'}`} />
-                                </Button>
-                                <Button variant="outline" size="sm" onClick={() => onEdit(notice.id)}>수정</Button>
-                                <Button variant="destructive" size="sm" onClick={() => onDelete(notice.id)}>삭제</Button>
-                              </td>
+                              <div className="flex items-center gap-1 -mr-2 -mt-1">
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); onTogglePin(notice.id, notice.is_pinned); }}><Star className={`h-4 w-4 ${notice.is_pinned ? 'text-yellow-500 fill-yellow-400' : 'text-muted-foreground'}`} /></Button>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); onEdit(notice.id); }}><Edit className="h-4 w-4" /></Button>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); onDelete(notice.id); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                              </div>
                             )}
-                          </tr>
-                        ))
-                      ) : (
-                        <tr><td colSpan={session ? 5 : 4} className="p-8 text-center text-muted-foreground">게시글이 없습니다.</td></tr>
-                      )}
-                    </tbody>
-                  </table>
+                          </div>
+                          <h3 className="font-semibold text-base mb-2 hover:text-primary">{notice.title}</h3>
+                          <div className="flex justify-between items-center text-xs text-muted-foreground">
+                            <span>{notice.author}</span>
+                            <span>{new Date(notice.created_at).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="p-8 text-center text-muted-foreground">게시글이 없습니다.</p>
+                  )}
                 </div>
+                {/* --- ⬆️ 수정 완료 ⬆️ --- */}
 
-                <div className="mt-8">
-                  <Pagination>
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious href="#" onClick={(e) => { e.preventDefault(); if (currentPage > 1) onPageChange(currentPage - 1); }} className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''} />
-                      </PaginationItem>
-                      {renderPageNumbers()}
-                      <PaginationItem>
-                        <PaginationNext href="#" onClick={(e) => { e.preventDefault(); if (currentPage < totalPages) onPageChange(currentPage + 1); }} className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''} />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                </div>
+                {totalPages > 1 && (
+                  <div className="mt-8">
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious href="#" onClick={(e) => { e.preventDefault(); currentPage > 1 && onPageChange(currentPage - 1); }} />
+                        </PaginationItem>
+                        {renderPageNumbers()}
+                        <PaginationItem>
+                          <PaginationNext href="#" onClick={(e) => { e.preventDefault(); currentPage < totalPages && onPageChange(currentPage + 1); }} />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  </div>
+                )}
               
-                <div className="flex justify-center items-center gap-2 max-w-md mx-auto pt-8">
+                <div className="flex items-center gap-2 max-w-sm mx-auto pt-8">
                   <Input 
                     type="text" 
                     placeholder="제목으로 검색..." 

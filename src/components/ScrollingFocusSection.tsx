@@ -22,20 +22,25 @@ interface ScrollingFocusSectionProps {
   textColor?: string;
 }
 
-export const ScrollingFocusSection: React.FC<ScrollingFocusSectionProps> = ({ 
-  sectionTitle, 
+export const ScrollingFocusSection: React.FC<ScrollingFocusSectionProps> = ({
+  sectionTitle,
   items,
   backgroundColor = 'bg-background',
   textColor = 'text-foreground'
 }) => {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const visualPanelRef = useRef<HTMLDivElement>(null);
   const textItemsRef = useRef<(HTMLDivElement | null)[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
-    // GSAP 컨텍스트 내에서 모든 DOM 조작 및 애니메이션을 실행합니다.
     const ctx = gsap.context(() => {
+      const contentScrollDuration = 0.7; 
+      const transitionScrollDuration = 0.3;
+      
+      // --- ⬇️ 마지막 항목이 머무를 시간을 포함하도록 전체 스크롤 길이 계산을 수정합니다. ⬇️ ---
+      const totalDuration = (contentScrollDuration + transitionScrollDuration) * items.length;
+      // --- ⬆️ 수정 완료 ⬆️ ---
+      
       const itemTitles = textItemsRef.current.map(el => el?.querySelector('h3')).filter(Boolean) as HTMLElement[];
       const itemDescs = textItemsRef.current.map(el => el?.querySelector('p')).filter(Boolean) as HTMLElement[];
       
@@ -46,50 +51,53 @@ export const ScrollingFocusSection: React.FC<ScrollingFocusSectionProps> = ({
         scrollTrigger: {
           trigger: sectionRef.current,
           start: 'top top',
-          end: `+=${items.length * 100}%`,
-          scrub: true,
+          end: `+=${totalDuration * 100}%`,
+          scrub: 1,
           pin: true,
           anticipatePin: 1,
         },
       });
       
-      timeline.fromTo(sectionRef.current?.querySelector('h2'), 
-        { y: 50, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.5 },
-        0
+      timeline.to(sectionRef.current?.querySelector('h2'), 
+        { y: 0, opacity: 1, duration: 0.1 },
       );
 
       items.forEach((_, i) => {
+        const startTime = (contentScrollDuration + transitionScrollDuration) * i;
+        const endTime = startTime + contentScrollDuration;
+        
         timeline.fromTo(textItemsRef.current[i],
           { opacity: 0, scale: 0.95, y: 30 },
           { 
             opacity: 1, scale: 1, y: 0,
+            duration: contentScrollDuration * 0.4,
             onStart: () => setActiveIndex(i),
             onReverseComplete: () => i > 0 && setActiveIndex(i - 1),
           },
-          i + 0.5
+          startTime
         );
 
-        // splitTitles와 splitDescs가 배열인 경우에만 애니메이션 적용
         if (splitTitles[i]?.words) {
-            timeline.from(splitTitles[i].words, { opacity: 0, y: 20, stagger: 0.05 }, "<");
+            timeline.from(splitTitles[i].words, { opacity: 0, y: 20, stagger: 0.05, duration: 0.2 }, "<");
         }
         if (splitDescs[i]?.lines) {
-            timeline.from(splitDescs[i].lines, { opacity: 0, y: 20, stagger: 0.1 }, "<0.2");
+            timeline.from(splitDescs[i].lines, { opacity: 0, y: 20, stagger: 0.1, duration: 0.2 }, "<0.1");
         }
         
         if (i < items.length - 1) {
           timeline.to(textItemsRef.current[i],
-            { opacity: 0, scale: 0.95, y: -30 },
-            i + 1.2
+            { 
+              opacity: 0, scale: 0.95, y: -30,
+              duration: contentScrollDuration * 0.4,
+            },
+            endTime - (contentScrollDuration * 0.4)
           );
         }
       });
+
     }, sectionRef);
 
-    // Cleanup 함수
     return () => {
-      // GSAP 컨텍스트를 정리하여 모든 애니메이션과 ScrollTrigger를 제거합니다.
       ctx.revert();
     };
   }, [items]);
@@ -97,12 +105,15 @@ export const ScrollingFocusSection: React.FC<ScrollingFocusSectionProps> = ({
   const ActiveIcon = items[activeIndex]?.icon;
 
   return (
-    <section ref={sectionRef} className={`relative min-h-screen w-screen py-20 md:py-32 ${backgroundColor} ${textColor}`}>
-      <div className="container mx-auto">
-        <h2 className="text-4xl md:text-5xl font-bold text-center text-primary mb-16 opacity-0">{sectionTitle}</h2>
-        <div className="grid md:grid-cols-2 gap-16 items-center">
-          {/* Left Panel: Visuals (Sticky) */}
-          <div ref={visualPanelRef} className="h-[50vh] flex items-center justify-center">
+    <section 
+      ref={sectionRef} 
+      className={`relative min-h-screen w-screen pt-24 pb-16 md:pt-40 md:pb-32 ${backgroundColor} ${textColor}`}
+    >
+      <div className="container mx-auto h-full flex flex-col">
+        <h2 className="text-3xl md:text-5xl font-bold text-center text-primary mb-8 md:mb-16 opacity-0" style={{transform: 'translateY(50px)'}}>{sectionTitle}</h2>
+        
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
+          <div className="h-[25vh] md:h-[50vh] flex items-center justify-center">
              <motion.div 
                key={activeIndex}
                initial={{ opacity: 0, scale: 0.8 }}
@@ -113,25 +124,24 @@ export const ScrollingFocusSection: React.FC<ScrollingFocusSectionProps> = ({
                 {items[activeIndex]?.imageUrl ? (
                     <img src={items[activeIndex].imageUrl} alt={items[activeIndex].title} className="max-w-full max-h-full object-contain rounded-lg elegant-shadow" />
                 ) : (
-                    ActiveIcon && <ActiveIcon className="w-48 h-48 text-primary/30" />
+                  ActiveIcon && <ActiveIcon className="w-auto h-24 md:h-48 text-primary/30" />
                 )}
              </motion.div>
           </div>
           
-          {/* Right Panel: Text Content */}
-          <div className="relative h-[50vh]">
+          <div className="relative h-[40vh] md:h-[50vh]">
             {items.map((item, index) => (
               <div 
                 key={index} 
                 ref={el => {textItemsRef.current[index] = el}}
-                className="absolute inset-0 flex items-center opacity-0"
+                className="absolute inset-0 flex items-center opacity-0 text-center md:text-left"
               >
                 <Card className="w-full bg-transparent border-none shadow-none">
-                  <CardHeader>
-                    <CardTitle className="text-3xl md:text-4xl font-bold text-primary">{item.title}</CardTitle>
+                  <CardHeader className="items-center md:items-start"> 
+                    <CardTitle className="text-2xl md:text-4xl font-bold text-primary">{item.title}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-lg md:text-xl leading-relaxed text-muted-foreground">{item.description}</p>
+                    <p className="text-base md:text-xl leading-relaxed text-muted-foreground">{item.description}</p>
                   </CardContent>
                 </Card>
               </div>

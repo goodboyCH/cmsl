@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { useLanguage } from '@/components/LanguageProvider'; // 경로 별칭(@) 사용
-import { ChevronDown } from 'lucide-react';
+import { useLanguage } from '@/components/LanguageProvider';
+import { ChevronDown, Menu, X } from 'lucide-react'; // 아이콘 import 수정
 
 interface MobileNavigationProps {
   currentPage: string;
-  onPageChange: (path: string) => void; // 인자를 경로(path) 하나만 받도록 수정
+  onPageChange: (path: string) => void;
 }
 
 export function MobileNavigation({ currentPage, onPageChange }: MobileNavigationProps) {
@@ -13,13 +13,11 @@ export function MobileNavigation({ currentPage, onPageChange }: MobileNavigation
   const [isOpen, setIsOpen] = useState(false);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
-  // 1. navItems 배열에 각 항목의 전체 URL 경로(path)를 추가합니다.
   const navItems = [
     { key: 'home', path: '/', label: t('nav.home') },
     { key: 'introduction', path: '/introduction', label: t('nav.introduction') },
     { 
       key: 'people',
-      path: '/people',
       label: t('nav.people'),
       subItems: [
         { key: 'professor', path: '/people/professor', label: t('nav.professor') },
@@ -29,7 +27,6 @@ export function MobileNavigation({ currentPage, onPageChange }: MobileNavigation
     },
     { 
       key: 'research',
-      path: '/research',
       label: t('nav.research'),
       subItems: [
         { key: 'casting', path: '/research/casting', label: 'Casting Alloys' },
@@ -41,7 +38,6 @@ export function MobileNavigation({ currentPage, onPageChange }: MobileNavigation
     { key: 'projects', path: '/projects', label: t('nav.projects') },
     { 
       key: 'board',
-      path: '/board',
       label: t('nav.board'),
       subItems: [
         { key: 'news', path: '/board/news', label: 'Notices & News' },
@@ -51,10 +47,10 @@ export function MobileNavigation({ currentPage, onPageChange }: MobileNavigation
     { key: 'contact', path: '/contact', label: t('nav.contact') },
   ];
 
-  // 2. handlePageChange 함수를 단순화합니다.
   const handleItemClick = (path: string) => {
     onPageChange(path);
     setIsOpen(false);
+    setExpandedItems([]); // 메뉴 선택 시 모든 하위 메뉴 닫기
   };
 
   const toggleExpanded = (key: string) => {
@@ -64,114 +60,100 @@ export function MobileNavigation({ currentPage, onPageChange }: MobileNavigation
         : [...prev, key]
     );
   };
+  
+  // 현재 페이지의 상위 카테고리를 찾아 메뉴를 열어두는 로직
+  React.useEffect(() => {
+    if (isOpen) {
+      const parentCategory = currentPage.split('/')[0];
+      if (parentCategory && !expandedItems.includes(parentCategory)) {
+        setExpandedItems([parentCategory]);
+      }
+    }
+  }, [isOpen, currentPage]);
+
 
   return (
     <div className="relative">
       <Button 
-        variant="ghost" 
+        variant="ghost" // 테두리 추가로 가시성 확보
         size="icon" 
-        className="h-12 w-12"
+        className="h-10 w-10" // 원형 버튼으로 변경
         onClick={() => setIsOpen(!isOpen)}
       >
-        <svg
-          className="h-6 w-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4 6h16M4 12h16M4 18h16"
-          />
-        </svg>
+        <Menu className="h-6 w-6" />
       </Button>
 
-      {/* Mobile Menu Overlay */}
       {isOpen && (
         <>
           <div 
             className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm animate-in fade-in-0 duration-200"
             onClick={() => setIsOpen(false)}
           />
-          <div className="fixed left-0 top-0 h-full w-80 z-50 bg-white dark:bg-gray-900 border-r shadow-xl animate-in slide-in-from-left duration-300">
-            <div className="p-6 space-y-6">
-              {/* Header */}
+          {/* --- ⬇️ 모바일 메뉴 스타일 수정 ⬇️ --- */}
+          <div className="fixed left-0 top-0 h-full w-[85%] max-w-sm z-50 bg-background border-r shadow-xl animate-in slide-in-from-left-full duration-300">
+            <div className="p-4 flex flex-col h-full">
               <div className="flex items-center justify-between pb-4 border-b">
                 <div>
-                  <h2 className="text-2xl font-bold text-primary">CMSL</h2>
-                  <p className="text-sm text-muted-foreground">Navigation</p>
+                  <h2 className="text-xl font-bold text-primary">CMSL</h2>
+                  <p className="text-xs text-muted-foreground">Navigation</p>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setIsOpen(false)}
-                  className="h-8 w-8"
-                >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
+                  <X className="h-5 w-5" />
                 </Button>
               </div>
 
               {/* Navigation Items */}
-              <div className="space-y-2">
-                {navItems.map((item, index) => (
+              <nav className="flex-1 overflow-y-auto mt-4 space-y-1">
+                {navItems.map((item) => (
                   <div key={item.key}>
                     {item.subItems ? (
-                      <div>
+                      <>
                         <Button
                           variant="ghost"
                           onClick={() => toggleExpanded(item.key)}
-                          className="w-full justify-between text-lg font-medium h-12 px-4 animate-in slide-in-from-left duration-200"
-                          style={{ animationDelay: `${index * 50}ms` }}
+                          className="w-full justify-between text-base font-medium h-11 px-3"
                         >
                           {item.label}
-                          <ChevronDown className={`h-4 w-4 transition-transform ${
+                          <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${
                             expandedItems.includes(item.key) ? 'rotate-180' : ''
                           }`} />
                         </Button>
                         {expandedItems.includes(item.key) && (
-                          <div className="ml-6 mt-2 space-y-1">
+                          <div className="ml-4 pl-2 border-l-2 space-y-1 py-1">
                             {item.subItems.map((subItem) => (
                               <Button
                                 key={subItem.key}
-                                variant="ghost"
-                                // 3. 서브메뉴 클릭 시 subItem의 path로 직접 이동합니다.
+                                variant={currentPage.endsWith(subItem.key) ? 'secondary' : 'ghost'}
                                 onClick={() => handleItemClick(subItem.path)}
-                                className="w-full justify-start text-sm h-10 px-4 text-muted-foreground hover:text-foreground"
+                                className="w-full justify-start text-sm h-9 px-3 text-muted-foreground hover:text-foreground font-normal"
                               >
                                 {subItem.label}
                               </Button>
                             ))}
                           </div>
                         )}
-                      </div>
+                      </>
                     ) : (
                       <Button
                         variant={currentPage === item.key ? 'default' : 'ghost'}
-                        // 4. 일반 메뉴 클릭 시 item의 path로 직접 이동합니다.
                         onClick={() => handleItemClick(item.path)}
-                        className="w-full justify-start text-lg font-medium h-12 px-4 animate-in slide-in-from-left duration-200"
-                        style={{ animationDelay: `${index * 50}ms` }}
+                        className="w-full justify-start text-base font-medium h-11 px-3"
                       >
                         {item.label}
                       </Button>
                     )}
                   </div>
                 ))}
-              </div>
+              </nav>
 
-              {/* Footer */}
-              <div className="absolute bottom-6 left-6 right-6 pt-4 border-t text-center">
+              <div className="mt-auto pt-4 border-t text-center">
                 <p className="text-xs text-muted-foreground">
                   Computational Materials Science Laboratory
                 </p>
               </div>
             </div>
           </div>
+          {/* --- ⬆️ 수정 완료 ⬆️ --- */}
         </>
       )}
     </div>

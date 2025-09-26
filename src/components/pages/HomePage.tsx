@@ -160,8 +160,8 @@ export function HomePage({ onPageChange }: HomePageProps) {
         </section>
       </ScrollAnimation>
       
-       {/* Achievements & News Section */}
-       <div className="w-full py-24 md:py-32 bg-background">
+       {/* --- ⬇️ Achievements & News Section 수정 시작 ⬇️ --- */}
+      <div className="w-full py-24 md:py-32 bg-background">
         <div className="container space-y-24">
           {/* Recent Achievements */}
           <ScrollAnimation>
@@ -170,18 +170,18 @@ export function HomePage({ onPageChange }: HomePageProps) {
                 <h2 className="text-3xl font-bold text-primary">Recent Achievements</h2>
                 <Button variant="link" onClick={() => onPageChange('/publications')}>View All →</Button>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* --- ⬇️ 모바일에서는 2열, 데스크톱에서는 4열 그리드로 변경 ⬇️ --- */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                 {achievements.map(item => (
                   <div key={`${item.id}-${item.title}`} className="cursor-pointer group" onClick={() => onPageChange(item.authors ? '/publications' : '/projects')}>
                     <div className="overflow-hidden rounded-lg mb-4 aspect-[4/3] border">
                       <img src={item.image_url || item.thumbnail_url || '/images/logo.png'} alt={item.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
                     </div>
-                    <p className="text-sm text-muted-foreground">{item.authors ? 'PUBLICATION' : 'PROJECT'} · {new Date(item.created_at).toLocaleDateString()}</p>
-                    {/* ⬇️ 제목 글씨 크기 키움 (text-lg) ⬇️ */}
-                    <h3 className="text-lg font-semibold mt-1 leading-snug group-hover:text-primary transition-colors">{item.title}</h3>
-                    {/* ⬇️ 설명 글씨 크기 키움 (text-base) ⬇️ */}
-                    <p className="text-base text-muted-foreground mt-2">
-                      {stripHtmlAndTruncate(item.abstract || item.description, 80)}
+                    <p className="text-xs sm:text-sm text-muted-foreground">{item.authors ? 'PUBLICATION' : 'PROJECT'} · {new Date(item.created_at).toLocaleDateString()}</p>
+                    <h3 className="text-base sm:text-lg font-semibold mt-1 leading-snug group-hover:text-primary transition-colors">{item.title}</h3>
+                    {/* 모바일에서는 긴 설명을 숨겨서 카드 높이를 맞춥니다. */}
+                    <p className="text-sm sm:text-base text-muted-foreground mt-2 hidden sm:block">
+                      {stripHtmlAndTruncate(item.abstract || item.description, 80)}...
                     </p>
                   </div>
                 ))}
@@ -200,12 +200,10 @@ export function HomePage({ onPageChange }: HomePageProps) {
               </div>
               
               {latestNews.length > 0 && (
-                // 1. 부모 그리드에서 gap을 제거합니다.
                 <div className="grid grid-cols-1 lg:grid-cols-24">
-                  {/* 왼쪽 큰 아이템: 14칸을 차지합니다. */}
                   <div 
                     className="cursor-pointer group flex flex-col h-full lg:col-span-11"
-                    onClick={() => onPageChange(latestNews[0].type === 'Notice' ? `/board/news/${latestNews[0].id}` : `/board/gallery/${latestNews[0].id}`)}
+                    onClick={() => onPageChange(latestNews[0].type === 'Notices & News' ? `/board/news/${latestNews[0].id}` : `/board/gallery/${latestNews[0].id}`)}
                   >
                     <div className="overflow-hidden rounded-lg mb-4 aspect-video border">
                       <img src={latestNews[0].thumbnail_url || '/images/logo.png'} alt={latestNews[0].title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"/>
@@ -219,10 +217,10 @@ export function HomePage({ onPageChange }: HomePageProps) {
                     </div>
                   </div>
 
-                  {/* 2. 오른쪽 작은 아이템 목록: 8칸을 차지하고, 17번 칸에서 시작합니다. */}
-                  <div className="flex flex-col h-full space-y-4 lg:col-span-11 lg:col-start-14">
+                  {/* --- ⬇️ 모바일에서 큰 항목과의 간격을 위해 mb-8 추가 ⬇️ --- */}
+                  <div className="flex flex-col h-full space-y-4 lg:col-span-11 lg:col-start-14 mt-8 lg:mt-0">
                     {latestNews.slice(1, 4).map(item => (
-                      <div key={`${item.id}-${item.type}`} className="flex-1 cursor-pointer group flex flex-col" onClick={() => onPageChange(item.type === 'Notice' ? `/board/news/${item.id}` : `/board/gallery/${item.id}`)}>
+                      <div key={`${item.id}-${item.type}`} className="flex-1 cursor-pointer group flex flex-col" onClick={() => onPageChange(item.type === 'Notices & News' ? `/board/news/${item.id}` : `/board/gallery/${item.id}`)}>
                         <div className="flex items-start gap-4 flex-grow">
                           <div className="flex-grow">
                             <p className="text-sm text-muted-foreground">{item.type.toUpperCase()} · {new Date(item.created_at).toLocaleDateString()}</p>
@@ -242,6 +240,7 @@ export function HomePage({ onPageChange }: HomePageProps) {
           </ScrollAnimation>
         </div>
       </div>
+      {/* --- ⬆️ Achievements & News Section 수정 완료 ⬆️ --- */}
 
       {/* Section 5: Videos */}
       <div className="w-full py-24 bg-primary/5">

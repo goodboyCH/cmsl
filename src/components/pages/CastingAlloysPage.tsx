@@ -23,7 +23,6 @@ export function CastingAlloysPage() {
       setLoading(true);
       const pageKey = 'research-casting';
       
-      // 페이지 정보와 프로젝트 정보를 동시에 불러옵니다.
       const [pageContentData, projectsData] = await Promise.all([
         supabase.from('pages').select('content').eq('page_key', pageKey).single(),
         supabase.from('projects').select('*').eq('page_key', pageKey).order('display_order')
@@ -46,18 +45,20 @@ export function CastingAlloysPage() {
   }
 
   return (
-    <div className="max-w-[1400px] mx-auto px-8 lg:px-16 py-12 space-y-20">
+    // --- ⬇️ 전체 페이지 여백 및 간격을 반응형으로 수정 ⬇️ ---
+    <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-16 py-8 md:py-12 space-y-16 md:space-y-20">
       <ScrollAnimation>
-        <section className="grid md:grid-cols-2 gap-12 items-center">
-          <div className="space-y-6">
-            <h1 className="text-4xl lg:text-5xl font-bold text-primary leading-tight">{content.title}</h1>
-            <p className="text-xl text-muted-foreground">{content.subtitle}</p>
+        {/* --- ⬇️ 상단 섹션 레이아웃을 반응형으로 수정 (모바일: 세로, md 이상: 가로) ⬇️ --- */}
+        <section className="flex flex-col md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+          <div className="space-y-4 md:space-y-6 order-2 md:order-1"> {/* 모바일에서 텍스트가 이미지 아래로 오도록 순서 변경 */}
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary leading-tight">{content.title}</h1>
+            <p className="text-lg sm:text-xl text-muted-foreground">{content.subtitle}</p>
             <div className="text-base text-foreground/80 space-y-4 leading-relaxed">
               <p>{content.main_paragraph_1}</p>
               <p>{content.main_paragraph_2}</p>
             </div>
           </div>
-          <div className="rounded-lg overflow-hidden elegant-shadow aspect-video">
+          <div className="rounded-lg overflow-hidden elegant-shadow aspect-video w-full order-1 md:order-2">
             <img 
               src={content.main_image_url} 
               alt="Casting Alloys Simulation" 
@@ -68,12 +69,14 @@ export function CastingAlloysPage() {
       </ScrollAnimation>
 
       <ScrollAnimation delay={200}>
-        <section className="space-y-10">
+        {/* --- ⬇️ 프로젝트 섹션 간격 및 텍스트를 반응형으로 수정 ⬇️ --- */}
+        <section className="space-y-8 md:space-y-10">
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-primary">{content.projects_title}</h2>
-            <p className="text-lg text-muted-foreground mt-2">{content.projects_subtitle}</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-primary">{content.projects_title}</h2>
+            <p className="text-base sm:text-lg text-muted-foreground mt-2">{content.projects_subtitle}</p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* --- ⬇️ 프로젝트 카드 그리드 및 간격을 반응형으로 수정 ⬇️ --- */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {projects.map((project) => (
               <ProjectCard 
                 key={project.id}

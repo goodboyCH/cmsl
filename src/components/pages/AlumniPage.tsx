@@ -49,48 +49,48 @@ export function AlumniPage() {
   if (loading) return <p className="text-center p-12">Loading alumni...</p>;
 
   return (
-    <div className="max-w-[1400px] mx-auto px-8 lg:px-16 py-8 space-y-8">
+    <div className="container px-4 sm:px-8 py-8 md:py-12 space-y-12">
       <ScrollAnimation>
         <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-primary">Alumni</h1>
-          <p className="text-xl text-muted-foreground">
+          <h1 className="text-3xl sm:text-4xl font-bold text-primary">Alumni</h1>
+          <p className="text-lg sm:text-xl text-muted-foreground">
             Celebrating the achievements of our graduated researchers
           </p>
         </div>
       </ScrollAnimation>
 
       <ScrollAnimation delay={100}>
-        <div className="grid md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
           <Card className="elegant-shadow text-center">
-            <CardContent className="pt-6">
-              <div className="text-3xl font-bold text-primary mb-2">
+            <CardContent className="p-4 sm:p-6">
+              <div className="text-2xl sm:text-3xl font-bold text-primary mb-1 sm:mb-2">
                 {alumni.filter(a => a.degree.includes('Ph.D.')).length}
               </div>
-              <p className="text-muted-foreground">Ph.D. Graduates</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Ph.D. Graduates</p>
             </CardContent>
           </Card>
           <Card className="elegant-shadow text-center">
-            <CardContent className="pt-6">
-              <div className="text-3xl font-bold text-primary mb-2">
+            <CardContent className="p-4 sm:p-6">
+              <div className="text-2xl sm:text-3xl font-bold text-primary mb-1 sm:mb-2">
                 {alumni.filter(a => a.degree.includes('M.S.')).length}
               </div>
-              <p className="text-muted-foreground">M.S. Graduates</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">M.S. Graduates</p>
             </CardContent>
           </Card>
           <Card className="elegant-shadow text-center">
-            <CardContent className="pt-6">
-              <div className="text-3xl font-bold text-primary mb-2">
+            <CardContent className="p-4 sm:p-6">
+              <div className="text-2xl sm:text-3xl font-bold text-primary mb-1 sm:mb-2">
                 {alumni.filter(a => getPositionType(a.current_position) === 'academic' || getPositionType(a.current_position) === 'student').length}
               </div>
-              <p className="text-muted-foreground">In Academia</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">In Academia</p>
             </CardContent>
           </Card>
           <Card className="elegant-shadow text-center">
-            <CardContent className="pt-6">
-              <div className="text-3xl font-bold text-primary mb-2">
+            <CardContent className="p-4 sm:p-6">
+              <div className="text-2xl sm:text-3xl font-bold text-primary mb-1 sm:mb-2">
                 {alumni.filter(a => getPositionType(a.current_position) === 'industry').length}
               </div>
-              <p className="text-muted-foreground">In Industry</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">In Industry</p>
             </CardContent>
           </Card>
         </div>
@@ -98,22 +98,23 @@ export function AlumniPage() {
 
       <ScrollAnimation delay={200}>
         <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-primary">Our Graduates</h2>
-          <div className="grid md:grid-cols-2 gap-6">
+          <h2 className="text-2xl sm:text-3xl font-bold text-primary text-center md:text-left">Our Graduates</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {alumni.map((alum, index) => (
               <ScrollAnimation key={alum.id} delay={index * 50}>
-                <Card className="elegant-shadow smooth-transition hover:shadow-lg">
+                <Card className="elegant-shadow smooth-transition hover:shadow-lg h-full">
                   <CardHeader className="pb-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                       <Badge className={getDegreeColor(alum.degree)}>
                         {alum.degree}
                       </Badge>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
                         <Calendar className="h-3 w-3" />
                         {alum.year_range}
                       </div>
                     </div>
-                    <CardTitle className="text-xl">{alum.name}</CardTitle>
+                    {/* CardTitle은 반응형으로 자동 조절됩니다. */}
+                    <CardTitle>{alum.name}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
@@ -133,19 +134,21 @@ export function AlumniPage() {
                       </p>
                     </div>
 
-                    <div className="pt-2 border-t">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Award className="h-3 w-3 text-primary" />
-                        <span className="text-sm font-medium text-primary">Achievements</span>
+                    {alum.achievements && alum.achievements.length > 0 && (
+                      <div className="pt-3 border-t">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Award className="h-3 w-3 text-primary" />
+                          <span className="text-sm font-medium text-primary">Achievements</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {alum.achievements.map((achievement, i) => (
+                            <Badge key={i} variant="outline" className="text-xs font-normal">
+                              {achievement}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
-                      <div className="flex flex-wrap gap-1">
-                        {(alum.achievements || []).map((achievement, i) => (
-                          <Badge key={i} variant="outline" className="text-xs">
-                            {achievement}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
+                    )}
                   </CardContent>
                 </Card>
               </ScrollAnimation>
@@ -157,13 +160,14 @@ export function AlumniPage() {
       <ScrollAnimation delay={300}>
         <Card className="elegant-shadow">
           <CardHeader>
-            <CardTitle className="text-2xl text-primary">Career Paths</CardTitle>
+            {/* CardTitle, CardDescription은 반응형으로 자동 조절됩니다. */}
+            <CardTitle className="text-primary">Career Paths</CardTitle>
             <CardDescription>
               Where our alumni are making their mark in the world
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <GraduationCap className="h-5 w-5 text-primary" />

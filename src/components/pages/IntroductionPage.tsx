@@ -1,13 +1,13 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { ScrollingFocusSection } from '@/components/ScrollingFocusSection'; // 새로 만든 컴포넌트 import
+import { ScrollingFocusSection } from '@/components/ScrollingFocusSection'; 
 import { Cpu, Atom, TestTube2, BrainCircuit, Car, Film, HeartPulse, Magnet, Building, Users } from 'lucide-react';
 
-// --- 페이지 콘텐츠 데이터 ---
+// 페이지 콘텐츠 데이터는 변경 없습니다.
 const pageContent = {
   mission: {
     video_url: "/videos/abstract-background.mp4",
-    korean_mission: "미세조직의 물리로부터 예측가능한 재료설계를 구현한다",
+    korean_mission: "CMSL",
     english_mission: "Achieving Predictable Materials Design from the Physics of Microstructure"
   },
   capabilities: {
@@ -42,12 +42,31 @@ const pageContent = {
 };
 
 export function IntroductionPage() {
+  const mainContentRef = useRef<HTMLDivElement>(null);
+
+  const { scrollYProgress: contentScrollProgress } = useScroll({
+    target: mainContentRef,
+    offset: ['start start', 'end end'] 
+  });
+
+  const backgroundColor = useTransform(
+    contentScrollProgress,
+    [0, 0.25, 0.35, 0.6, 0.7, 1], 
+    [
+      "hsl(0 0% 100%)",
+      "hsl(0 0% 100%)",
+      "hsl(221.2 83.2% 95.3%)",
+      "hsl(221.2 83.2% 95.3%)",
+      "hsl(0 0% 100%)",
+      "hsl(0 0% 100%)"
+    ]
+  );
+
   const { scrollYProgress: missionProgress } = useScroll({ offset: ['start start', 'end start'] });
   const missionBgScale = useTransform(missionProgress, [0, 1], [1, 1.15]);
 
   return (
     <div className="bg-background text-foreground overflow-x-hidden">
-      {/* Section 1: The Mission */}
       <section className="h-screen w-screen flex items-center justify-center relative text-white text-center p-4">
         <motion.div
           className="absolute inset-0 bg-black z-0 overflow-hidden"
@@ -60,59 +79,67 @@ export function IntroductionPage() {
           />
         </motion.div>
         <motion.div 
-          className="relative z-10 space-y-6"
+          className="relative z-10 space-y-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.5 }}
         >
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-shadow-lg">{pageContent.mission.korean_mission}</h1>
-          <p className="text-xl md:text-2xl text-white/80 font-light text-shadow">"{pageContent.mission.english_mission}"</p>
+          <h1 className="text-5xl md:text-8xl font-bold tracking-tight text-shadow-lg">{pageContent.mission.korean_mission}</h1>
+          <p className="text-lg md:text-2xl text-white/80 font-light text-shadow max-w-xs md:max-w-2xl mx-auto">"{pageContent.mission.english_mission}"</p>
         </motion.div>
       </section>
 
-      {/* Section 2: Core Capabilities */}
-      <ScrollingFocusSection 
-        sectionTitle={pageContent.capabilities.title} 
-        items={pageContent.capabilities.items}
-      />
-      
-      {/* Section 3: Major Research Areas */}
-      <ScrollingFocusSection 
-        sectionTitle={pageContent.research.title} 
-        items={pageContent.research.items}
-        backgroundColor="bg-secondary"
-        textColor="text-secondary-foreground"
-      />
+      <motion.div ref={mainContentRef} style={{ backgroundColor }}>
 
-      {/* Section 4: The Impact */}
-      <ScrollingFocusSection 
-        sectionTitle={pageContent.impact.title} 
-        items={pageContent.impact.items}
-      />
+        <ScrollingFocusSection 
+          sectionTitle={pageContent.capabilities.title} 
+          items={pageContent.capabilities.items}
+          backgroundColor="bg-transparent"
+        />
 
-      {/* Impact Section의 로고 부분은 별도로 렌더링 */}
-      <section className="container pb-20 md:pb-32 text-center space-y-8">
-        <h3 className='text-2xl font-bold text-muted-foreground'>Key Partners</h3>
-        <motion.div 
-          className="flex justify-center items-center gap-12 flex-wrap"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ staggerChildren: 0.3 }}
-        >
-          {pageContent.impact.logos.map((logo, index) => (
-            <motion.div
-              key={index}
-              variants={{
-                hidden: { opacity: 0, scale: 0.5 },
-                visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: 'easeOut' } }
-              }}
-            >
-              <img src={logo.url} alt={logo.name} className="h-12 lg:h-16 opacity-70 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-300" />
-            </motion.div>
-          ))}
-        </motion.div>
-      </section>
+        {/* --- ⬇️ 섹션 간 스크롤 공간을 추가하는 스페이서 ⬇️ --- */}
+        <div className="h-96" /> 
+        {/* --- ⬆️ h-96, h-screen, h-[50vh] 등 원하는 높이로 조절 가능 ⬆️ --- */}
+        
+        <ScrollingFocusSection 
+          sectionTitle={pageContent.research.title} 
+          items={pageContent.research.items}
+          backgroundColor="bg-transparent"
+        />
+
+        {/* --- ⬇️ 섹션 간 스크롤 공간을 추가하는 스페이서 ⬇️ --- */}
+        <div className="h-96" />
+        {/* --- ⬆️ h-96, h-screen, h-[50vh] 등 원하는 높이로 조절 가능 ⬆️ --- */}
+
+        <ScrollingFocusSection 
+          sectionTitle={pageContent.impact.title} 
+          items={pageContent.impact.items}
+          backgroundColor="bg-transparent"
+        />
+
+        <section className="container pb-20 md:pb-32 text-center space-y-8">
+          <h3 className='text-xl md:text-2xl font-bold text-muted-foreground'>Key Partners</h3>
+          <motion.div 
+            className="flex justify-center items-center gap-8 md:gap-12 flex-wrap"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ staggerChildren: 0.3 }}
+          >
+            {pageContent.impact.logos.map((logo, index) => (
+              <motion.div
+                key={index}
+                variants={{
+                  hidden: { opacity: 0, scale: 0.5 },
+                  visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: 'easeOut' } }
+                }}
+              >
+                <img src={logo.url} alt={logo.name} className="h-10 md:h-16 opacity-70 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-300" />
+              </motion.div>
+            ))}
+          </motion.div>
+        </section>
+      </motion.div>
     </div>
   );
 }

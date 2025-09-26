@@ -5,6 +5,7 @@ import { Session } from '@supabase/supabase-js';
 import 'react-quill/dist/quill.snow.css';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
+import { ArrowLeft } from 'lucide-react';
 
 interface GalleryPostDetail {
   id: number;
@@ -48,32 +49,39 @@ export function GalleryDetailPage({ session }: GalleryDetailPageProps) {
   if (!post) return <p className="text-center p-8">Post not found.</p>;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="container px-4 sm:px-8 py-8 md:py-12">
       <Card>
         <CardHeader className="border-b">
-          <div className="flex justify-between items-start gap-4">
+          {/* --- ⬇️ 모바일 레이아웃 수정 ⬇️ --- */}
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
             <div className="flex-1">
-              <CardTitle className="text-3xl">{post.title}</CardTitle>
-              <div className="text-sm text-muted-foreground pt-2">
-                <span>작성자: {post.author}</span> | <span>등록일: {new Date(post.created_at).toLocaleDateString()}</span>
+              {/* CardTitle은 반응형으로 자동 조절됩니다. */}
+              <CardTitle>{post.title}</CardTitle>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 text-xs sm:text-sm text-muted-foreground pt-2">
+                <span>작성자: {post.author}</span>
+                <span>등록일: {new Date(post.created_at).toLocaleDateString()}</span>
               </div>
             </div>
             {session && (
-              <div className="flex-shrink-0 space-x-2">
-                <Button variant="outline" onClick={() => navigate(`/board/gallery/${post.id}/edit`)}>수정</Button>
-                <Button variant="destructive" onClick={() => handleDelete(post.id)}>삭제</Button>
+              <div className="flex-shrink-0 w-full sm:w-auto flex items-center gap-2">
+                <Button variant="outline" onClick={() => navigate(`/board/gallery/${post.id}/edit`)} className="flex-1 sm:flex-none">수정</Button>
+                <Button variant="destructive" onClick={() => handleDelete(post.id)} className="flex-1 sm:flex-none">삭제</Button>
               </div>
             )}
           </div>
+          {/* --- ⬆️ 수정 완료 ⬆️ --- */}
         </CardHeader>
         <CardContent className="py-8">
-          <div className="prose dark:prose-invert max-w-none ql-snow">
+          <div className="prose dark:prose-invert w-full max-w-full ql-snow">
             <div className="ql-editor" dangerouslySetInnerHTML={{ __html: post.content }} />
           </div>
         </CardContent>
       </Card>
       <div className="text-center mt-8">
-        <Button onClick={() => navigate('/board/gallery')} variant="outline">목록으로 돌아가기</Button>
+        <Button onClick={() => navigate('/board/gallery')} variant="outline">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          목록으로 돌아가기
+        </Button>
       </div>
     </div>
   );

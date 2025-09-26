@@ -7,9 +7,9 @@ import { Navigation } from '@/components/Navigation';
 import { MobileNavigation } from '@/components/MobileNavigation';
 import { ScrollToTopButton } from '@/components/ScrollToTopButton';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { useIdleTimer } from '@/hooks/useIdleTimer'; // 1. 자동 로그아웃 훅을 import 합니다.
+import { useIdleTimer } from '@/hooks/useIdleTimer';
 
-// 페이지 컴포넌트들 import...
+// 페이지 컴포넌트 import는 변경 없습니다.
 import { HomePage } from '@/components/pages/HomePage';
 import { IntroductionPage } from '@/components/pages/IntroductionPage';
 import { ProfessorPage } from '@/components/pages/ProfessorPage';
@@ -33,7 +33,6 @@ import { GalleryDetailPage } from '@/components/pages/GalleryDetailPage';
 import { EditNoticePage } from '@/components/pages/EditNoticePage';
 import { EditGalleryPage } from '@/components/pages/EditGalleryPage';
 
-// Quill 설정...
 import { Quill } from 'react-quill';
 import ImageResize from 'quill-image-resize-module-react';
 Quill.register('modules/imageResize', ImageResize);
@@ -44,9 +43,9 @@ function App() {
   const location = useLocation();
 
   useIdleTimer({
-    onIdle: () => supabase.auth.signOut(), // 30분 후 로그아웃 실행
+    onIdle: () => supabase.auth.signOut(),
     idleTime: 30,
-    enabled: !!session, // session이 있을 때만 (로그인 상태일 때만) 타이머 활성화
+    enabled: !!session,
   });
 
   useEffect(() => {
@@ -72,87 +71,75 @@ function App() {
   return (
     <LanguageProvider>
       <div className="min-h-screen bg-background">
-        <header className="sticky top-0 z-30 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="w-full px-10 lg:px-24 py-6">
-            <div className="flex items-center justify-between h-16">
-              
-              {/* 왼쪽: 로고와 연구실 이름 */}
-              <div className="flex items-center space-x-4"> {/* space-x-6 -> space-x-4로 약간 줄임 */}
-                <button 
-                  onClick={() => handlePageChange('/')}
-                  className="flex-shrink-0" // 로고가 줄어들지 않도록 설정
-                >
-                  {/* 2. 로고 크기를 키웁니다. (h-16 이상도 가능) */}
-                  <img 
-                    src="/images/logo1.png" 
-                    alt="CMSL Logo" 
-                    className="h-20 w-auto" // 헤더 높이(h-16)에 꽉 차도록 크기 조정
-                  />
-                </button>
-                <span className="text-lg lg:text-xl text-muted-foreground hidden md:block">
-                  Computational Materials Science Laboratory
+        <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="container flex items-center justify-between h-16 sm:h-20 px-4 sm:px-8">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <button onClick={() => handlePageChange('/')} className="flex-shrink-0">
+                <img 
+                  src="/images/logo1.png" 
+                  alt="CMSL Logo" 
+                  className="h-12 sm:h-16 w-auto"
+                />
+              </button>
+              <div className="hidden sm:flex flex-col items-start leading-tight">
+                {/* --- ⬇️ 텍스트 색상을 text-muted-foreground로 통일합니다. ⬇️ --- */}
+                <span className="font-bold text-sm lg:text-base text-muted-foreground">
+                  Computational Materials
+                </span>
+                {/* --- ⬆️ 수정 완료 ⬆️ --- */}
+                <span className="font-bold text-sm lg:text-base text-muted-foreground">
+                  Science Laboratory
                 </span>
               </div>
-
-              {/* 오른쪽: 네비게이션 메뉴 */}
-              <div className="hidden lg:flex">
-                <Navigation currentPage={currentPage} onPageChange={handlePageChange} />
-              </div>
-
             </div>
+
+            <div className="hidden lg:flex">
+              <Navigation currentPage={currentPage} onPageChange={handlePageChange} />
+            </div>
+            
+            {/* 모바일 네비게이션은 헤더에서 제외하고 바깥으로 이동시킵니다. */}
           </div>
         </header>
 
         <main>
           <Routes>
-            {/* 기본 페이지 라우팅 */}
+            {/* 라우팅 코드는 변경 없습니다. */}
             <Route path="/" element={<HomePage onPageChange={handlePageChange} />} />
             <Route path="/introduction" element={<IntroductionPage />} />
-            
-            {/* People 관련 페이지들 */}
             <Route path="/people/professor" element={<ProfessorPage />} />
             <Route path="/people/members" element={<MembersPage />} />
             <Route path="/people/alumni" element={<AlumniPage />} />
-
-            {/* Research 관련 페이지들 */}
             <Route path="/research/casting" element={<CastingAlloysPage />} />
             <Route path="/research/films" element={<ThinFilmsPage />} />
             <Route path="/research/biodegradable" element={<BiodegradableAlloysPage />} />
-            
             <Route path="/publications" element={<PublicationsPage />} />
             <Route path="/projects" element={<ProjectsPage />} />
-
-            {/* ⬇️ Board 관련 페이지 라우트를 수정합니다. ⬇️ */}
             <Route path="/board/news" element={<NoticeBoardPage session={session} />} />
-          <Route path="/board/news/:id" element={<NoticeDetailPage session={session} />} /> 
-          <Route path="/board/news/:id/edit" element={<EditNoticePage />} />
-          
-          <Route path="/board/gallery" element={<GalleryBoardPage session={session} />} />
-          <Route path="/board/gallery/:id" element={<GalleryDetailPage session={session} />} />
-          <Route path="/board/gallery/:id/edit" element={<EditGalleryPage />} />
-        
+            <Route path="/board/news/:id" element={<NoticeDetailPage session={session} />} /> 
+            <Route path="/board/news/:id/edit" element={<EditNoticePage />} />
+            <Route path="/board/gallery" element={<GalleryBoardPage session={session} />} />
+            <Route path="/board/gallery/:id" element={<GalleryDetailPage session={session} />} />
+            <Route path="/board/gallery/:id/edit" element={<EditGalleryPage />} />
             <Route path="/contact" element={<ContactPage />} />
-
-            {/* 관리자 페이지 (로그인 상태에 따라 접근 제어) */}
             <Route path="/cmsl2004" element={session ? <AdminPage onNavigate={handlePageChange} /> : <LoginPage />} />
             <Route path="/cmsl20042" element={session ? <AdminPage2 onNavigate={handlePageChange} /> : <LoginPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
-
-            {/* 위에 정의되지 않은 모든 경로는 홈으로 리디렉션 */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
 
         <footer className="border-t bg-muted/50 mt-16">
-          <div className="w-full max-w-none px-6 lg:px-12 xl:px-16 py-8">
-            <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-8">
-              <div>
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-primary mb-4">CMSL</h3>
+          <div className="container py-12 px-4 sm:px-8">
+            {/* --- ⬇️ 푸터 그리드 레이아웃 수정 ⬇️ --- */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-8 text-center md:text-left">
+              {/* CMSL 정보: 모바일에선 2칸 모두 사용, 데스크탑에선 1칸 사용 */}
+              <div className="flex flex-col items-center md:items-start col-span-2 md:col-span-1">
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold text-primary mb-2">CMSL</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     Computational Materials Science Laboratory<br/>
-                    Department of Materials Science and Engineering<br/>
+                    Dept. of Materials Science and Engineering<br/>
                     Kookmin University
                   </p>
                 </div>
@@ -160,26 +147,21 @@ function App() {
                   <img 
                     src="/images/kmu-logo.png"
                     alt="Kookmin University Logo" 
-                    className="h-16 opacity-80"
+                    className="h-14 sm:h-16 opacity-80"
                   />
                 </a>
               </div>
+              {/* Quick Links: 모바일/데스크탑 모두 1칸 사용 */}
               <div>
                 <h3 className="text-lg font-semibold text-primary mb-4">Quick Links</h3>
                 <div className="space-y-2 text-sm">
-                  {/* 'Research Areas' -> '/research/casting' 경로로 변경 */}
-                  <button onClick={() => handlePageChange('/research/casting')} className="block text-muted-foreground hover:text-primary smooth-transition">Research Areas</button>
-                  
-                  {/* '/publications' 경로로 변경 */}
-                  <button onClick={() => handlePageChange('/publications')} className="block text-muted-foreground hover:text-primary smooth-transition">Publications</button>
-                  
-                  {/* 'Team Members' -> '/people/members' 경로로 변경 */}
-                  <button onClick={() => handlePageChange('/people/members')} className="block text-muted-foreground hover:text-primary smooth-transition">Team Members</button>
-                  
-                  {/* '/contact' 경로로 변경 */}
-                  <button onClick={() => handlePageChange('/contact')} className="block text-muted-foreground hover:text-primary smooth-transition">Contact Us</button>
+                  <button onClick={() => handlePageChange('/research/casting')} className="block w-full text-muted-foreground hover:text-primary smooth-transition">Research Areas</button>
+                  <button onClick={() => handlePageChange('/publications')} className="block w-full text-muted-foreground hover:text-primary smooth-transition">Publications</button>
+                  <button onClick={() => handlePageChange('/people/members')} className="block w-full text-muted-foreground hover:text-primary smooth-transition">Team Members</button>
+                  <button onClick={() => handlePageChange('/contact')} className="block w-full text-muted-foreground hover:text-primary smooth-transition">Contact Us</button>
                 </div>
               </div>
+              {/* Contact: 모바일/데스크탑 모두 1칸 사용 */}
               <div>
                 <h3 className="text-lg font-semibold text-primary mb-4">Contact</h3>
                 <div className="space-y-2 text-sm text-muted-foreground">
@@ -189,16 +171,19 @@ function App() {
                 </div>
               </div>
             </div>
-            <div className="max-w-7xl mx-auto border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
+            {/* --- ⬆️ 푸터 그리드 레이아웃 수정 완료 ⬆️ --- */}
+            <div className="border-t mt-8 pt-8 text-center text-xs sm:text-sm text-muted-foreground">
                <p className="mb-2">77 Jeongneung-ro, Seongbuk-gu, Seoul, 02707, Republic of Korea</p>
               <p>&copy; 2024 CMSL - Computational Materials Science Laboratory. All rights reserved.</p>
             </div>
           </div>
         </footer>
         
-        <div className="fixed top-6 right-6 lg:hidden z-50">
+        {/* --- ⬇️ 모바일 네비게이션을 원래 위치로 복원 (z-index 문제 해결) ⬇️ --- */}
+        <div className="fixed top-4 right-4 lg:hidden z-50">
           <MobileNavigation currentPage={currentPage} onPageChange={handlePageChange} />
         </div>
+        {/* --- ⬆️ 수정 완료 ⬆️ --- */}
 
         <ScrollToTopButton />
         <Toaster />
