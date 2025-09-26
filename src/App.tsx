@@ -131,10 +131,10 @@ function App() {
 
         <footer className="border-t bg-muted/50 mt-16">
           <div className="container py-12 px-4 sm:px-8">
-            {/* --- ⬇️ 푸터 그리드 레이아웃 수정 ⬇️ --- */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-8 text-center md:text-left">
-              {/* CMSL 정보: 모바일에선 2칸 모두 사용, 데스크탑에선 1칸 사용 */}
-              <div className="flex flex-col items-center md:items-start col-span-2 md:col-span-1">
+            {/* --- ⬇️ Grid 대신 Flexbox를 사용하여 레이아웃을 수정합니다. ⬇️ --- */}
+            <div className="flex flex-col md:flex-row gap-8 text-center md:text-left">
+              {/* 각 항목에 md:flex-1을 추가하여 데스크톱에서 동일한 너비를 차지하도록 합니다. */}
+              <div className="flex flex-col items-center md:items-start md:flex-1">
                 <div className="mb-4">
                   <h3 className="text-lg font-semibold text-primary mb-2">CMSL</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
@@ -151,18 +151,16 @@ function App() {
                   />
                 </a>
               </div>
-              {/* Quick Links: 모바일/데스크탑 모두 1칸 사용 */}
-              <div>
+              <div className="md:flex-1">
                 <h3 className="text-lg font-semibold text-primary mb-4">Quick Links</h3>
                 <div className="space-y-2 text-sm">
-                  <button onClick={() => handlePageChange('/research/casting')} className="block w-full text-muted-foreground hover:text-primary smooth-transition md:justify-start">Research Areas</button>
-                  <button onClick={() => handlePageChange('/publications')} className="block w-full text-muted-foreground hover:text-primary smooth-transition md:justify-start">Publications</button>
-                  <button onClick={() => handlePageChange('/people/members')} className="block w-full text-muted-foreground hover:text-primary smooth-transition md:justify-start">Team Members</button>
-                  <button onClick={() => handlePageChange('/contact')} className="block w-full text-muted-foreground hover:text-primary smooth-transition md:justify-start">Contact Us</button>
+                  <button onClick={() => handlePageChange('/research/casting')} className="block w-full text-muted-foreground hover:text-primary smooth-transition md:text-left">Research Areas</button>
+                  <button onClick={() => handlePageChange('/publications')} className="block w-full text-muted-foreground hover:text-primary smooth-transition md:text-left">Publications</button>
+                  <button onClick={() => handlePageChange('/people/members')} className="block w-full text-muted-foreground hover:text-primary smooth-transition md:text-left">Team Members</button>
+                  <button onClick={() => handlePageChange('/contact')} className="block w-full text-muted-foreground hover:text-primary smooth-transition md:text-left">Contact Us</button>
                 </div>
               </div>
-              {/* Contact: 모바일/데스크탑 모두 1칸 사용 */}
-              <div>
+              <div className="md:flex-1">
                 <h3 className="text-lg font-semibold text-primary mb-4">Contact</h3>
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <p>Prof. Cha Pil-Ryung</p>
@@ -171,7 +169,7 @@ function App() {
                 </div>
               </div>
             </div>
-            {/* --- ⬆️ 푸터 그리드 레이아웃 수정 완료 ⬆️ --- */}
+            {/* --- ⬆️ 수정 완료 ⬆️ --- */}
             <div className="border-t mt-8 pt-8 text-center text-xs sm:text-sm text-muted-foreground">
                <p className="mb-2">77 Jeongneung-ro, Seongbuk-gu, Seoul, 02707, Republic of Korea</p>
               <p>&copy; 2024 CMSL - Computational Materials Science Laboratory. All rights reserved.</p>
