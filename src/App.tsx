@@ -155,10 +155,10 @@ function App() {
               <div>
                 <h3 className="text-lg font-semibold text-primary mb-4">Quick Links</h3>
                 <div className="space-y-2 text-sm">
-                  <button onClick={() => handlePageChange('/research/casting')} className="block w-full text-muted-foreground hover:text-primary smooth-transition">Research Areas</button>
-                  <button onClick={() => handlePageChange('/publications')} className="block w-full text-muted-foreground hover:text-primary smooth-transition">Publications</button>
-                  <button onClick={() => handlePageChange('/people/members')} className="block w-full text-muted-foreground hover:text-primary smooth-transition">Team Members</button>
-                  <button onClick={() => handlePageChange('/contact')} className="block w-full text-muted-foreground hover:text-primary smooth-transition">Contact Us</button>
+                  <button onClick={() => handlePageChange('/research/casting')} className="block w-full text-muted-foreground hover:text-primary smooth-transition md:justify-start">Research Areas</button>
+                  <button onClick={() => handlePageChange('/publications')} className="block w-full text-muted-foreground hover:text-primary smooth-transition md:justify-start">Publications</button>
+                  <button onClick={() => handlePageChange('/people/members')} className="block w-full text-muted-foreground hover:text-primary smooth-transition md:justify-start">Team Members</button>
+                  <button onClick={() => handlePageChange('/contact')} className="block w-full text-muted-foreground hover:text-primary smooth-transition md:justify-start">Contact Us</button>
                 </div>
               </div>
               {/* Contact: 모바일/데스크탑 모두 1칸 사용 */}

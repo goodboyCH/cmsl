@@ -61,8 +61,8 @@ export function ContactPage() {
                 <MapPin className="h-5 w-5 text-primary mt-1" />
                 <div>
                   <h4 className="font-semibold text-foreground">Location</h4>
-                  <p>School of Materials Science & Engineering Room 443</p>
-                  <p>Kookmin University</p>
+                  <p>School of Materials Science & Engineering </p>
+                  <p>Kookmin University Engineering building Room 443</p>
                   <p>77 Jeongneung-ro, Seongbuk-gu, Seoul, 02707, Korea</p>
                 </div>
               </div>
