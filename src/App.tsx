@@ -72,7 +72,7 @@ function App() {
     <LanguageProvider>
       <div className="min-h-screen bg-background">
         <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="container flex items-center justify-between h-16 sm:h-20 px-4 sm:px-8">
+          <div className="container flex items-center justify-between h-16 sm:h-20 px-4 sm:px-0">
             <div className="flex items-center gap-2 sm:gap-4">
               <button onClick={() => handlePageChange('/')} className="flex-shrink-0">
                 <img 
