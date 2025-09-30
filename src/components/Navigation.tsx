@@ -4,7 +4,6 @@ import { ChevronDown } from 'lucide-react';
 
 interface NavigationProps {
   currentPage: string;
-  // onPageChange의 두 번째 인자(subTab)는 이제 필요 없습니다.
   onPageChange: (path: string) => void;
 }
 
@@ -45,6 +44,13 @@ export function Navigation({ currentPage, onPageChange }: NavigationProps) {
       ]
     },
     { key: 'contact', path: '/contact', label: t('nav.contact') },
+    // 1. ⬇️ 여기에 새로운 외부 링크 항목을 추가합니다. ⬇️
+    { 
+      key: 'pfm', 
+      path: "https://< https://unschismatical-hurtfully-sabrina.ngrok-free.dev>.ngrok-free.app/:path*", 
+      label: 'PFM Calculation', 
+      isExternal: true 
+    },
   ];
 
   const handleMouseEnter = (key: string) => {
@@ -56,7 +62,6 @@ export function Navigation({ currentPage, onPageChange }: NavigationProps) {
     timeoutRef.current = setTimeout(() => setOpenDropdown(null), 150);
   };
 
-  // subItem 클릭 시 해당 path로 바로 이동
   const handleSubItemClick = (path: string) => {
     onPageChange(path);
     setOpenDropdown(null);
@@ -77,7 +82,17 @@ export function Navigation({ currentPage, onPageChange }: NavigationProps) {
           onMouseEnter={() => item.subItems && handleMouseEnter(item.key)}
           onMouseLeave={handleMouseLeave}
         >
-          {item.subItems ? (
+          {/* 2. ⬇️ isExternal 속성이 있으면 a 태그로 렌더링하는 로직을 추가합니다. ⬇️ */}
+          {(item as any).isExternal ? (
+            <a
+              href={item.path}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-6 py-4 text-lg font-medium text-foreground hover:text-primary hover:bg-primary/5 transition-all duration-200 flex items-center gap-1"
+            >
+              {item.label}
+            </a>
+          ) : item.subItems ? (
             <div className="relative">
               <div
                 className={`px-6 py-4 text-lg font-medium cursor-pointer transition-all duration-200 flex items-center gap-1 ${
@@ -106,7 +121,7 @@ export function Navigation({ currentPage, onPageChange }: NavigationProps) {
             </div>
           ) : (
             <div
-              onClick={() => onPageChange(item.path)} // subItems가 없는 경우 path로 이동
+              onClick={() => onPageChange(item.path)}
               className={`px-6 py-4 text-lg font-medium cursor-pointer transition-all duration-200 ${
                 (currentPage === item.key || (item.key === 'home' && currentPage === ''))
                   ? 'text-primary bg-primary/5 border-b-2 border-primary' 
