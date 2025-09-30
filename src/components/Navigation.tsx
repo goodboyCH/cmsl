@@ -47,7 +47,8 @@ export function Navigation({ currentPage, onPageChange }: NavigationProps) {
     // 1. ⬇️ 여기에 새로운 외부 링크 항목을 추가합니다. ⬇️
     { 
       key: 'pfm', 
-      path: "https://< https://unschismatical-hurtfully-sabrina.ngrok-free.dev>.ngrok-free.app/:path*", 
+      path: 'https://unschismatical-hurtfully-sabrina.ngrok-free.dev'
+      , 
       label: 'PFM Calculation', 
       isExternal: true 
     },
