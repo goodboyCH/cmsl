@@ -34,7 +34,6 @@ export function Navigation({ currentPage, onPageChange }: NavigationProps) {
       ]
     },
     { key: 'publications', path: '/publications', label: t('nav.publications') },
-    { key: 'projects', path: '/projects', label: t('nav.projects') },
     { 
       key: 'board', 
       label: t('nav.board'),
@@ -45,13 +44,7 @@ export function Navigation({ currentPage, onPageChange }: NavigationProps) {
     },
     { key: 'contact', path: '/contact', label: t('nav.contact') },
     // 1. ⬇️ 여기에 새로운 외부 링크 항목을 추가합니다. ⬇️
-    { 
-      key: 'pfm', 
-      path: 'https://unschismatical-hurtfully-sabrina.ngrok-free.dev'
-      , 
-      label: 'PFM Calculation', 
-      isExternal: true 
-    },
+    { key: 'simulation', path: '/simulation', label: 'PFM Calculation' },
   ];
 
   const handleMouseEnter = (key: string) => {

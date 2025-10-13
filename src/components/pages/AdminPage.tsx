@@ -33,23 +33,16 @@ export function AdminPage({ onNavigate }: { onNavigate: (page: string) => void }
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [pubData, setPubData] = useState({ year: new Date().getFullYear(), authors: '', journal: '', doi_link: '', is_featured: false });
   const [pubImage, setPubImage] = useState<File | null>(null);
-  const [projectData, setProjectData] = useState({ status: 'Active', pi: '', funding_agency: '', duration: '', objectives: '', collaborators: '' });
-  const [projectThumbnail, setProjectThumbnail] = useState<File | null>(null);
 
   const resetForm = () => {
     setTitle(''); setContent(''); setAuthor('Administrator'); setThumbnail(null); setAttachments([]); setPubImage(null);
     setPubData({ year: new Date().getFullYear(), authors: '', journal: '', doi_link: '', is_featured: false });
-    setProjectData({ status: 'Active', pi: '', funding_agency: '', duration: '', objectives: '', collaborators: '' });
-    setProjectThumbnail(null);
     const thumbInput = document.getElementById('thumbnail-input') as HTMLInputElement; if (thumbInput) thumbInput.value = '';
     const attachInput = document.getElementById('attachment-input') as HTMLInputElement; if (attachInput) attachInput.value = '';
     const pubImageInput = document.getElementById('pub-image-input') as HTMLInputElement; if (pubImageInput) pubImageInput.value = '';
     const projectThumbnailInput = document.getElementById('project-thumbnail-input') as HTMLInputElement; if (projectThumbnailInput) projectThumbnailInput.value = '';
   };
   const handlePubDataChange = (e: React.ChangeEvent<HTMLInputElement>) => { const { name, value, type } = e.target; setPubData(prev => ({ ...prev, [name]: type === 'number' ? parseInt(value, 10) || 0 : value })); };
-  const handleProjectDataChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => { const { name, value } = e.target; setProjectData(prev => ({ ...prev, [name]: value })); };
-  const handleProjectStatusChange = (value: string) => { setProjectData(prev => ({ ...prev, status: value })); };
-  const handleProjectThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files?.[0]) setProjectThumbnail(e.target.files[0]); };
   const handlePubImageChange = (e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files?.[0]) setPubImage(e.target.files[0]); };
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files?.[0]) setThumbnail(e.target.files[0]); };
   const handleAttachmentChange = (e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files) setAttachments(Array.from(e.target.files)); };
@@ -110,23 +103,7 @@ export function AdminPage({ onNavigate }: { onNavigate: (page: string) => void }
           imageUrl = imageUrlData.publicUrl;
         }
         await supabase.from('publications').insert([{ title, abstract: content, image_url: imageUrl, ...pubData }]);
-      } else if (postType === 'project') {
-        let thumbnailUrl = null;
-        if (projectThumbnail) {
-          const thumbPath = `public/project-thumbnails/${Date.now()}_${sanitizeForStorage(projectThumbnail.name)}`;
-          const { error: thumbError } = await supabase.storage.from('project-thumbnails').upload(thumbPath, projectThumbnail);
-          if (thumbError) throw thumbError;
-          thumbnailUrl = supabase.storage.from('project-thumbnails').getPublicUrl(thumbPath).data.publicUrl;
-        }
-        const finalProjectData = {
-          title: title, description: content, thumbnail_url: thumbnailUrl, status: projectData.status,
-          pi: projectData.pi, funding_agency: projectData.funding_agency, duration: projectData.duration,
-          objectives: projectData.objectives.split('\n').filter(line => line.trim() !== ''),
-          collaborators: projectData.collaborators.split('\n').filter(line => line.trim() !== ''),
-        };
-        const { error } = await supabase.from('projects').insert([finalProjectData]);
-        if (error) throw error;
-      }
+      } 
       setMessage('게시물이 성공적으로 등록되었습니다!');
       resetForm();
     } catch (err: any) { setMessage(`오류 발생: ${err.message}`); } 
@@ -143,18 +120,6 @@ export function AdminPage({ onNavigate }: { onNavigate: (page: string) => void }
           <div className="space-y-2"><Label>초록 (Abstract)</Label><Textarea value={content} onChange={(e) => setContent(e.target.value)} rows={6} /></div>
           <div className="space-y-2"><Label htmlFor="pub-image-input">썸네일 이미지</Label><Input id="pub-image-input" type="file" accept="image/*" onChange={handlePubImageChange} /></div>
           <div className="flex items-center space-x-2 pt-2"><Checkbox id="is_featured" checked={pubData.is_featured} onCheckedChange={(checked) => setPubData(prev => ({ ...prev, is_featured: !!checked }))} /><Label htmlFor="is_featured">Featured Publication으로 지정</Label></div>
-        </div>
-      );
-    }
-    if (postType === 'project') {
-      return (
-        <div className="space-y-4">
-          <div className="space-y-2"><Label htmlFor="title">프로젝트 제목 (Title)</Label><Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required /></div>
-          <div className="space-y-2"><Label htmlFor="project-thumbnail-input">썸네일 이미지</Label><Input id="project-thumbnail-input" type="file" accept="image/*" onChange={handleProjectThumbnailChange} /></div>
-          <div className="space-y-2"><Label htmlFor="description">요약 설명 (Description)</Label><Textarea id="description" value={content} onChange={(e) => setContent(e.target.value)} /></div>
-          <div className="grid md:grid-cols-2 gap-4"><div className="space-y-2"><Label>상태 (Status)</Label><Select value={projectData.status} onValueChange={handleProjectStatusChange}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Active">Active</SelectItem><SelectItem value="Completed">Completed</SelectItem><SelectItem value="Planning">Planning</SelectItem></SelectContent></Select></div><div className="space-y-2"><Label htmlFor="duration">기간 (Duration)</Label><Input id="duration" name="duration" value={projectData.duration} onChange={handleProjectDataChange} /></div><div className="space-y-2"><Label htmlFor="pi">PI</Label><Input id="pi" name="pi" value={projectData.pi} onChange={handleProjectDataChange} /></div><div className="space-y-2"><Label htmlFor="funding_agency">Funding Agency</Label><Input id="funding_agency" name="funding_agency" value={projectData.funding_agency} onChange={handleProjectDataChange} /></div></div>
-          <div className="space-y-2"><Label htmlFor="objectives">Research Objectives (한 줄에 하나씩)</Label><Textarea id="objectives" name="objectives" value={projectData.objectives} onChange={handleProjectDataChange} rows={4} /></div>
-          <div className="space-y-2"><Label htmlFor="collaborators">Collaborators (한 줄에 하나씩)</Label><Textarea id="collaborators" name="collaborators" value={projectData.collaborators} onChange={handleProjectDataChange} rows={3} /></div>
         </div>
       );
     }
@@ -192,7 +157,6 @@ export function AdminPage({ onNavigate }: { onNavigate: (page: string) => void }
               <ToggleGroupItem value="notice">공지사항</ToggleGroupItem>
               <ToggleGroupItem value="gallery">갤러리</ToggleGroupItem>
               <ToggleGroupItem value="publication">Publication</ToggleGroupItem>
-              <ToggleGroupItem value="project">Project</ToggleGroupItem>
             </ToggleGroup>
           </div>
           <form onSubmit={handleSubmit} className="space-y-6">

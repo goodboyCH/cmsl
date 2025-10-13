@@ -35,7 +35,6 @@ export function MobileNavigation({ currentPage, onPageChange }: MobileNavigation
       ]
     },
     { key: 'publications', path: '/publications', label: t('nav.publications') },
-    { key: 'projects', path: '/projects', label: t('nav.projects') },
     { 
       key: 'board',
       label: t('nav.board'),

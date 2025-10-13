@@ -19,7 +19,6 @@ import { CastingAlloysPage } from '@/components/pages/CastingAlloysPage';
 import { ThinFilmsPage } from '@/components/pages/ThinFilmsPage';
 import { BiodegradableAlloysPage } from '@/components/pages/BiodegradableAlloysPage';
 import { PublicationsPage } from '@/components/pages/PublicationsPage';
-import { ProjectsPage } from '@/components/pages/ProjectsPage';
 import { NoticeBoardPage } from '@/components/pages/NoticeBoardPage';
 import { GalleryBoardPage } from '@/components/pages/GalleryBoardPage';
 import { ContactPage } from '@/components/pages/ContactPage';
@@ -32,6 +31,7 @@ import { NoticeDetailPage } from '@/components/pages/NoticeDetailPage';
 import { GalleryDetailPage } from '@/components/pages/GalleryDetailPage';
 import { EditNoticePage } from '@/components/pages/EditNoticePage';
 import { EditGalleryPage } from '@/components/pages/EditGalleryPage';
+import { SimulationPage } from '@/components/pages/SimulationPage'; // 새로 만든 페이지 임포트
 
 import { Quill } from 'react-quill';
 import ImageResize from 'quill-image-resize-module-react';
@@ -105,6 +105,7 @@ function App() {
           <Routes>
             {/* 라우팅 코드는 변경 없습니다. */}
             <Route path="/" element={<HomePage onPageChange={handlePageChange} />} />
+            <Route path="/simulation" element={<SimulationPage />} /> 
             <Route path="/introduction" element={<IntroductionPage />} />
             <Route path="/people/professor" element={<ProfessorPage />} />
             <Route path="/people/members" element={<MembersPage />} />
@@ -113,7 +114,6 @@ function App() {
             <Route path="/research/films" element={<ThinFilmsPage />} />
             <Route path="/research/biodegradable" element={<BiodegradableAlloysPage />} />
             <Route path="/publications" element={<PublicationsPage />} />
-            <Route path="/projects" element={<ProjectsPage />} />
             <Route path="/board/news" element={<NoticeBoardPage session={session} />} />
             <Route path="/board/news/:id" element={<NoticeDetailPage session={session} />} /> 
             <Route path="/board/news/:id/edit" element={<EditNoticePage />} />

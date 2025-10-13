@@ -160,7 +160,7 @@ export function HomePage({ onPageChange }: HomePageProps) {
         </section>
       </ScrollAnimation>
       
-       {/* --- ⬇️ Achievements & News Section 수정 시작 ⬇️ --- */}
+      {/* --- ⬇️ Achievements & News Section 수정 시작 ⬇️ --- */}
       <div className="w-full py-24 md:py-32 bg-background">
         <div className="container space-y-24">
           {/* Recent Achievements */}
@@ -173,7 +173,8 @@ export function HomePage({ onPageChange }: HomePageProps) {
               {/* --- ⬇️ 모바일에서는 2열, 데스크톱에서는 4열 그리드로 변경 ⬇️ --- */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                 {achievements.map(item => (
-                  <div key={`${item.id}-${item.title}`} className="cursor-pointer group" onClick={() => onPageChange(item.authors ? '/publications' : '/projects')}>
+                  // ⬇️ onClick 로직을 수정하여 모든 항목이 '/publications'로 이동하도록 변경 ⬇️
+                  <div key={`${item.id}-${item.title}`} className="cursor-pointer group" onClick={() => onPageChange('/publications')}>
                     <div className="overflow-hidden rounded-lg mb-4 aspect-[4/3] border">
                       <img src={item.image_url || item.thumbnail_url || '/images/logo.png'} alt={item.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
                     </div>
