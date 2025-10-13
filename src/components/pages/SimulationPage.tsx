@@ -20,7 +20,7 @@ export function SimulationPage() {
     if (wsRef.current) { try { wsRef.current.close(); } catch (e) {} }
 
     setIsRunning(true);
-    setStatusText('Status: Sending request to Fortran backend on Colab...');
+    setStatusText('Status: Sending request to backend on Colab...');
     setErrorText(null);
     setResultImage(null);
 
@@ -71,20 +71,20 @@ export function SimulationPage() {
       }
     };
 
-    ws.onerror = () => setErrorText('WebSocket connection error.');
+    ws.onerror = () => setErrorText('WebSocket connection error. Check Colab server and vercel.json.');
     ws.onclose = () => setIsRunning(false);
   };
 
   return (
     <div className="container py-8 px-4 md:px-0">
       <header className="text-center mb-8">
-        <h1 className="text-4xl font-bold tracking-tight text-primary">PFM Simulation (Fortran on Colab)</h1>
-        <p className="text-muted-foreground mt-2 text-lg">Grain Shrinkage Simulation powered by Fortran</p>
+        <h1 className="text-4xl font-bold tracking-tight text-primary">PFM Simulation (Python on Colab)</h1>
+        <p className="text-muted-foreground mt-2 text-lg">Grain Shrinkage Simulation powered by Python/NumPy</p>
       </header>
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1">
           <Card>
-            <CardHeader><CardTitle>Fortran Parameters</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Simulation Parameters</CardTitle></CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div><Label htmlFor="im">Grid Size X (im)</Label><Input id="im" name="im" type="number" defaultValue="100" /></div>
@@ -93,7 +93,7 @@ export function SimulationPage() {
                 <div><Label htmlFor="Nout">Output Interval (Nout)</Label><Input id="Nout" name="Nout" type="number" defaultValue="100" /></div>
                 <div><Label htmlFor="driv">Driving Force (driv)</Label><Input id="driv" name="driv" type="number" step="0.01" defaultValue="0.1" /></div>
                 <Button type="submit" className="w-full !mt-6" disabled={isRunning}>
-                  {isRunning ? 'Running on Colab...' : 'Start Fortran Simulation'}
+                  {isRunning ? 'Running on Colab...' : 'Start Simulation'}
                 </Button>
               </form>
             </CardContent>
