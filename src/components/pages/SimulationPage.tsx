@@ -10,37 +10,47 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
 
 export function SimulationPage() {
-  const [isRunning, setIsRunning] = useState(false);
-  const [statusText, setStatusText] = useState('Status: Ready.');
-  const [errorText, setErrorText] = useState<string | null>(null);
-  const [resultImage, setResultImage] = useState<string | null>(null);
-  const [taskId, setTaskId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!taskId || !isRunning) return;
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/results/${taskId}`);
-        if (res.headers.get('Content-Type')?.includes('image')) {
-          const imageBlob = await res.blob();
-          setResultImage(URL.createObjectURL(imageBlob));
-          setStatusText('Status: Completed!');
+    const [isRunning, setIsRunning] = useState(false);
+    const [statusText, setStatusText] = useState('Status: Ready.');
+    const [errorText, setErrorText] = useState<string | null>(null);
+    const [resultImage, setResultImage] = useState<string | null>(null);
+    const [taskId, setTaskId] = useState<string | null>(null);
+  
+    // ===== ⬇️ useEffect 부분을 수정합니다 ⬇️ =====
+    useEffect(() => {
+      if (!taskId || !isRunning) return;
+  
+      const interval = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/results/${taskId}`);
+          if (!res.ok) { // 서버 에러 처리
+              const errorData = await res.json();
+              throw new Error(errorData.error || `Server error: ${res.status}`);
+          }
+  
+          const json = await res.json();
+          
+          if (json.status === 'completed' && json.image_base64) {
+            // Base64 문자열을 직접 src에 설정
+            setResultImage(`data:image/png;base64,${json.image_base64}`);
+            setStatusText('Status: Completed!');
+            setIsRunning(false);
+            setTaskId(null);
+            clearInterval(interval);
+          } else if (json.status === 'failed') {
+            throw new Error(json.error);
+          }
+          // 'processing' 상태일 때는 아무것도 하지 않고 다음 폴링을 기다림
+        } catch (err: any) {
+          setErrorText(err.message);
           setIsRunning(false);
           setTaskId(null);
           clearInterval(interval);
-        } else {
-          const json = await res.json();
-          if (json.status === 'failed') throw new Error(json.error);
         }
-      } catch (err: any) {
-        setErrorText(err.message);
-        setIsRunning(false);
-        setTaskId(null);
-        clearInterval(interval);
-      }
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [taskId, isRunning]);
+      }, 2000); // 2초마다 확인
+  
+      return () => clearInterval(interval);
+    }, [taskId, isRunning]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
