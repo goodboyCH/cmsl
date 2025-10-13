@@ -1,11 +1,10 @@
 // src/components/pages/SimulationPage.tsx
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
 
@@ -14,47 +13,16 @@ export function SimulationPage() {
   const [statusText, setStatusText] = useState('Status: Ready.');
   const [errorText, setErrorText] = useState<string | null>(null);
   const [resultImage, setResultImage] = useState<string | null>(null);
-  const [taskId, setTaskId] = useState<string | null>(null);
-
-  // 폴링 방식: taskId가 설정되면 2초마다 결과 확인
-  useEffect(() => {
-    if (!taskId || !isRunning) return;
-
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/results/${taskId}`);
-        if (res.headers.get('Content-Type')?.includes('image')) {
-          const imageBlob = await res.blob();
-          setResultImage(URL.createObjectURL(imageBlob));
-          setStatusText('Status: Completed!');
-          setIsRunning(false);
-          setTaskId(null);
-          clearInterval(interval);
-        } else {
-          const json = await res.json();
-          if (json.status === 'failed') {
-            throw new Error(json.error);
-          }
-          // 'processing' 상태일 때는 아무것도 하지 않고 다음 폴링을 기다림
-        }
-      } catch (err: any) {
-        setErrorText(err.message);
-        setIsRunning(false);
-        setTaskId(null);
-        clearInterval(interval);
-      }
-    }, 2000); // 2초마다 확인
-
-    return () => clearInterval(interval);
-  }, [taskId, isRunning]);
+  const wsRef = useRef<WebSocket | null>(null);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (wsRef.current) { try { wsRef.current.close(); } catch (e) {} }
+
     setIsRunning(true);
     setStatusText('Status: Sending request to Fortran backend on Colab...');
     setErrorText(null);
     setResultImage(null);
-    setTaskId(null);
 
     const formData = new FormData(event.currentTarget);
     const body = {
@@ -73,12 +41,38 @@ export function SimulationPage() {
       });
       if (!res.ok) throw new Error(`Server responded with status: ${res.status}`);
       const data = await res.json();
-      setTaskId(data.task_id);
-      setStatusText(`Status: Task [${data.task_id}] is running on Colab...`);
+      setStatusText(`Status: Task [${data.task_id}] is running...`);
+      connectWebSocket(data.task_id);
     } catch (err: any) {
       setErrorText(err.message);
       setIsRunning(false);
     }
+  };
+
+  const connectWebSocket = (taskId: string) => {
+    const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const ws = new WebSocket(`${proto}://${window.location.host}/api/ws/status/${taskId}`);
+    wsRef.current = ws;
+
+    ws.onopen = () => setStatusText('Status: Connected. Streaming results from Colab...');
+
+    ws.onmessage = (event) => {
+      const message = event.data;
+      if (message === 'completed') {
+        setStatusText('Status: Completed!');
+        ws.close();
+      } else if (message.startsWith('failed:')) {
+        setErrorText(message);
+        ws.close();
+      } else {
+        // 메시지가 Base64 이미지 데이터라고 간주
+        setResultImage(`data:image/png;base64,${message}`);
+        setStatusText('Status: Receiving simulation frames...');
+      }
+    };
+
+    ws.onerror = () => setErrorText('WebSocket connection error.');
+    ws.onclose = () => setIsRunning(false);
   };
 
   return (
@@ -88,7 +82,6 @@ export function SimulationPage() {
         <p className="text-muted-foreground mt-2 text-lg">Grain Shrinkage Simulation powered by Fortran</p>
       </header>
       <div className="grid lg:grid-cols-3 gap-8">
-        {/* Left: Controls */}
         <div className="lg:col-span-1">
           <Card>
             <CardHeader><CardTitle>Fortran Parameters</CardTitle></CardHeader>
@@ -106,8 +99,6 @@ export function SimulationPage() {
             </CardContent>
           </Card>
         </div>
-
-        {/* ===== ⬇️ 빠져있던 오른쪽 결과 표시 영역을 다시 추가했습니다. ⬇️ ===== */}
         <div className="lg:col-span-2">
           <Card>
             <CardHeader><CardTitle>Result</CardTitle></CardHeader>
@@ -120,7 +111,6 @@ export function SimulationPage() {
                 )}
               </div>
               <div className="mt-4 space-y-2">
-                {isRunning && <Progress value={undefined} className="[&>div]:animate-pulse" />}
                 <div className="text-sm text-muted-foreground text-center">{statusText}</div>
                 {errorText && (
                   <Alert variant="destructive">
@@ -133,8 +123,6 @@ export function SimulationPage() {
             </CardContent>
           </Card>
         </div>
-        {/* ================================================================= */}
-        
       </div>
     </div>
   );
