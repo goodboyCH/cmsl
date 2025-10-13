@@ -49,31 +49,28 @@ export function SimulationPage() {
     }
   };
 
-  const connectWebSocket = (taskId: string) => {
-    const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    const ws = new WebSocket(`${proto}://${window.location.host}/api/ws/status/${taskId}`);
+const NGROK_HOST = 'unschismatical-hurtfully-sabrina.ngrok-free.dev'; // vercel.json에 쓴 것과 동일
+const connectWebSocket = (taskId: string) => {
+    const ws = new WebSocket(`wss://${NGROK_HOST}/api/ws/status/${taskId}`);
     wsRef.current = ws;
 
     ws.onopen = () => setStatusText('Status: Connected. Streaming results from Colab...');
-
     ws.onmessage = (event) => {
-      const message = event.data;
-      if (message === 'completed') {
+        const message = event.data as string;
+        if (message === 'completed') {
         setStatusText('Status: Completed!');
         ws.close();
-      } else if (message.startsWith('failed:')) {
+        } else if (message.startsWith('failed:')) {
         setErrorText(message);
         ws.close();
-      } else {
-        // 메시지가 Base64 이미지 데이터라고 간주
+        } else {
         setResultImage(`data:image/png;base64,${message}`);
         setStatusText('Status: Receiving simulation frames...');
-      }
+        }
     };
-
     ws.onerror = () => setErrorText('WebSocket connection error. Check Colab server and vercel.json.');
     ws.onclose = () => setIsRunning(false);
-  };
+    };
 
   return (
     <div className="container py-8 px-4 md:px-0">
