@@ -1,5 +1,3 @@
-// src/components/pages/SimulationPage.tsx
-
 import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +7,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
 
 // Vercel 환경 변수에서 백엔드의 전체 URL을 읽어옵니다.
-// 로컬 테스트 시에는 .env.local 파일에 VITE_BACKEND_URL=http://localhost:8000 과 같이 설정할 수 있습니다.
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 export function SimulationPage() {
@@ -43,13 +40,22 @@ export function SimulationPage() {
     };
 
     try {
-      // API 요청 시 전체 URL을 사용합니다.
       const res = await fetch(`${backendUrl}/api/run-simulation`, {
+        // ===== ⬇️ 이 부분이 반드시 포함되어야 합니다. ⬇️ =====
         method: 'POST',
+        // ===============================================
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-      if (!res.ok) throw new Error(`Server responded with status: ${res.status}`);
+
+      if (!res.ok) {
+          // 405 오류 발생 시, 더 구체적인 에러 메시지를 표시
+          if (res.status === 405) {
+              throw new Error(`Method Not Allowed (405): Check if the fetch method is 'POST'.`);
+          }
+          throw new Error(`Server responded with status: ${res.status}`);
+      }
+      
       const data = await res.json();
       setStatusText(`Status: Task [${data.task_id}] is running...`);
       connectWebSocket(data.task_id);
@@ -60,8 +66,7 @@ export function SimulationPage() {
   };
 
   const connectWebSocket = (taskId: string) => {
-    // WebSocket 주소도 전체 URL을 사용합니다.
-    const wsUrl = backendUrl.replace(/^http/, 'ws'); // http -> ws, https -> wss
+    const wsUrl = backendUrl.replace(/^http/, 'ws');
     const ws = new WebSocket(`${wsUrl}/api/ws/status/${taskId}`);
     wsRef.current = ws;
 
@@ -76,7 +81,6 @@ export function SimulationPage() {
         setErrorText(message);
         ws.close();
       } else {
-        // 메시지가 Base64 이미지 데이터라고 간주
         setResultImage(`data:image/png;base64,${message}`);
         setStatusText('Status: Receiving simulation frames...');
       }
