@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ScrollAnimation } from '../ScrollAnimation';
 import { Search, ExternalLink, Users, BookOpen, Edit, Trash2, ChevronDown } from 'lucide-react';
 import { EditPublicationPage } from './EditPublicationPage';
+// 1. 페이지네이션 컴포넌트를 import 합니다.
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
 interface Publication {
   id: number;
@@ -38,6 +40,9 @@ export function PublicationsPage() {
   const [highlightedPubId, setHighlightedPubId] = useState<number | null>(null);
   const [abstractExpanded, setAbstractExpanded] = useState<number | null>(null);
 
+  // 2. 페이지네이션을 위한 state를 추가합니다.
+  const [currentPage, setCurrentPage] = useState(1);
+  const [postsPerPage] = useState(10); // 한 페이지에 10개의 논문을 표시
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
@@ -49,7 +54,7 @@ export function PublicationsPage() {
     setLoading(true);
     const { data, error } = await supabase.from('publications').select('*').order('year', { ascending: false }).order('is_featured', { ascending: false });
     if (error) setError(error.message);
-    else setPublications(data);
+    else setPublications(data || []); // 데이터가 null일 경우 빈 배열로 설정
     setLoading(false);
   };
 
@@ -60,8 +65,7 @@ export function PublicationsPage() {
   const handleViewClick = (id: number) => {
     const node = publicationRefs.current.get(id);
     if (node) {
-      // 헤더 높이를 고려하여 스크롤 위치 조정
-      const headerOffset = 100; // 헤더 높이 + 추가 여백 (px)
+      const headerOffset = 100;
       const elementPosition = node.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
@@ -100,6 +104,34 @@ export function PublicationsPage() {
     const matchesYear = selectedYear === 'all' || pub.year.toString() === selectedYear;
     return matchesSearch && matchesYear;
   });
+
+  // 3. 페이지네이션 로직을 추가합니다.
+  const totalPages = Math.ceil(filteredPublications.length / postsPerPage);
+  const indexOfLastPost = currentPage * postsPerPage;
+  const indexOfFirstPost = indexOfLastPost - postsPerPage;
+  const currentPosts = filteredPublications.slice(indexOfFirstPost, indexOfLastPost);
+
+  const renderPageNumbers = () => {
+    if (totalPages <= 1) return null;
+    const pageNumbers = [];
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, currentPage + 2);
+
+    if (totalPages > 5 && endPage - startPage < 4) {
+      if (currentPage < 3) endPage = 5;
+      else startPage = totalPages - 4;
+    }
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(
+        <PaginationItem key={i}>
+          <PaginationLink href="#" onClick={(e) => { e.preventDefault(); setCurrentPage(i); }} isActive={currentPage === i}>
+            {i}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+    return pageNumbers;
+  };
 
   if (view.mode === 'edit') {
     return <EditPublicationPage publicationId={view.id} onBack={() => setView({ mode: 'list' })} />;
@@ -177,7 +209,8 @@ export function PublicationsPage() {
             <div className="space-y-6">
               <h2 className="text-2xl sm:text-3xl font-bold text-primary">All Publications ({filteredPublications.length})</h2>
               <div className="space-y-4">
-                {filteredPublications.map((pub) => (
+                {/* 4. publications 대신 currentPosts를 렌더링합니다. */}
+                {currentPosts.map((pub) => (
                   <Card 
                     key={pub.id}
                     ref={(node) => {
@@ -186,7 +219,7 @@ export function PublicationsPage() {
                     }}
                     className={`elegant-shadow smooth-transition group relative ${highlightedPubId === pub.id ? 'ring-2 ring-primary ring-offset-2' : ''}`}
                   >
-                    <CardContent>
+                    <CardContent className="p-4 sm:p-6">
                       <div className="flex flex-col sm:flex-row items-start gap-4">
                         <div className="flex-1 space-y-2">
                           <span className="text-xs sm:text-sm text-muted-foreground">{pub.year}</span>
@@ -220,6 +253,23 @@ export function PublicationsPage() {
                   </Card>
                 ))}
               </div>
+              
+              {/* 5. 페이지네이션 UI를 추가합니다. */}
+              {totalPages > 1 && (
+                <div className="mt-8">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious href="#" onClick={(e) => { e.preventDefault(); if (currentPage > 1) setCurrentPage(currentPage - 1); }} />
+                      </PaginationItem>
+                      {renderPageNumbers()}
+                      <PaginationItem>
+                        <PaginationNext href="#" onClick={(e) => { e.preventDefault(); if (currentPage < totalPages) setCurrentPage(currentPage + 1); }} />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
             </div>
           </ScrollAnimation>
         </>
