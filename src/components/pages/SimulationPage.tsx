@@ -1,6 +1,6 @@
 // src/components/pages/SimulationPage.tsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef  } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,92 +16,69 @@ export function SimulationPage() {
   const [statusText, setStatusText] = useState('Status: Ready.');
   const [errorText, setErrorText] = useState<string | null>(null);
   const [resultImage, setResultImage] = useState<string | null>(null);
-  const [taskId, setTaskId] = useState<string | null>(null);
-
-  // Helper function to handle fetch responses
-  const handleResponse = async (res: Response) => {
-    if (!res.ok) {
-      const errorBody = await res.text();
-      throw new Error(`Server Error (${res.status}): ${errorBody}`);
-    }
-    const contentType = res.headers.get('Content-Type');
-    if (contentType?.includes('application/json')) {
-      return res.json();
-    }
-    if (contentType?.includes('image')) {
-      return res.blob();
-    }
-    // Unexpected response type
-    const unexpectedBody = await res.text();
-    throw new Error(`Unexpected response type '${contentType}'. Body: ${unexpectedBody}`);
-  };
-
-  useEffect(() => {
-    if (!taskId || !isRunning) return;
-
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch(`${backendUrl}/api/results/${taskId}`, {
-          headers: { 'ngrok-skip-browser-warning': 'true' }
-        });
-        const data = await handleResponse(res);
-
-        if (data instanceof Blob) { // Image blob received
-          setResultImage(URL.createObjectURL(data));
-          setStatusText('Status: Completed!');
-          setIsRunning(false);
-          setTaskId(null);
-          clearInterval(interval);
-        } else if (data.status === 'completed' && data.image_base64) {
-            setResultImage(`data:image/png;base64,${data.image_base64}`);
-            setStatusText('Status: Completed!');
-            setIsRunning(false);
-            setTaskId(null);
-            clearInterval(interval);
-        } else if (data.status === 'failed') {
-          throw new Error(data.error);
-        }
-        // If 'processing', do nothing and wait for the next poll
-      } catch (err: any) {
-        setErrorText(err.message);
-        setIsRunning(false);
-        setTaskId(null);
-        clearInterval(interval);
-      }
-    }, 3000); // Check every 3 seconds
-
-    return () => clearInterval(interval);
-  }, [taskId, isRunning]);
+  const wsRef = useRef<WebSocket | null>(null);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (wsRef.current) { try { wsRef.current.close(); } catch (e) {} }
     if (!backendUrl) { setErrorText('Backend URL is not configured.'); return; }
+
     setIsRunning(true);
-    setStatusText('Status: Sending request to backend...');
+    setStatusText('Status: Sending request to backend on Colab...');
     setErrorText(null);
     setResultImage(null);
-    setTaskId(null);
 
     const formData = new FormData(event.currentTarget);
-    const params = new URLSearchParams({
-      im: (formData.get('im') as string) || '100',
-      jm: (formData.get('jm') as string) || '100',
-      nnn_ed: (formData.get('nnn_ed') as string) || '2000',
-      Nout: (formData.get('Nout') as string) || '100',
-      driv: (formData.get('driv') as string) || '0.1',
-    });
+    const body = {
+      im: parseInt(formData.get('im') as string) || 100,
+      jm: parseInt(formData.get('jm') as string) || 100,
+      nnn_ed: parseInt(formData.get('nnn_ed') as string) || 2000,
+      Nout: parseInt(formData.get('Nout') as string) || 100,
+      driv: parseFloat(formData.get('driv') as string) || 0.1,
+    };
 
     try {
-      const res = await fetch(`${backendUrl}/api/run-simulation?${params.toString()}`, {
-        headers: { 'ngrok-skip-browser-warning': 'true' }
+      const res = await fetch(`${backendUrl}/api/run-simulation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true'
+        },
+        body: JSON.stringify(body),
       });
-      const data = await handleResponse(res);
-      setTaskId(data.task_id);
+      if (!res.ok) throw new Error(`Server responded with status: ${res.status}`);
+      const data = await res.json();
       setStatusText(`Status: Task [${data.task_id}] is running...`);
+      connectWebSocket(data.task_id);
     } catch (err: any) {
       setErrorText(err.message);
       setIsRunning(false);
     }
+  };
+
+  const connectWebSocket = (taskId: string) => {
+    const wsUrl = backendUrl.replace(/^http/, 'ws');
+    const ws = new WebSocket(`${wsUrl}/api/ws/status/${taskId}`);
+    wsRef.current = ws;
+
+    ws.onopen = () => setStatusText('Status: Connected. Streaming results from Colab...');
+
+    ws.onmessage = (event) => {
+      const message = event.data;
+      if (message === 'completed') {
+        setStatusText('Status: Completed!');
+        ws.close();
+      } else if (message.startsWith('failed:')) {
+        setErrorText(message);
+        ws.close();
+      } else {
+        setResultImage(`data:image/png;base64,${message}`);
+        setStatusText('Status: Receiving simulation frames...');
+      }
+    };
+
+    ws.onerror = () => setErrorText('WebSocket connection error. Check Colab server and URL.');
+    ws.onclose = () => setIsRunning(false);
   };
   
   return (
