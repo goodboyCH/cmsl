@@ -8,6 +8,10 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
 
+// Vercel 환경 변수에서 백엔드의 전체 URL을 읽어옵니다.
+// 로컬 테스트 시에는 .env.local 파일에 VITE_BACKEND_URL=http://localhost:8000 과 같이 설정할 수 있습니다.
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
 export function SimulationPage() {
   const [isRunning, setIsRunning] = useState(false);
   const [statusText, setStatusText] = useState('Status: Ready.');
@@ -18,6 +22,11 @@ export function SimulationPage() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (wsRef.current) { try { wsRef.current.close(); } catch (e) {} }
+
+    if (!backendUrl) {
+      setErrorText('Backend URL is not configured. Please set VITE_BACKEND_URL in your environment variables.');
+      return;
+    }
 
     setIsRunning(true);
     setStatusText('Status: Sending request to backend on Colab...');
@@ -34,7 +43,8 @@ export function SimulationPage() {
     };
 
     try {
-      const res = await fetch('/api/run-simulation', {
+      // API 요청 시 전체 URL을 사용합니다.
+      const res = await fetch(`${backendUrl}/api/run-simulation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -49,28 +59,32 @@ export function SimulationPage() {
     }
   };
 
-const NGROK_HOST = 'unschismatical-hurtfully-sabrina.ngrok-free.dev'; // vercel.json에 쓴 것과 동일
-const connectWebSocket = (taskId: string) => {
-    const ws = new WebSocket(`wss://${NGROK_HOST}/api/ws/status/${taskId}`);
+  const connectWebSocket = (taskId: string) => {
+    // WebSocket 주소도 전체 URL을 사용합니다.
+    const wsUrl = backendUrl.replace(/^http/, 'ws'); // http -> ws, https -> wss
+    const ws = new WebSocket(`${wsUrl}/api/ws/status/${taskId}`);
     wsRef.current = ws;
 
     ws.onopen = () => setStatusText('Status: Connected. Streaming results from Colab...');
+
     ws.onmessage = (event) => {
-        const message = event.data as string;
-        if (message === 'completed') {
+      const message = event.data;
+      if (message === 'completed') {
         setStatusText('Status: Completed!');
         ws.close();
-        } else if (message.startsWith('failed:')) {
+      } else if (message.startsWith('failed:')) {
         setErrorText(message);
         ws.close();
-        } else {
+      } else {
+        // 메시지가 Base64 이미지 데이터라고 간주
         setResultImage(`data:image/png;base64,${message}`);
         setStatusText('Status: Receiving simulation frames...');
-        }
+      }
     };
-    ws.onerror = () => setErrorText('WebSocket connection error. Check Colab server and vercel.json.');
+
+    ws.onerror = () => setErrorText('WebSocket connection error. Check if the Colab server is running and the URL is correct.');
     ws.onclose = () => setIsRunning(false);
-    };
+  };
 
   return (
     <div className="container py-8 px-4 md:px-0">

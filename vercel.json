@@ -1,10 +1,6 @@
 {
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "https://unschismatical-hurtfully-sabrina.ngrok-free.dev/api/:path*"
-    },
-    {
       "source": "/:path*",
       "destination": "/index.html"
     }
