@@ -18,36 +18,58 @@ export function SimulationPage() {
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [taskId, setTaskId] = useState<string | null>(null);
 
+  // Helper function to handle fetch responses
+  const handleResponse = async (res: Response) => {
+    if (!res.ok) {
+      const errorBody = await res.text();
+      throw new Error(`Server Error (${res.status}): ${errorBody}`);
+    }
+    const contentType = res.headers.get('Content-Type');
+    if (contentType?.includes('application/json')) {
+      return res.json();
+    }
+    if (contentType?.includes('image')) {
+      return res.blob();
+    }
+    // Unexpected response type
+    const unexpectedBody = await res.text();
+    throw new Error(`Unexpected response type '${contentType}'. Body: ${unexpectedBody}`);
+  };
+
   useEffect(() => {
     if (!taskId || !isRunning) return;
 
     const interval = setInterval(async () => {
       try {
         const res = await fetch(`${backendUrl}/api/results/${taskId}`, {
-          // ===== ⬇️ ngrok 경고를 건너뛰기 위한 헤더 추가 ⬇️ =====
-          headers: {
-            'ngrok-skip-browser-warning': 'true'
-          }
+          headers: { 'ngrok-skip-browser-warning': 'true' }
         });
+        const data = await handleResponse(res);
 
-        if (res.headers.get('Content-Type')?.includes('image')) {
-          const imageBlob = await res.blob();
-          setResultImage(URL.createObjectURL(imageBlob));
+        if (data instanceof Blob) { // Image blob received
+          setResultImage(URL.createObjectURL(data));
           setStatusText('Status: Completed!');
           setIsRunning(false);
           setTaskId(null);
           clearInterval(interval);
-        } else {
-          const json = await res.json();
-          if (json.status === 'failed') throw new Error(json.error);
+        } else if (data.status === 'completed' && data.image_base64) {
+            setResultImage(`data:image/png;base64,${data.image_base64}`);
+            setStatusText('Status: Completed!');
+            setIsRunning(false);
+            setTaskId(null);
+            clearInterval(interval);
+        } else if (data.status === 'failed') {
+          throw new Error(data.error);
         }
+        // If 'processing', do nothing and wait for the next poll
       } catch (err: any) {
         setErrorText(err.message);
         setIsRunning(false);
         setTaskId(null);
         clearInterval(interval);
       }
-    }, 2000);
+    }, 3000); // Check every 3 seconds
+
     return () => clearInterval(interval);
   }, [taskId, isRunning]);
 
@@ -71,14 +93,9 @@ export function SimulationPage() {
 
     try {
       const res = await fetch(`${backendUrl}/api/run-simulation?${params.toString()}`, {
-        // ===== ⬇️ ngrok 경고를 건너뛰기 위한 헤더 추가 ⬇️ =====
-        headers: {
-          'ngrok-skip-browser-warning': 'true'
-        }
+        headers: { 'ngrok-skip-browser-warning': 'true' }
       });
-
-      if (!res.ok) throw new Error(`Server responded with status: ${res.status}`);
-      const data = await res.json();
+      const data = await handleResponse(res);
       setTaskId(data.task_id);
       setStatusText(`Status: Task [${data.task_id}] is running...`);
     } catch (err: any) {
@@ -86,7 +103,7 @@ export function SimulationPage() {
       setIsRunning(false);
     }
   };
-
+  
   return (
     <div className="container py-8 px-4 md:px-0">
       <header className="text-center mb-8">
@@ -129,7 +146,9 @@ export function SimulationPage() {
                   <Alert variant="destructive">
                     <Terminal className="h-4 w-4" />
                     <AlertTitle>Error</AlertTitle>
-                    <AlertDescription>{errorText}</AlertDescription>
+                    <AlertDescription className="whitespace-pre-wrap break-all">
+                      {errorText}
+                    </AlertDescription>
                   </Alert>
                 )}
               </div>
