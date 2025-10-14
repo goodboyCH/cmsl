@@ -1,12 +1,14 @@
-import React, { useState, useEffect  } from 'react';
+// src/components/pages/SimulationPage.tsx
+
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
 
-// Vercel 환경 변수에서 백엔드의 전체 URL을 읽어옵니다.
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 export function SimulationPage() {
@@ -18,9 +20,16 @@ export function SimulationPage() {
 
   useEffect(() => {
     if (!taskId || !isRunning) return;
+
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(`${backendUrl}/api/results/${taskId}`);
+        const res = await fetch(`${backendUrl}/api/results/${taskId}`, {
+          // ===== ⬇️ ngrok 경고를 건너뛰기 위한 헤더 추가 ⬇️ =====
+          headers: {
+            'ngrok-skip-browser-warning': 'true'
+          }
+        });
+
         if (res.headers.get('Content-Type')?.includes('image')) {
           const imageBlob = await res.blob();
           setResultImage(URL.createObjectURL(imageBlob));
@@ -61,7 +70,13 @@ export function SimulationPage() {
     });
 
     try {
-      const res = await fetch(`${backendUrl}/api/run-simulation?${params.toString()}`);
+      const res = await fetch(`${backendUrl}/api/run-simulation?${params.toString()}`, {
+        // ===== ⬇️ ngrok 경고를 건너뛰기 위한 헤더 추가 ⬇️ =====
+        headers: {
+          'ngrok-skip-browser-warning': 'true'
+        }
+      });
+
       if (!res.ok) throw new Error(`Server responded with status: ${res.status}`);
       const data = await res.json();
       setTaskId(data.task_id);
@@ -108,6 +123,7 @@ export function SimulationPage() {
                 )}
               </div>
               <div className="mt-4 space-y-2">
+                {isRunning && <Progress value={undefined} className="[&>div]:animate-pulse" />}
                 <div className="text-sm text-muted-foreground text-center">{statusText}</div>
                 {errorText && (
                   <Alert variant="destructive">
