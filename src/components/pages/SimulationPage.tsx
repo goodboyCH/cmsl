@@ -41,7 +41,7 @@ export function SimulationPage() {
       body.driv = parseFloat(formData.get('gs_driv') as string) || 0.1;
     } else if (selectedSim === 'dendrite_growth') {
       body.n = parseInt(formData.get('dg_n') as string) || 512;
-      body.steps = parseInt(formData.get('dg_steps') as string) || 10000;
+      body.steps = parseInt(formData.get('dg_steps') as string) || 3000;
       body.n_fold_symmetry = parseInt(formData.get('dg_n_fold') as string) || 6;
       body.aniso_magnitude = parseFloat(formData.get('dg_aniso') as string) || 0.12;
       body.latent_heat_coef = parseFloat(formData.get('dg_latent_heat') as string) || 1.5;
@@ -56,7 +56,7 @@ export function SimulationPage() {
       return; // 여기서 함수 실행을 중단
     }
     if (timeSteps > 4000) {
-      setErrorText("Time Steps cannot exceed 4000.");
+      setErrorText("Time Steps cannot exceed 5000.");
       setIsRunning(false);
       return;
     }
@@ -122,7 +122,7 @@ export function SimulationPage() {
                   <TabsContent value="grain_shrinkage" className="space-y-4 mt-4">
                     <p className="text-sm text-muted-foreground">A 2D PFM model simulating the shrinkage of a circular grain .</p>
                     <div><Label htmlFor="gs_im">Grid Size (im/jm)</Label><Input id="gs_im" name="gs_im" type="number" defaultValue="100" max="1024" /></div>
-                    <div><Label htmlFor="gs_nnn_ed">Total Timesteps (nnn_ed)</Label><Input id="gs_nnn_ed" name="gs_nnn_ed" type="number" defaultValue="2000" max="4000" /></div>
+                    <div><Label htmlFor="gs_nnn_ed">Total Timesteps (nnn_ed)</Label><Input id="gs_nnn_ed" name="gs_nnn_ed" type="number" defaultValue="2000" max="5000" /></div>
                     <div><Label htmlFor="gs_Nout">Output Interval (Nout)</Label><Input id="gs_Nout" name="gs_Nout" type="number" defaultValue="100" /></div>
                     <div><Label htmlFor="gs_driv">Driving Force (driv)</Label><Input id="gs_driv" name="gs_driv" type="number" step="0.01" defaultValue="0.1" /></div>
                   </TabsContent>
@@ -130,7 +130,7 @@ export function SimulationPage() {
                   <TabsContent value="dendrite_growth" className="space-y-4 mt-4">
                     <p className="text-sm text-muted-foreground">A 2D PFM model simulating dendritic crystal growth .</p>
                     <div><Label htmlFor="dg_n">Grid Size (n x n)</Label><Input id="dg_n" name="n" type="number" defaultValue="512" max="1024" /></div>
-                    <div><Label htmlFor="dg_steps">Total Timesteps</Label><Input id="dg_steps" name="steps" type="number" defaultValue="4000" max="4000" /></div>
+                    <div><Label htmlFor="dg_steps">Total Timesteps</Label><Input id="dg_steps" name="steps" type="number" defaultValue="3000" max="5000" /></div>
                     <div><Label htmlFor="dg_n_fold">N-fold Symmetry</Label><Input id="dg_n_fold" name="n_fold_symmetry" type="number" defaultValue="6" /></div>
                     <div><Label htmlFor="dg_aniso">Anisotropy Magnitude</Label><Input id="dg_aniso" name="aniso_magnitude" type="number" step="0.01" defaultValue="0.12" /></div>
                     <div><Label htmlFor="dg_latent_heat">Latent Heat Coef.</Label><Input id="dg_latent_heat" name="latent_heat_coef" type="number" step="0.1" defaultValue="1.5" /></div>
