@@ -1,5 +1,3 @@
-// src/components/pages/SimulationPage.tsx
-
 import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +9,7 @@ import { Terminal } from 'lucide-react';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
-type SimulationType = 'grain_shrinkage' | 'dendrite_growth' | 'diffusion_1d';
+type SimulationType = 'grain_shrinkage' | 'dendrite_growth';
 
 export function SimulationPage() {
   const [isRunning, setIsRunning] = useState(false);
@@ -33,21 +31,26 @@ export function SimulationPage() {
 
     const formData = new FormData(event.currentTarget);
     const body: { [key: string]: any } = { simulation_type: selectedSim };
-    formData.forEach((value, key) => {
-      const numValue = Number(value);
-      // 폼에 있는 모든 값을 일단 body에 추가합니다.
-      if (value !== '') {
-        body[key] = isNaN(numValue) ? value : numValue;
-      }
-    });
+    
+    // 현재 활성화된 탭의 파라미터만 읽어서 body에 추가합니다.
+    if (selectedSim === 'grain_shrinkage') {
+      body.im = parseInt(formData.get('gs_im') as string) || 100;
+      body.jm = parseInt(formData.get('gs_im') as string) || 100; // jm도 im과 동일하게 설정
+      body.nnn_ed = parseInt(formData.get('gs_nnn_ed') as string) || 2000;
+      body.Nout = parseInt(formData.get('gs_Nout') as string) || 100;
+      body.driv = parseFloat(formData.get('gs_driv') as string) || 0.1;
+    } else if (selectedSim === 'dendrite_growth') {
+      body.n = parseInt(formData.get('dg_n') as string) || 512;
+      body.steps = parseInt(formData.get('dg_steps') as string) || 10000;
+      body.n_fold_symmetry = parseInt(formData.get('dg_n_fold') as string) || 6;
+      body.aniso_magnitude = parseFloat(formData.get('dg_aniso') as string) || 0.12;
+      body.latent_heat_coef = parseFloat(formData.get('dg_latent_heat') as string) || 1.5;
+    }
 
     try {
       const res = await fetch(`${backendUrl}/api/run-simulation`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'ngrok-skip-browser-warning': 'true'
-        },
+        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
         body: JSON.stringify(body),
       });
       if (!res.ok) throw new Error(`Server responded with status: ${res.status}`);
@@ -64,9 +67,7 @@ export function SimulationPage() {
     const wsUrl = backendUrl.replace(/^http/, 'ws');
     const ws = new WebSocket(`${wsUrl}/api/ws/status/${taskId}`);
     wsRef.current = ws;
-
     ws.onopen = () => setStatusText('Status: Connected. Streaming results...');
-    
     ws.onmessage = (event) => {
       const message = event.data;
       if (message === 'completed') {
@@ -80,8 +81,7 @@ export function SimulationPage() {
         setStatusText('Status: Receiving simulation frames...');
       }
     };
-
-    ws.onerror = () => setErrorText('WebSocket connection error. Check Colab server and URL.');
+    ws.onerror = () => setErrorText('WebSocket connection error.');
     ws.onclose = () => setIsRunning(false);
   };
 
@@ -98,33 +98,26 @@ export function SimulationPage() {
             <CardContent>
               <form onSubmit={handleSubmit}>
                 <Tabs value={selectedSim} onValueChange={(value) => setSelectedSim(value as SimulationType)} className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
+                  <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="grain_shrinkage">Grain Shrinkage</TabsTrigger>
                     <TabsTrigger value="dendrite_growth">Dendrite Growth</TabsTrigger>
-                    <TabsTrigger value="diffusion_1d">1D Diffusion</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="grain_shrinkage" className="space-y-4 mt-4">
                     <p className="text-sm text-muted-foreground">A 2D PFM model simulating the shrinkage of a circular grain (NumPy).</p>
-                    <div><Label htmlFor="gs_im">Grid Size (im/jm)</Label><Input id="gs_im" name="im" type="number" defaultValue="100" /></div>
-                    <div><Label htmlFor="gs_nnn_ed">Total Timesteps (nnn_ed)</Label><Input id="gs_nnn_ed" name="nnn_ed" type="number" defaultValue="2000" /></div>
-                    <div><Label htmlFor="gs_Nout">Output Interval (Nout)</Label><Input id="gs_Nout" name="Nout" type="number" defaultValue="200" /></div>
-                    <div><Label htmlFor="gs_driv">Driving Force (driv)</Label><Input id="gs_driv" name="driv" type="number" step="0.01" defaultValue="0.1" /></div>
+                    <div><Label htmlFor="gs_im">Grid Size (im/jm)</Label><Input id="gs_im" name="gs_im" type="number" defaultValue="100" /></div>
+                    <div><Label htmlFor="gs_nnn_ed">Total Timesteps (nnn_ed)</Label><Input id="gs_nnn_ed" name="gs_nnn_ed" type="number" defaultValue="2000" /></div>
+                    <div><Label htmlFor="gs_Nout">Output Interval (Nout)</Label><Input id="gs_Nout" name="gs_Nout" type="number" defaultValue="100" /></div>
+                    <div><Label htmlFor="gs_driv">Driving Force (driv)</Label><Input id="gs_driv" name="gs_driv" type="number" step="0.01" defaultValue="0.1" /></div>
                   </TabsContent>
 
                   <TabsContent value="dendrite_growth" className="space-y-4 mt-4">
-                    <p className="text-sm text-muted-foreground">A 2D Kobayashi model simulating dendritic crystal growth (FiPy).</p>
-                    <div><Label htmlFor="dg_grid_size">Grid Size</Label><Input id="dg_grid_size" name="grid_size" type="number" defaultValue="128" /></div>
-                    <div><Label htmlFor="dg_time_steps">Time Steps</Label><Input id="dg_time_steps" name="time_steps" type="number" defaultValue="300" /></div>
-                    <div><Label htmlFor="dg_anisotropy">Anisotropy</Label><Input id="dg_anisotropy" name="anisotropy" type="number" step="1" defaultValue="6" /></div>
-                    <div><Label htmlFor="dg_gamma">Gamma</Label><Input id="dg_gamma" name="gamma" type="number" step="0.1" defaultValue="10.0" /></div>
-                    <div><Label htmlFor="dg_tau">Tau</Label><Input id="dg_tau" name="tau" type="number" step="0.0001" defaultValue="0.0003" /></div>
-                  </TabsContent>
-
-                  <TabsContent value="diffusion_1d" className="space-y-4 mt-4">
-                     <p className="text-sm text-muted-foreground">A 1D FDM model for carburizing simulation (NumPy).</p>
-                     <div><Label htmlFor="d1_t_max">Total Time (t_max)</Label><Input id="d1_t_max" name="t_max" type="number" defaultValue="1000" /></div>
-                     <div><Label htmlFor="d1_x_max">Length (x_max)</Label><Input id="d1_x_max" name="x_max" type="number" step="0.0001" defaultValue="0.001" /></div>
+                    <p className="text-sm text-muted-foreground">A 2D Kobayashi model simulating dendritic crystal growth (Taichi/GPU).</p>
+                    <div><Label htmlFor="dg_n">Grid Size (n x n)</Label><Input id="dg_n" name="n" type="number" defaultValue="512" /></div>
+                    <div><Label htmlFor="dg_steps">Total Timesteps</Label><Input id="dg_steps" name="steps" type="number" defaultValue="10000" /></div>
+                    <div><Label htmlFor="dg_n_fold">N-fold Symmetry</Label><Input id="dg_n_fold" name="n_fold_symmetry" type="number" defaultValue="6" /></div>
+                    <div><Label htmlFor="dg_aniso">Anisotropy Magnitude</Label><Input id="dg_aniso" name="aniso_magnitude" type="number" step="0.01" defaultValue="0.12" /></div>
+                    <div><Label htmlFor="dg_latent_heat">Latent Heat Coef.</Label><Input id="dg_latent_heat" name="latent_heat_coef" type="number" step="0.1" defaultValue="1.5" /></div>
                   </TabsContent>
                 </Tabs>
                 <Button type="submit" className="w-full mt-6" disabled={isRunning}>
