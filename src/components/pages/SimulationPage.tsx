@@ -1,3 +1,5 @@
+// src/components/pages/SimulationPage.tsx
+
 import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,48 +21,57 @@ export function SimulationPage() {
   const [selectedSim, setSelectedSim] = useState<SimulationType>('grain_shrinkage');
   const wsRef = useRef<WebSocket | null>(null);
 
+  // --- ⬇️ 각 폼의 상태를 관리하기 위한 useState 추가 ⬇️ ---
+  const [gsParams, setGsParams] = useState({
+    im: 100,
+    nnn_ed: 2000,
+    Nout: 100,
+    driv: 0.1,
+  });
+
+  const [dgParams, setDgParams] = useState({
+    n: 512,
+    steps: 3000,
+    n_fold_symmetry: 6,
+    aniso_magnitude: 0.12,
+    latent_heat_coef: 1.5,
+  });
+  // --- ⬆️ 수정 완료 ⬆️ ---
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (wsRef.current) { try { wsRef.current.close(); } catch (e) {} }
     if (!backendUrl) { setErrorText('Backend URL is not configured.'); return; }
 
     setIsRunning(true);
-    setStatusText('Status: Sending request to backend...');
+    setStatusText('Status: Validating parameters...');
     setErrorText(null);
     setResultImage(null);
-
-    const formData = new FormData(event.currentTarget);
-    const body: { [key: string]: any } = { simulation_type: selectedSim };
     
-    // 현재 활성화된 탭의 파라미터만 읽어서 body에 추가합니다.
+    // --- ⬇️ FormData 대신 state에서 직접 body 객체 생성 ⬇️ ---
+    let body: { [key: string]: any };
     if (selectedSim === 'grain_shrinkage') {
-      body.im = parseInt(formData.get('gs_im') as string) || 100;
-      body.jm = parseInt(formData.get('gs_im') as string) || 100;
-      body.nnn_ed = parseInt(formData.get('gs_nnn_ed') as string) || 2000;
-      body.Nout = parseInt(formData.get('gs_Nout') as string) || 100;
-      body.driv = parseFloat(formData.get('gs_driv') as string) || 0.1;
-    } else if (selectedSim === 'dendrite_growth') {
-      body.n = parseInt(formData.get('dg_n') as string) || 512;
-      body.steps = parseInt(formData.get('dg_steps') as string) || 3000;
-      body.n_fold_symmetry = parseInt(formData.get('dg_n_fold') as string) || 6;
-      body.aniso_magnitude = parseFloat(formData.get('dg_aniso') as string) || 0.12;
-      body.latent_heat_coef = parseFloat(formData.get('dg_latent_heat') as string) || 1.5;
+      body = { simulation_type: 'grain_shrinkage', ...gsParams, jm: gsParams.im };
+    } else {
+      body = { simulation_type: 'dendrite_growth', ...dgParams };
     }
+    // --- ⬆️ 수정 완료 ⬆️ ---
 
+    // --- ⬇️ 입력값 유효성 검사 로직 추가 ⬇️ ---
     const gridSize = body.im || body.n;
     const timeSteps = body.nnn_ed || body.steps;
 
     if (gridSize > 1024) {
       setErrorText("Grid Size cannot exceed 1024.");
       setIsRunning(false);
-      return; // 여기서 함수 실행을 중단
+      return;
     }
     if (timeSteps > 5000) {
       setErrorText("Time Steps cannot exceed 5000.");
       setIsRunning(false);
       return;
     }
-    // ===========================================
+    // --- ⬆️ 수정 완료 ⬆️ ---
 
     try {
       setStatusText('Status: Sending request to backend...');
@@ -118,23 +129,25 @@ export function SimulationPage() {
                     <TabsTrigger value="grain_shrinkage">Grain Shrinkage</TabsTrigger>
                     <TabsTrigger value="dendrite_growth">Dendrite Growth</TabsTrigger>
                   </TabsList>
-
+                  
+                  {/* --- ⬇️ 각 Input을 '제어 컴포넌트'로 수정 ⬇️ --- */}
                   <TabsContent value="grain_shrinkage" className="space-y-4 mt-4">
-                    <p className="text-sm text-muted-foreground">A 2D PFM model simulating the shrinkage of a circular grain .</p>
-                    <div><Label htmlFor="gs_im">Grid Size (im/jm)</Label><Input id="gs_im" name="gs_im" type="number" defaultValue="100" /></div>
-                    <div><Label htmlFor="gs_nnn_ed">Total Timesteps (nnn_ed)</Label><Input id="gs_nnn_ed" name="gs_nnn_ed" type="number" defaultValue="2000" /></div>
-                    <div><Label htmlFor="gs_Nout">Output Interval (Nout)</Label><Input id="gs_Nout" name="gs_Nout" type="number" defaultValue="100" /></div>
-                    <div><Label htmlFor="gs_driv">Driving Force (driv)</Label><Input id="gs_driv" name="gs_driv" type="number" step="0.01" defaultValue="0.1" /></div>
+                    <p className="text-sm text-muted-foreground">A 2D PFM model simulating the shrinkage of a circular grain.</p>
+                    <div><Label htmlFor="gs_im">Grid Size (im/jm)</Label><Input id="gs_im" type="number" value={gsParams.im} max="1024" onChange={e => setGsParams({...gsParams, im: parseInt(e.target.value) || 0})} /></div>
+                    <div><Label htmlFor="gs_nnn_ed">Total Timesteps (nnn_ed)</Label><Input id="gs_nnn_ed" type="number" value={gsParams.nnn_ed} max="5000" onChange={e => setGsParams({...gsParams, nnn_ed: parseInt(e.target.value) || 0})}/></div>
+                    <div><Label htmlFor="gs_Nout">Output Interval (Nout)</Label><Input id="gs_Nout" type="number" value={gsParams.Nout} onChange={e => setGsParams({...gsParams, Nout: parseInt(e.target.value) || 0})}/></div>
+                    <div><Label htmlFor="gs_driv">Driving Force (driv)</Label><Input id="gs_driv" type="number" step="0.01" value={gsParams.driv} onChange={e => setGsParams({...gsParams, driv: parseFloat(e.target.value) || 0})}/></div>
                   </TabsContent>
 
                   <TabsContent value="dendrite_growth" className="space-y-4 mt-4">
-                    <p className="text-sm text-muted-foreground">A 2D PFM model simulating dendritic crystal growth .</p>
-                    <div><Label htmlFor="dg_n">Grid Size (n x n)</Label><Input id="dg_n" name="dg_n" type="number" defaultValue="512" /></div>
-                    <div><Label htmlFor="dg_steps">Total Timesteps</Label><Input id="dg_steps" name="dg_steps" type="number" defaultValue="3000" /></div>
-                    <div><Label htmlFor="dg_n_fold">N-fold Symmetry</Label><Input id="dg_n_fold" name="dg_n_fold" type="number" defaultValue="6" /></div>
-                    <div><Label htmlFor="dg_aniso">Anisotropy Magnitude</Label><Input id="dg_aniso" name="dg_aniso" type="number" step="0.01" defaultValue="0.12" /></div>
-                    <div><Label htmlFor="dg_latent_heat">Latent Heat Coef.</Label><Input id="dg_latent_heat" name="dg_latent_heat" type="number" step="0.1" defaultValue="1.5" /></div>
+                    <p className="text-sm text-muted-foreground">A 2D PFM model simulating dendritic crystal growth.</p>
+                    <div><Label htmlFor="dg_n">Grid Size (n x n)</Label><Input id="dg_n" type="number" value={dgParams.n} max="1024" onChange={e => setDgParams({...dgParams, n: parseInt(e.target.value) || 0})} /></div>
+                    <div><Label htmlFor="dg_steps">Total Timesteps</Label><Input id="dg_steps" type="number" value={dgParams.steps} max="5000" onChange={e => setDgParams({...dgParams, steps: parseInt(e.target.value) || 0})}/></div>
+                    <div><Label htmlFor="dg_n_fold">N-fold Symmetry</Label><Input id="dg_n_fold" type="number" value={dgParams.n_fold_symmetry} onChange={e => setDgParams({...dgParams, n_fold_symmetry: parseInt(e.target.value) || 0})}/></div>
+                    <div><Label htmlFor="dg_aniso">Anisotropy Magnitude</Label><Input id="dg_aniso" type="number" step="0.01" value={dgParams.aniso_magnitude} onChange={e => setDgParams({...dgParams, aniso_magnitude: parseFloat(e.target.value) || 0})}/></div>
+                    <div><Label htmlFor="dg_latent_heat">Latent Heat Coef.</Label><Input id="dg_latent_heat" type="number" step="0.1" value={dgParams.latent_heat_coef} onChange={e => setDgParams({...dgParams, latent_heat_coef: parseFloat(e.target.value) || 0})}/></div>
                   </TabsContent>
+                  {/* --- ⬆️ 수정 완료 ⬆️ --- */}
                 </Tabs>
                 <Button type="submit" className="w-full mt-6" disabled={isRunning}>
                   {isRunning ? 'Running...' : 'Start Simulation'}
