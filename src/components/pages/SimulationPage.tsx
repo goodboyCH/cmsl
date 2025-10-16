@@ -55,7 +55,7 @@ export function SimulationPage() {
       setIsRunning(false);
       return; // 여기서 함수 실행을 중단
     }
-    if (timeSteps > 4000) {
+    if (timeSteps > 5000) {
       setErrorText("Time Steps cannot exceed 5000.");
       setIsRunning(false);
       return;
