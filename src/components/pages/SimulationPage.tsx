@@ -47,7 +47,23 @@ export function SimulationPage() {
       body.latent_heat_coef = parseFloat(formData.get('dg_latent_heat') as string) || 1.5;
     }
 
+    const gridSize = body.im || body.n;
+    const timeSteps = body.nnn_ed || body.steps;
+
+    if (gridSize > 1024) {
+      setErrorText("Grid Size cannot exceed 1024.");
+      setIsRunning(false);
+      return; // 여기서 함수 실행을 중단
+    }
+    if (timeSteps > 4000) {
+      setErrorText("Time Steps cannot exceed 4000.");
+      setIsRunning(false);
+      return;
+    }
+    // ===========================================
+
     try {
+      setStatusText('Status: Sending request to backend...');
       const res = await fetch(`${backendUrl}/api/run-simulation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
@@ -104,17 +120,17 @@ export function SimulationPage() {
                   </TabsList>
 
                   <TabsContent value="grain_shrinkage" className="space-y-4 mt-4">
-                    <p className="text-sm text-muted-foreground">A 2D PFM model simulating the shrinkage of a circular grain (NumPy).</p>
-                    <div><Label htmlFor="gs_im">Grid Size (im/jm)</Label><Input id="gs_im" name="gs_im" type="number" defaultValue="100" /></div>
-                    <div><Label htmlFor="gs_nnn_ed">Total Timesteps (nnn_ed)</Label><Input id="gs_nnn_ed" name="gs_nnn_ed" type="number" defaultValue="2000" /></div>
+                    <p className="text-sm text-muted-foreground">A 2D PFM model simulating the shrinkage of a circular grain .</p>
+                    <div><Label htmlFor="gs_im">Grid Size (im/jm)</Label><Input id="gs_im" name="gs_im" type="number" defaultValue="100" max="1024" /></div>
+                    <div><Label htmlFor="gs_nnn_ed">Total Timesteps (nnn_ed)</Label><Input id="gs_nnn_ed" name="gs_nnn_ed" type="number" defaultValue="2000" max="4000" /></div>
                     <div><Label htmlFor="gs_Nout">Output Interval (Nout)</Label><Input id="gs_Nout" name="gs_Nout" type="number" defaultValue="100" /></div>
                     <div><Label htmlFor="gs_driv">Driving Force (driv)</Label><Input id="gs_driv" name="gs_driv" type="number" step="0.01" defaultValue="0.1" /></div>
                   </TabsContent>
 
                   <TabsContent value="dendrite_growth" className="space-y-4 mt-4">
-                    <p className="text-sm text-muted-foreground">A 2D Kobayashi model simulating dendritic crystal growth (Taichi/GPU).</p>
-                    <div><Label htmlFor="dg_n">Grid Size (n x n)</Label><Input id="dg_n" name="n" type="number" defaultValue="512" /></div>
-                    <div><Label htmlFor="dg_steps">Total Timesteps</Label><Input id="dg_steps" name="steps" type="number" defaultValue="10000" /></div>
+                    <p className="text-sm text-muted-foreground">A 2D PFM model simulating dendritic crystal growth .</p>
+                    <div><Label htmlFor="dg_n">Grid Size (n x n)</Label><Input id="dg_n" name="n" type="number" defaultValue="512" max="1024" /></div>
+                    <div><Label htmlFor="dg_steps">Total Timesteps</Label><Input id="dg_steps" name="steps" type="number" defaultValue="4000" max="4000" /></div>
                     <div><Label htmlFor="dg_n_fold">N-fold Symmetry</Label><Input id="dg_n_fold" name="n_fold_symmetry" type="number" defaultValue="6" /></div>
                     <div><Label htmlFor="dg_aniso">Anisotropy Magnitude</Label><Input id="dg_aniso" name="aniso_magnitude" type="number" step="0.01" defaultValue="0.12" /></div>
                     <div><Label htmlFor="dg_latent_heat">Latent Heat Coef.</Label><Input id="dg_latent_heat" name="latent_heat_coef" type="number" step="0.1" defaultValue="1.5" /></div>
