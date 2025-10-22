@@ -64,7 +64,7 @@ export function ProfessorPage() {
           <img 
             src={content.profile_image_url} 
             alt={content.name} 
-            className="w-64 h-80 object-cover rounded-lg shadow-md flex-shrink-0"
+            className="w-72 h-96 object-cover rounded-lg shadow-md flex-shrink-0"
           />
           {/* 3. 텍스트 영역은 'flex-1'으로 설정되어, 늘어난 가로 폭을 자동으로 채웁니다. */}
           <div className="flex-1 space-y-4 w-full">
