@@ -55,17 +55,19 @@ export function ProfessorPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
-      {/* 상단 프로필 섹션 */}
+      {/* ⬇️ 상단 프로필 섹션 레이아웃을 수정합니다. ⬇️ */}
       <ScrollAnimation>
-        <section className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
-          {/* ⬇️ 이미지 크기를 w-48 h-56에서 w-56 h-72로 키웠습니다. ⬇️ */}
+        {/* 'items-center'를 'items-start'로 변경하여 상단 정렬 */}
+        <section className="flex flex-col md:flex-row items-start gap-8 md:gap-12">
+          {/* 1. 이미지 크기를 키우고 3:4 비율로 조정합니다. */}
           <img 
             src={content.profile_image_url} 
             alt={content.name} 
             className="w-64 h-80 object-cover rounded-lg shadow-md flex-shrink-0"
           />
+          {/* 2. 텍스트 영역이 남은 공간을 차지하도록 합니다. */}
           <div className="flex-1 space-y-4 w-full">
-            <h1 className="text-4xl font-bold text-gray-800 dark:text-white">{content.name}</h1>
+            <h1 className="text-4xl font-bold text-gray-800 dark:text-white pt-2">{content.name}</h1>
             <p className="text-xl font-medium text-primary">{content.title}</p>
             <p className="text-muted-foreground">{content.department}</p>
             <div className="border-t pt-4 space-y-3 text-sm">
