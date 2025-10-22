@@ -23,8 +23,8 @@ interface ProfessorContent {
 
 // 이력 목록을 렌더링하는 재사용 가능한 컴포넌트
 const ProfileSection = ({ title, items }: { title: string; items: { period: string; description: string }[] }) => (
-  <section className="max-w-4xl mx-auto">
-    <h2 className="text-2xl font-bold text-primary border-b-2 border-primary/20 pb-2 mb-6">{title}</h2>
+  <section>
+    <h2 className="text-3xl font-bold text-primary border-b-2 border-primary/20 pb-2 mb-6">{title}</h2>
     <div className="space-y-4">
       {(items || []).map((item, index) => (
         <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-x-4">
@@ -87,15 +87,9 @@ export function ProfessorPage() {
       </ScrollAnimation>
 
       {/* 학력, 경력, 수상내역 섹션 */}
-      <ScrollAnimation delay={100}>
-        <ProfileSection title="Education" items={content.education || []} />
-      </ScrollAnimation>
-      <ScrollAnimation delay={200}>
-        <ProfileSection title="Experience" items={content.experience || []} />
-      </ScrollAnimation>
-      <ScrollAnimation delay={300}>
-        <ProfileSection title="Awards & Honors" items={content.awards_and_honors || []} />
-      </ScrollAnimation>
+      <ScrollAnimation delay={100}><ProfileSection title="Education" items={content.education || []} /></ScrollAnimation>
+      <ScrollAnimation delay={200}><ProfileSection title="Experience" items={content.experience || []} /></ScrollAnimation>
+      <ScrollAnimation delay={300}><ProfileSection title="Awards & Honors" items={content.awards_and_honors || []} /></ScrollAnimation>
     </div>
   );
 }
