@@ -57,13 +57,14 @@ export function ProfessorPage() {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
       {/* 상단 프로필 섹션 */}
       <ScrollAnimation>
-        <section className="flex flex-col md:flex-row items-center gap-8">
+        <section className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
+          {/* ⬇️ 이미지 크기를 w-48 h-56에서 w-56 h-72로 키웠습니다. ⬇️ */}
           <img 
             src={content.profile_image_url} 
             alt={content.name} 
-            className="w-48 h-56 object-cover rounded-lg shadow-md"
+            className="w-56 h-72 object-cover rounded-lg shadow-md flex-shrink-0"
           />
-          <div className="flex-1 space-y-4">
+          <div className="flex-1 space-y-4 w-full">
             <h1 className="text-4xl font-bold text-gray-800 dark:text-white">{content.name}</h1>
             <p className="text-xl font-medium text-primary">{content.title}</p>
             <p className="text-muted-foreground">{content.department}</p>
