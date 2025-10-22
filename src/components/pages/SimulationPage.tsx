@@ -32,7 +32,7 @@ export function SimulationPage() {
   const [dgParams, setDgParams] = useState({
     n: 512,
     steps: 3000,
-    n_fold_symmetry: 6,
+    n_fold_symmetry: 4,
     aniso_magnitude: 0.12,
     latent_heat_coef: 1.5,
   });
