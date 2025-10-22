@@ -94,15 +94,15 @@ const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
           // 기존 이미지가 있으면 삭제
           if (finalContent.profile_image_url) {
             const oldPath = finalContent.profile_image_url.substring(finalContent.profile_image_url.indexOf('public/'));
-            await supabase.storage.from('professor-photos').remove([oldPath]);
+            await supabase.storage.from('professor-photo').remove([oldPath]);
           }
           // 새 이미지 업로드
-          const imagePath = `public/professor-photos/${Date.now()}_${sanitizeForStorage(newImage.name)}`;
-          const { error: uploadError } = await supabase.storage.from('professor-photos').upload(imagePath, newImage);
+          const imagePath = `public/professor-photo/${Date.now()}_${sanitizeForStorage(newImage.name)}`;
+          const { error: uploadError } = await supabase.storage.from('professor-photo').upload(imagePath, newImage);
           if (uploadError) throw uploadError;
           
           // 새 URL을 content에 반영
-          finalContent.profile_image_url = supabase.storage.from('professor-photos').getPublicUrl(imagePath).data.publicUrl;
+          finalContent.profile_image_url = supabase.storage.from('professor-photo').getPublicUrl(imagePath).data.publicUrl;
         }
       }
 
