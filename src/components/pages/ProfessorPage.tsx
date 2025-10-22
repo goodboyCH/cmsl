@@ -62,7 +62,7 @@ export function ProfessorPage() {
           <img 
             src={content.profile_image_url} 
             alt={content.name} 
-            className="w-56 h-72 object-cover rounded-lg shadow-md flex-shrink-0"
+            className="w-62 h-86 object-cover rounded-lg shadow-md flex-shrink-0"
           />
           <div className="flex-1 space-y-4 w-full">
             <h1 className="text-4xl font-bold text-gray-800 dark:text-white">{content.name}</h1>
