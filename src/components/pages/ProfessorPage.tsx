@@ -26,7 +26,7 @@ const ProfileSection = ({ title, items }: { title: string; items: { period: stri
   <section>
     <h2 className="text-2xl font-bold text-primary border-b-2 border-primary/20 pb-2 mb-6">{title}</h2>
     <div className="space-y-4">
-      {items.map((item, index) => (
+      {(items || []).map((item, index) => (
         <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-x-4">
           <p className="md:col-span-1 text-sm text-muted-foreground md:text-right">{item.period}</p>
           <p className="md:col-span-3">{item.description}</p>
@@ -54,18 +54,19 @@ export function ProfessorPage() {
   if (!content) return <p className="text-center p-20">Failed to load content.</p>;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
-      {/* ⬇️ 상단 프로필 섹션 레이아웃을 수정합니다. ⬇️ */}
+    // 1. ⬇️ 전체 콘텐츠의 최대 가로 폭을 'max-w-5xl'에서 'max-w-7xl'로 늘립니다. ⬇️
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
+      {/* 상단 프로필 섹션 */}
       <ScrollAnimation>
         {/* 'items-center'를 'items-start'로 변경하여 상단 정렬 */}
-        <section className="flex flex-col md:flex-row items-start gap-8 md:gap-12">
-          {/* 1. 이미지 크기를 키우고 3:4 비율로 조정합니다. */}
+        <section className="flex flex-col md:flex-row items-start gap-12 md:gap-16">
+          {/* 2. ⬇️ 이미지 크기를 'w-56 h-72'에서 'w-64 h-80'로 키웁니다. ⬇️ */}
           <img 
             src={content.profile_image_url} 
             alt={content.name} 
             className="w-64 h-80 object-cover rounded-lg shadow-md flex-shrink-0"
           />
-          {/* 2. 텍스트 영역이 남은 공간을 차지하도록 합니다. */}
+          {/* 3. 텍스트 영역은 'flex-1'으로 설정되어, 늘어난 가로 폭을 자동으로 채웁니다. */}
           <div className="flex-1 space-y-4 w-full">
             <h1 className="text-4xl font-bold text-gray-800 dark:text-white pt-2">{content.name}</h1>
             <p className="text-xl font-medium text-primary">{content.title}</p>
