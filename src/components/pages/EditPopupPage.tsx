@@ -8,6 +8,9 @@ import { supabase } from '@/lib/supabaseClient';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label as CheckboxLabel } from '@/components/ui/label'; // 이름 충돌 방지
 
+// 1. 파일 이름 정리를 위한 헬퍼 함수 추가
+const sanitizeForStorage = (filename: string) => filename.replace(/[^a-zA-Z0-9._-]/g, '');
+
 interface EditPopupPageProps {
   popupId?: number; // ID가 없으면 '생성' 모드
   onBack: () => void;
@@ -15,8 +18,12 @@ interface EditPopupPageProps {
 
 export function EditPopupPage({ popupId, onBack }: EditPopupPageProps) {
   const [formData, setFormData] = useState({
-    title: '', content: '', image_url: '', link_url: '', is_active: false
+    title: '', content: '', link_url: '', is_active: false
   });
+  // 2. 이미지 파일과 URL을 관리할 state 추가
+  const [newImage, setNewImage] = useState<File | null>(null);
+  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
+  
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
 
@@ -25,7 +32,16 @@ export function EditPopupPage({ popupId, onBack }: EditPopupPageProps) {
       const fetchPopup = async () => {
         setLoading(true);
         const { data } = await supabase.from('popups').select('*').eq('id', popupId).single();
-        if (data) setFormData(data);
+        if (data) {
+          // 3. 폼 데이터와 별도로 이미지 URL을 state에 저장
+          setFormData({
+            title: data.title,
+            content: data.content,
+            link_url: data.link_url,
+            is_active: data.is_active
+          });
+          setExistingImageUrl(data.image_url);
+        }
         setLoading(false);
       };
       fetchPopup();
@@ -39,15 +55,42 @@ export function EditPopupPage({ popupId, onBack }: EditPopupPageProps) {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
   
+  // 4. 이미지 파일 선택 시 state를 업데이트하는 핸들러
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      setNewImage(e.target.files[0]);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); setLoading(true); setMessage('');
     try {
+      let finalImageUrl = existingImageUrl;
+
+      // 5. 새 이미지가 업로드된 경우, 스토리지에 저장
+      if (newImage) {
+        // 기존 이미지가 있으면 삭제
+        if (existingImageUrl) {
+          const oldPath = existingImageUrl.substring(existingImageUrl.indexOf('public/'));
+          await supabase.storage.from('notice-attachments').remove([oldPath]);
+        }
+        
+        // 새 이미지 업로드 (popups 폴더 안에 저장)
+        const imagePath = `public/popups/${Date.now()}_${sanitizeForStorage(newImage.name)}`;
+        const { error: uploadError } = await supabase.storage.from('notice-attachments').upload(imagePath, newImage);
+        if (uploadError) throw uploadError;
+        
+        finalImageUrl = supabase.storage.from('notice-attachments').getPublicUrl(imagePath).data.publicUrl;
+      }
+      
+      const finalData = { ...formData, image_url: finalImageUrl };
+
       if (popupId) { // 수정 모드
-        const { error } = await supabase.from('popups').update(formData).eq('id', popupId);
+        const { error } = await supabase.from('popups').update(finalData).eq('id', popupId);
         if (error) throw error;
         setMessage('팝업이 성공적으로 수정되었습니다.');
       } else { // 생성 모드
-        const { error } = await supabase.from('popups').insert([formData]);
+        const { error } = await supabase.from('popups').insert([finalData]);
         if (error) throw error;
         setMessage('새 팝업이 성공적으로 추가되었습니다.');
       }
@@ -71,7 +114,19 @@ export function EditPopupPage({ popupId, onBack }: EditPopupPageProps) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2"><Label>Title (필수)</Label><Input name="title" value={formData.title} onChange={handleChange} required /></div>
           <div className="space-y-2"><Label>Content (설명)</Label><Textarea name="content" value={formData.content} onChange={handleChange} rows={3} /></div>
-          <div className="space-y-2"><Label>Image URL (이미지 주소)</Label><Input name="image_url" value={formData.image_url} onChange={handleChange} placeholder="https://..." /></div>
+          
+          {/* 6. ⬇️ 이미지 URL 입력창을 파일 업로드 UI로 변경 ⬇️ */}
+          <div className="space-y-2">
+            <Label>Popup Image</Label>
+            {existingImageUrl && !newImage && (
+              <img src={existingImageUrl} alt="Current Popup" className="w-full max-w-sm object-cover rounded-md border" />
+            )}
+            {newImage && (
+              <img src={URL.createObjectURL(newImage)} alt="New Popup Preview" className="w-full max-w-sm object-cover rounded-md border" />
+            )}
+            <Input type="file" accept="image/*" onChange={handleImageChange} />
+          </div>
+          
           <div className="space-y-2"><Label>Link URL (클릭 시 이동할 주소)</Label><Input name="link_url" value={formData.link_url} onChange={handleChange} placeholder="https://..." /></div>
           <div className="flex items-center space-x-2 pt-2">
             <Checkbox id="is_active" checked={formData.is_active} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_active: !!checked }))} />
