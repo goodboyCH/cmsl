@@ -9,14 +9,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-// '오늘 하루 보지 않기'를 위한 키 (localStorage 사용)
+// 1. Quill 콘텐츠 스타일을 위한 CSS import
+import 'react-quill/dist/quill.snow.css';
+
 const POPUP_LOCAL_STORAGE_PREFIX = 'cmsl-popup-seen-';
 
 interface PopupData {
   id: number;
   title: string;
-  content: string;
-  image_url: string;
+  content: string; // content는 이제 HTML 문자열입니다.
+  image_url: string; // 이 필드는 더 이상 사용되지 않을 수 있습니다.
   link_url: string;
   styles: {
     popupSize: 'sm' | 'md' | 'lg';
@@ -36,10 +38,7 @@ export function SinglePopupDialog({ popup }: SinglePopupDialogProps) {
   const localStorageKey = `${POPUP_LOCAL_STORAGE_PREFIX}${popup.id}`;
 
   useEffect(() => {
-    // 1. '오늘 하루 보지 않기'를 눌렀는지 (localStorage)만 확인합니다.
     const hasSeenToday = localStorage.getItem(localStorageKey);
-    
-    // 2. 'sessionStorage' 확인 로직을 삭제했습니다.
     if (!hasSeenToday) {
       setIsOpen(true);
     }
@@ -47,10 +46,6 @@ export function SinglePopupDialog({ popup }: SinglePopupDialogProps) {
 
   const handleClose = (dontShowAgain = false) => {
     setIsOpen(false);
-    
-    // 3. 'sessionStorage' 저장 로직을 삭제했습니다.
-    
-    // 4. '오늘 하루 보지 않기'를 누른 경우에만 localStorage에 기록합니다.
     if (dontShowAgain) {
       localStorage.setItem(localStorageKey, 'true');
     }
@@ -75,16 +70,22 @@ export function SinglePopupDialog({ popup }: SinglePopupDialogProps) {
             ${styles.textSize === 'lg' && 'text-2xl'}
             ${styles.textSize === 'sm' && 'text-base'}
           `}>{popup.title}</DialogTitle>
-          <DialogDescription className={`
-            ${styles.textSize === 'lg' && 'text-base'}
-            ${styles.textSize === 'sm' && 'text-xs'}
-          `}>{popup.content}</DialogDescription>
+          
+          {/* 2. DialogDescription 삭제 */}
+          {/* <DialogDescription ...>{popup.content}</DialogDescription> */}
         </DialogHeader>
-        {popup.image_url && (
-          <div className="py-4">
-            <img src={popup.image_url} alt={popup.title} className={`w-full rounded-md ${styles.imageSize === 'contain' && 'object-contain h-64'}`} />
-          </div>
-        )}
+
+        {/* 3. ⬇️ 기존 이미지 표시 로직을 삭제하고 HTML 렌더링으로 변경 ⬇️ */}
+        <div 
+          className="py-4 ql-snow" // ql-snow 클래스로 감싸 Quill 스타일 적용
+        >
+          <div 
+            className="ql-editor" // ql-editor 내부 스타일 적용
+            dangerouslySetInnerHTML={{ __html: popup.content }} 
+          />
+        </div>
+        {/* ⬆️ 변경 완료 ⬆️ */}
+        
         <DialogFooter className="sm:justify-between gap-2">
           <Button type="button" variant="ghost" onClick={() => handleClose(true)}>
             오늘 하루 보지 않기
