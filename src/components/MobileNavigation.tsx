@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/components/LanguageProvider';
-import { ChevronDown, Menu, X } from 'lucide-react'; // 아이콘 import 수정
+import { ChevronDown, Menu, X } from 'lucide-react';
 
 interface MobileNavigationProps {
   currentPage: string;
@@ -44,12 +44,24 @@ export function MobileNavigation({ currentPage, onPageChange }: MobileNavigation
       ]
     },
     { key: 'contact', path: '/contact', label: t('nav.contact') },
+    // 1. ⬇️ 여기에 'PFM Calculation' 항목을 추가합니다. ⬇️
+    { 
+      key: 'pfm', 
+      path: '/simulation', 
+      label: 'PFM Calculation', 
+      isExternal: true 
+    },
   ];
 
-  const handleItemClick = (path: string) => {
-    onPageChange(path);
+  // 2. ⬇️ 내부/외부 링크를 모두 처리할 수 있도록 핸들러를 수정합니다. ⬇️
+  const handleItemClick = (path: string, isExternal = false) => {
+    if (isExternal) {
+      window.open(path, '_blank');
+    } else {
+      onPageChange(path);
+    }
     setIsOpen(false);
-    setExpandedItems([]); // 메뉴 선택 시 모든 하위 메뉴 닫기
+    setExpandedItems([]);
   };
 
   const toggleExpanded = (key: string) => {
@@ -60,7 +72,6 @@ export function MobileNavigation({ currentPage, onPageChange }: MobileNavigation
     );
   };
   
-  // 현재 페이지의 상위 카테고리를 찾아 메뉴를 열어두는 로직
   React.useEffect(() => {
     if (isOpen) {
       const parentCategory = currentPage.split('/')[0];
@@ -74,9 +85,9 @@ export function MobileNavigation({ currentPage, onPageChange }: MobileNavigation
   return (
     <div className="relative">
       <Button 
-        variant="ghost" // 테두리 추가로 가시성 확보
+        variant="ghost"
         size="icon" 
-        className="h-10 w-10" // 원형 버튼으로 변경
+        className="h-10 w-10"
         onClick={() => setIsOpen(!isOpen)}
       >
         <Menu className="h-6 w-6" />
@@ -88,7 +99,6 @@ export function MobileNavigation({ currentPage, onPageChange }: MobileNavigation
             className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm animate-in fade-in-0 duration-200"
             onClick={() => setIsOpen(false)}
           />
-          {/* --- ⬇️ 모바일 메뉴 스타일 수정 ⬇️ --- */}
           <div className="fixed left-0 top-0 h-full w-[85%] max-w-sm z-50 bg-background border-r shadow-xl animate-in slide-in-from-left-full duration-300">
             <div className="p-4 flex flex-col h-full">
               <div className="flex items-center justify-between pb-4 border-b">
@@ -103,9 +113,18 @@ export function MobileNavigation({ currentPage, onPageChange }: MobileNavigation
 
               {/* Navigation Items */}
               <nav className="flex-1 overflow-y-auto mt-4 space-y-1">
-                {navItems.map((item) => (
+                {/* 3. ⬇️ isExternal 속성을 확인하는 렌더링 로직을 추가합니다. ⬇️ */}
+                {navItems.map((item: any, index) => (
                   <div key={item.key}>
-                    {item.subItems ? (
+                    {item.isExternal ? (
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleItemClick(item.path, true)}
+                        className="w-full justify-start text-base font-medium h-11 px-3"
+                      >
+                        {item.label}
+                      </Button>
+                    ) : item.subItems ? (
                       <>
                         <Button
                           variant="ghost"
@@ -119,7 +138,7 @@ export function MobileNavigation({ currentPage, onPageChange }: MobileNavigation
                         </Button>
                         {expandedItems.includes(item.key) && (
                           <div className="ml-4 pl-2 border-l-2 space-y-1 py-1">
-                            {item.subItems.map((subItem) => (
+                            {item.subItems.map((subItem: any) => (
                               <Button
                                 key={subItem.key}
                                 variant={currentPage.endsWith(subItem.key) ? 'secondary' : 'ghost'}
@@ -152,7 +171,6 @@ export function MobileNavigation({ currentPage, onPageChange }: MobileNavigation
               </div>
             </div>
           </div>
-          {/* --- ⬆️ 수정 완료 ⬆️ --- */}
         </>
       )}
     </div>
