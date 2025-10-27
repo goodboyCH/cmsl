@@ -66,10 +66,17 @@ export function EditPopupPage({ popupId, onBack }: EditPopupPageProps) {
     }
   }, [popupId]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => { /* ... */ };
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => { /* ... */ };
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
   
-  // 5. 스타일 변경 핸들러 추가
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) {
+      setNewImage(e.target.files[0]);
+    }
+  };
+
   const handleStyleChange = (field: string, value: string) => {
     setStyles(prev => ({ ...prev, [field]: value }));
   };
@@ -78,9 +85,17 @@ export function EditPopupPage({ popupId, onBack }: EditPopupPageProps) {
     e.preventDefault(); setLoading(true); setMessage('');
     try {
       let finalImageUrl = existingImageUrl;
-      if (newImage) { /* ... (이미지 업로드 로직은 동일) ... */ }
+      if (newImage) {
+        if (existingImageUrl) {
+          const oldPath = existingImageUrl.substring(existingImageUrl.indexOf('public/'));
+          await supabase.storage.from('notice-attachments').remove([oldPath]);
+        }
+        const imagePath = `public/popups/${Date.now()}_${sanitizeForStorage(newImage.name)}`;
+        const { error: uploadError } = await supabase.storage.from('notice-attachments').upload(imagePath, newImage);
+        if (uploadError) throw uploadError;
+        finalImageUrl = supabase.storage.from('notice-attachments').getPublicUrl(imagePath).data.publicUrl;
+      }
       
-      // 6. 폼 데이터와 스타일 데이터를 함께 묶습니다.
       const finalData = { ...formData, image_url: finalImageUrl, styles: styles };
 
       if (popupId) {
@@ -112,10 +127,10 @@ export function EditPopupPage({ popupId, onBack }: EditPopupPageProps) {
           <CardDescription>팝업 내용을 입력하세요. 'Active'로 체크된 팝업만 홈페이지에 표시됩니다.</CardDescription>
         </CardHeader>
         <CardContent>
-          {/* 2. ⬇️ 이전에 누락되었던 폼 입력 필드들을 추가합니다. ⬇️ */}
+          {/* 2. ⬇️ 이전에 누락되었던 폼 입력 필드들입니다. ⬇️ */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2"><Label>Title (필수)</Label><Input name="title" value={formData.title} onChange={handleChange} required /></div>
-            <div className="space-y-2"><Label>Content (설명)</Label><Textarea name="content" value={formData.content} onChange={handleChange} rows={3} /></div>
+            <div className="space-y-2"><Label>Content (설명)</Label><Textarea name="content" value={formData.content || ''} onChange={handleChange} rows={3} /></div>
             <div className="space-y-2">
               <Label>Popup Image</Label>
               {previewImageUrl && (
@@ -123,7 +138,7 @@ export function EditPopupPage({ popupId, onBack }: EditPopupPageProps) {
               )}
               <Input type="file" accept="image/*" onChange={handleImageChange} />
             </div>
-            <div className="space-y-2"><Label>Link URL (클릭 시 이동할 주소)</Label><Input name="link_url" value={formData.link_url} onChange={handleChange} placeholder="https://..." /></div>
+            <div className="space-y-2"><Label>Link URL (클릭 시 이동할 주소)</Label><Input name="link_url" value={formData.link_url || ''} onChange={handleChange} placeholder="https://..." /></div>
             <div className="flex items-center space-x-2 pt-2">
               <Checkbox id="is_active" checked={formData.is_active} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_active: !!checked }))} />
               <CheckboxLabel htmlFor="is_active">이 팝업을 홈페이지에 표시 (Active)</CheckboxLabel>

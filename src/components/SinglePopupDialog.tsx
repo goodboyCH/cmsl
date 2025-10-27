@@ -9,8 +9,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+// '오늘 하루 보지 않기'를 위한 키 (localStorage 사용)
 const POPUP_LOCAL_STORAGE_PREFIX = 'cmsl-popup-seen-';
-const POPUP_SESSION_STORAGE_PREFIX = 'cmsl-popup-session-closed-';
 
 interface PopupData {
   id: number;
@@ -18,7 +18,7 @@ interface PopupData {
   content: string;
   image_url: string;
   link_url: string;
-  styles: { // 1. styles prop을 받습니다.
+  styles: {
     popupSize: 'sm' | 'md' | 'lg';
     imageSize: 'full' | 'contain';
     textSize: 'sm' | 'base' | 'lg';
@@ -32,31 +32,25 @@ interface SinglePopupDialogProps {
 export function SinglePopupDialog({ popup }: SinglePopupDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   
-  // 2. 스타일이 없거나 기본값일 경우를 대비
   const styles = popup.styles || { popupSize: 'md', imageSize: 'full', textSize: 'base' };
-  
   const localStorageKey = `${POPUP_LOCAL_STORAGE_PREFIX}${popup.id}`;
-  const sessionStorageKey = `${POPUP_SESSION_STORAGE_PREFIX}${popup.id}`;
 
   useEffect(() => {
-    // 1. 팝업을 본 기록이 있는지 확인합니다.
+    // 1. '오늘 하루 보지 않기'를 눌렀는지 (localStorage)만 확인합니다.
     const hasSeenToday = localStorage.getItem(localStorageKey);
-    const hasClosedThisSession = sessionStorage.getItem(sessionStorageKey);
-
-    // 2. 두 기록이 모두 없을 때만 팝업을 띄웁니다.
-    if (!hasSeenToday && !hasClosedThisSession) {
+    
+    // 2. 'sessionStorage' 확인 로직을 삭제했습니다.
+    if (!hasSeenToday) {
       setIsOpen(true);
     }
-  }, [localStorageKey, sessionStorageKey]); // 컴포넌트 마운트 시 한 번만 실행
+  }, [localStorageKey]);
 
   const handleClose = (dontShowAgain = false) => {
-    // 3. 팝업을 닫습니다.
     setIsOpen(false);
     
-    // 4. '오늘 하루 보지 않기'를 누르지 않아도, '이번 세션'에서는 닫힌 것으로 기록합니다.
-    sessionStorage.setItem(sessionStorageKey, 'true');
-
-    // 5. '오늘 하루 보지 않기'를 누른 경우에만 localStorage에 영구 기록합니다.
+    // 3. 'sessionStorage' 저장 로직을 삭제했습니다.
+    
+    // 4. '오늘 하루 보지 않기'를 누른 경우에만 localStorage에 기록합니다.
     if (dontShowAgain) {
       localStorage.setItem(localStorageKey, 'true');
     }
@@ -66,12 +60,11 @@ export function SinglePopupDialog({ popup }: SinglePopupDialogProps) {
     if (popup.link_url) {
       window.open(popup.link_url, '_blank');
     }
-    handleClose(false); // 링크 클릭 시에도 '오늘 하루 보지 않기'는 적용하지 않습니다.
+    handleClose(false);
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={() => handleClose(false)}>
-      {/* 3. ⬇️ DialogContent에 동적 클래스를 적용합니다. ⬇️ */}
       <DialogContent className={`
         ${styles.popupSize === 'sm' && 'sm:max-w-sm'}
         ${styles.popupSize === 'md' && 'sm:max-w-md'}
