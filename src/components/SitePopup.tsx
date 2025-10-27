@@ -1,16 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { supabase } from '@/lib/supabaseClient';
-
-const POPUP_STORAGE_KEY_PREFIX = 'cmsl-popup-seen-';
+import { SinglePopupDialog } from './SinglePopupDialog'; // 1. 방금 만든 컴포넌트 import
 
 interface PopupData {
   id: number;
@@ -21,75 +11,31 @@ interface PopupData {
 }
 
 export function SitePopup() {
-  const [popupData, setPopupData] = useState<PopupData | null>(null);
-  const [isOpen, setIsOpen] = useState(false);
+  const [activePopups, setActivePopups] = useState<PopupData[]>([]);
 
   useEffect(() => {
-    const fetchPopup = async () => {
-      // 1. 활성화된(is_active = true) 팝업을 하나 불러옵니다.
+    const fetchAllActivePopups = async () => {
+      // 2. 활성화된(is_active = true) 팝업을 '모두' 불러옵니다. (limit 제거)
       const { data } = await supabase
         .from('popups')
         .select('*')
         .eq('is_active', true)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+        .order('created_at', { ascending: false });
       
       if (data) {
-        // 2. 팝업을 본 기록이 있는지 확인합니다. (키에 팝업 ID를 포함)
-        const storageKey = `${POPUP_STORAGE_KEY_PREFIX}${data.id}`;
-        const hasSeen = localStorage.getItem(storageKey);
-        
-        if (!hasSeen) {
-          setPopupData(data);
-          setIsOpen(true);
-        }
+        setActivePopups(data);
       }
     };
-    fetchPopup();
-  }, []);
+    fetchAllActivePopups();
+  }, []); // 페이지 로드 시 한 번만 실행
 
-  const handleClose = () => {
-    if (popupData) {
-      // 3. "오늘 하루 보지 않기" 로직 (ID별로 저장)
-      const storageKey = `${POPUP_STORAGE_KEY_PREFIX}${popupData.id}`;
-      localStorage.setItem(storageKey, 'true');
-    }
-    setIsOpen(false);
-  };
-  
-  const handleLinkClick = () => {
-    if (popupData?.link_url) {
-      window.open(popupData.link_url, '_blank');
-    }
-    handleClose();
-  };
-
-  if (!isOpen || !popupData) return null;
-
+  // 3. 불러온 팝업 목록을 .map()으로 순회하며 각각의 다이얼로그를 렌더링합니다.
+  //    각 다이얼로그는 SinglePopupDialog 컴포넌트 내부의 로직에 따라 스스로 표시 여부를 결정합니다.
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{popupData.title}</DialogTitle>
-          {popupData.content && (
-            <DialogDescription>{popupData.content}</DialogDescription>
-          )}
-        </DialogHeader>
-        {popupData.image_url && (
-          <div className="py-4">
-            <img src={popupData.image_url} alt={popupData.title} className="w-full rounded-md" />
-          </div>
-        )}
-        <DialogFooter className="sm:justify-between gap-2">
-          <Button type="button" variant="ghost" onClick={handleClose}>
-            오늘 하루 보지 않기
-          </Button>
-          <Button type="button" onClick={handleLinkClick} disabled={!popupData.link_url}>
-            자세히 보기
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <>
+      {activePopups.map(popup => (
+        <SinglePopupDialog key={popup.id} popup={popup} />
+      ))}
+    </>
   );
-}
+} 

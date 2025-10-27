@@ -9,6 +9,7 @@ import { ScrollToTopButton } from '@/components/ScrollToTopButton';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useIdleTimer } from '@/hooks/useIdleTimer';
 import { SitePopup } from '@/components/SitePopup'; // 1. 방금 만든 팝업 import
+import { SinglePopupDialog } from '@/components/SinglePopupDialog'; // 1. 방금 만든 팝업 import
 
 // 페이지 컴포넌트 import는 변경 없습니다.
 import { HomePage } from '@/components/pages/HomePage';

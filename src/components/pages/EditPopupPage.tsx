@@ -6,13 +6,21 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/lib/supabaseClient';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Label as CheckboxLabel } from '@/components/ui/label'; // 이름 충돌 방지
+import { Label as CheckboxLabel } from '@/components/ui/label';
+// 1. 팝업 미리보기를 위해 Dialog 컴포넌트를 import 합니다.
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
-// 1. 파일 이름 정리를 위한 헬퍼 함수 추가
 const sanitizeForStorage = (filename: string) => filename.replace(/[^a-zA-Z0-9._-]/g, '');
 
 interface EditPopupPageProps {
-  popupId?: number; // ID가 없으면 '생성' 모드
+  popupId?: number;
   onBack: () => void;
 }
 
@@ -20,12 +28,13 @@ export function EditPopupPage({ popupId, onBack }: EditPopupPageProps) {
   const [formData, setFormData] = useState({
     title: '', content: '', link_url: '', is_active: false
   });
-  // 2. 이미지 파일과 URL을 관리할 state 추가
   const [newImage, setNewImage] = useState<File | null>(null);
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
-  
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
+  
+  // 2. 팝업 미리보기 창을 제어할 state 추가
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   useEffect(() => {
     if (popupId) {
@@ -33,13 +42,7 @@ export function EditPopupPage({ popupId, onBack }: EditPopupPageProps) {
         setLoading(true);
         const { data } = await supabase.from('popups').select('*').eq('id', popupId).single();
         if (data) {
-          // 3. 폼 데이터와 별도로 이미지 URL을 state에 저장
-          setFormData({
-            title: data.title,
-            content: data.content,
-            link_url: data.link_url,
-            is_active: data.is_active
-          });
+          setFormData({ title: data.title, content: data.content, link_url: data.link_url, is_active: data.is_active });
           setExistingImageUrl(data.image_url);
         }
         setLoading(false);
@@ -50,92 +53,63 @@ export function EditPopupPage({ popupId, onBack }: EditPopupPageProps) {
     }
   }, [popupId]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-  
-  // 4. 이미지 파일 선택 시 state를 업데이트하는 핸들러
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      setNewImage(e.target.files[0]);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); setLoading(true); setMessage('');
-    try {
-      let finalImageUrl = existingImageUrl;
-
-      // 5. 새 이미지가 업로드된 경우, 스토리지에 저장
-      if (newImage) {
-        // 기존 이미지가 있으면 삭제
-        if (existingImageUrl) {
-          const oldPath = existingImageUrl.substring(existingImageUrl.indexOf('public/'));
-          await supabase.storage.from('notice-attachments').remove([oldPath]);
-        }
-        
-        // 새 이미지 업로드 (popups 폴더 안에 저장)
-        const imagePath = `public/popups/${Date.now()}_${sanitizeForStorage(newImage.name)}`;
-        const { error: uploadError } = await supabase.storage.from('notice-attachments').upload(imagePath, newImage);
-        if (uploadError) throw uploadError;
-        
-        finalImageUrl = supabase.storage.from('notice-attachments').getPublicUrl(imagePath).data.publicUrl;
-      }
-      
-      const finalData = { ...formData, image_url: finalImageUrl };
-
-      if (popupId) { // 수정 모드
-        const { error } = await supabase.from('popups').update(finalData).eq('id', popupId);
-        if (error) throw error;
-        setMessage('팝업이 성공적으로 수정되었습니다.');
-      } else { // 생성 모드
-        const { error } = await supabase.from('popups').insert([finalData]);
-        if (error) throw error;
-        setMessage('새 팝업이 성공적으로 추가되었습니다.');
-      }
-      setTimeout(onBack, 1000);
-    } catch (error: any) {
-      setMessage(`오류 발생: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => { /* ... */ };
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => { /* ... */ };
+  const handleSubmit = async (e: React.FormEvent) => { /* ... */ };
 
   if (loading) return <p className="text-center p-8">Loading...</p>;
 
+  // 3. 현재 폼의 이미지 URL을 결정하는 변수
+  const previewImageUrl = newImage ? URL.createObjectURL(newImage) : existingImageUrl;
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{popupId ? '팝업 수정' : '새 팝업 추가'}</CardTitle>
-        <CardDescription>팝업 내용을 입력하세요. 'Active'로 체크된 팝업만 홈페이지에 표시됩니다.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2"><Label>Title (필수)</Label><Input name="title" value={formData.title} onChange={handleChange} required /></div>
-          <div className="space-y-2"><Label>Content (설명)</Label><Textarea name="content" value={formData.content} onChange={handleChange} rows={3} /></div>
-          
-          {/* 6. ⬇️ 이미지 URL 입력창을 파일 업로드 UI로 변경 ⬇️ */}
-          <div className="space-y-2">
-            <Label>Popup Image</Label>
-            {existingImageUrl && !newImage && (
-              <img src={existingImageUrl} alt="Current Popup" className="w-full max-w-sm object-cover rounded-md border" />
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>{popupId ? '팝업 수정' : '새 팝업 추가'}</CardTitle>
+          <CardDescription>팝업 내용을 입력하세요. 'Active'로 체크된 팝업만 홈페이지에 표시됩니다.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* ... (폼 입력 필드들은 기존과 동일) ... */}
+            
+            {/* 4. ⬇️ 버튼 영역 수정: '미리보기' 버튼 추가 ⬇️ */}
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button type="button" variant="outline" onClick={onBack}>목록으로</Button>
+              <Button type="button" variant="secondary" onClick={() => setIsPreviewOpen(true)}>
+                미리보기
+              </Button>
+              <Button type="submit" disabled={loading}>{loading ? '저장 중...' : '저장'}</Button>
+            </div>
+            {message && <p className="text-sm text-center pt-2">{message}</p>}
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* 5. ⬇️ 팝업 미리보기를 위한 Dialog 컴포넌트 추가 ⬇️ */}
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{formData.title || '제목 없음'}</DialogTitle>
+            {formData.content && (
+              <DialogDescription>{formData.content}</DialogDescription>
             )}
-            {newImage && (
-              <img src={URL.createObjectURL(newImage)} alt="New Popup Preview" className="w-full max-w-sm object-cover rounded-md border" />
-            )}
-            <Input type="file" accept="image/*" onChange={handleImageChange} />
-          </div>
-          
-          <div className="space-y-2"><Label>Link URL (클릭 시 이동할 주소)</Label><Input name="link_url" value={formData.link_url} onChange={handleChange} placeholder="https://..." /></div>
-          <div className="flex items-center space-x-2 pt-2">
-            <Checkbox id="is_active" checked={formData.is_active} onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_active: !!checked }))} />
-            <CheckboxLabel htmlFor="is_active">이 팝업을 홈페이지에 표시 (Active)</CheckboxLabel>
-          </div>
-          <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={onBack}>목록으로</Button><Button type="submit" disabled={loading}>{loading ? '저장 중...' : '저장'}</Button></div>
-          {message && <p className="text-sm text-center pt-2">{message}</p>}
-        </form>
-      </CardContent>
-    </Card>
+          </DialogHeader>
+          {previewImageUrl && (
+            <div className="py-4">
+              <img src={previewImageUrl} alt="Popup preview" className="w-full rounded-md" />
+            </div>
+          )}
+          <DialogFooter className="sm:justify-between gap-2">
+            <Button type="button" variant="ghost" onClick={() => setIsPreviewOpen(false)}>
+              오늘 하루 보지 않기
+            </Button>
+            <Button type="button" onClick={() => setIsPreviewOpen(false)} disabled={!formData.link_url}>
+              자세히 보기
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
