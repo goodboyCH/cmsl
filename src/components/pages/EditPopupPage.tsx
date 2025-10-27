@@ -14,14 +14,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import ReactQuill, { Quill } from 'react-quill'; // 'react-ill'이 아닌 'react-quill'입니다.
+// 1. Select 관련 import 제거 (사용하지 않음)
+// import { ... } from "@/components/ui/select";
+import ReactQuill, { Quill } from 'react-quill'; 
 import 'react-quill/dist/quill.snow.css';
 
 interface EditPopupPageProps {
@@ -29,12 +24,8 @@ interface EditPopupPageProps {
   onBack: () => void;
 }
 
-const defaultStyles = {
-  popupSize: 'md', 
-  // 제거된 필드들 (DB 호환성을 위해 기본값은 유지)
-  imageSize: 'full',
-  textSize: 'base',
-};
+// 2. defaultStyles 상수 제거
+// const defaultStyles = { ... };
 
 const sanitizeForStorage = (filename: string) => filename.replace(/[^a-zA-Z0-9._-]/g, '');
 
@@ -46,7 +37,8 @@ export function EditPopupPage({ popupId, onBack }: EditPopupPageProps) {
     is_active: false
   });
   
-  const [styles, setStyles] = useState(defaultStyles); 
+  // 3. styles state 제거
+  // const [styles, setStyles] = useState(defaultStyles); 
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -64,8 +56,8 @@ export function EditPopupPage({ popupId, onBack }: EditPopupPageProps) {
             link_url: data.link_url, 
             is_active: data.is_active 
           });
-          // DB에 저장된 스타일을 로드하되, 없는 경우 기본값 사용
-          setStyles(data.styles || defaultStyles); 
+          // 4. setStyles 로직 제거
+          // setStyles(data.styles || defaultStyles); 
         }
         setLoading(false);
       };
@@ -80,9 +72,8 @@ export function EditPopupPage({ popupId, onBack }: EditPopupPageProps) {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
   
-  const handleStyleChange = (field: string, value: string) => {
-    setStyles(prev => ({ ...prev, [field]: value }));
-  };
+  // 5. handleStyleChange 함수 제거
+  // const handleStyleChange = (field: string, value: string) => { ... };
   
   const modules = useMemo(() => {
     const imageHandler = () => {
@@ -128,16 +119,11 @@ export function EditPopupPage({ popupId, onBack }: EditPopupPageProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); setLoading(true); setMessage('');
     try {
-      // 저장 시점의 스타일 객체를 만듭니다 (popupSize만 사용됨)
-      const finalStyles = {
-        ...defaultStyles, // 기본값 보장
-        popupSize: styles.popupSize, // 현재 선택된 popupSize 적용
-      };
-
+      // 6. ⬇️ finalStyles 로직 및 styles 필드 제거 ⬇️
       const finalData = { 
         ...formData, 
         image_url: null, 
-        styles: finalStyles // 정리된 스타일 객체 저장
+        // styles: finalStyles 
       };
 
       if (popupId) {
@@ -195,27 +181,11 @@ export function EditPopupPage({ popupId, onBack }: EditPopupPageProps) {
               <CheckboxLabel htmlFor="is_active">이 팝업을 홈페이지에 표시 (Active)</CheckboxLabel>
             </div>
 
-            {/* ⬇️ 스타일 편집 UI (Legacy 옵션 제거됨) ⬇️ */}
-            <div className="p-4 border rounded-lg space-y-4">
-              <h4 className="font-medium text-primary">디자인 설정</h4>
-              <div className="grid grid-cols-1 gap-4">
-                <div className="space-y-2">
-                  <Label>팝업 크기 (최대 너비)</Label>
-                  <Select value={styles.popupSize} onValueChange={(v) => handleStyleChange('popupSize', v)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="sm">Small</SelectItem>
-                      <SelectItem value="md">Medium (Default)</SelectItem>
-                      <SelectItem value="lg">Large</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {/* imageSize와 textSize Select 컴포넌트 제거됨 */}
-              </div>
-            </div>
-            {/* ⬆️ 스타일 편집 UI 끝 ⬆️ */}
+            {/* 7. ⬇️ "디자인 설정" UI 블록 전체 제거 ⬇️ */}
+            {/* <div className="p-4 border rounded-lg space-y-4">
+              ...
+            </div> */}
+            {/* ⬆️ 제거 완료 ⬆️ */}
 
             <div className="flex justify-end gap-2 pt-4 border-t">
               <Button type="button" variant="outline" onClick={onBack}>목록으로</Button>
@@ -227,17 +197,11 @@ export function EditPopupPage({ popupId, onBack }: EditPopupPageProps) {
         </CardContent>
       </Card>
 
-      {/* ⬇️ 미리보기 팝업 (정상) ⬇️ */}
+      {/* 8. ⬇️ 미리보기 팝업 (className 수정) ⬇️ */}
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <DialogContent className={`
-          ${styles.popupSize === 'sm' && 'sm:max-w-sm'}
-          ${styles.popupSize === 'md' && 'sm:max-w-md'}
-          ${styles.popupSize === 'lg' && 'sm:max-w-lg'}
-        `}>
+        <DialogContent className="w-auto max-w-[90vw] sm:max-w-3xl">
           <DialogHeader>
-            {/* 미리보기에서는 에디터의 폰트 크기를 반영하지 않고, 
-              팝업 타이틀 기본 스타일을 따르도록 textSize 관련 클래스를 제거합니다.
-            */}
+            {/* 8-1. className 제거 */}
             <DialogTitle>{formData.title || '제목 없음'}</DialogTitle>
           </DialogHeader>
 

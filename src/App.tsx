@@ -187,7 +187,7 @@ function App() {
 
         <ScrollToTopButton />
         <Toaster />
-        <SitePopup />
+        {location.pathname === '/' && <SitePopup />}
       </div>
     </LanguageProvider>
   );

@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-// 1. Quill 콘텐츠 스타일을 위한 CSS import
+// Quill 콘텐츠 스타일을 위한 CSS import
 import 'react-quill/dist/quill.snow.css';
 
 const POPUP_LOCAL_STORAGE_PREFIX = 'cmsl-popup-seen-';
@@ -17,14 +17,11 @@ const POPUP_LOCAL_STORAGE_PREFIX = 'cmsl-popup-seen-';
 interface PopupData {
   id: number;
   title: string;
-  content: string; // content는 이제 HTML 문자열입니다.
-  image_url: string; // 이 필드는 더 이상 사용되지 않을 수 있습니다.
+  content: string; 
+  image_url: string;
   link_url: string;
-  styles: {
-    popupSize: 'sm' | 'md' | 'lg';
-    imageSize: 'full' | 'contain';
-    textSize: 'sm' | 'base' | 'lg';
-  };
+  // 1. styles 속성 제거
+  // styles: { ... };
 }
 
 interface SinglePopupDialogProps {
@@ -34,7 +31,8 @@ interface SinglePopupDialogProps {
 export function SinglePopupDialog({ popup }: SinglePopupDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   
-  const styles = popup.styles || { popupSize: 'md', imageSize: 'full', textSize: 'base' };
+  // 2. styles 변수 선언 제거
+  // const styles = popup.styles || { ... };
   const localStorageKey = `${POPUP_LOCAL_STORAGE_PREFIX}${popup.id}`;
 
   useEffect(() => {
@@ -60,31 +58,21 @@ export function SinglePopupDialog({ popup }: SinglePopupDialogProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={() => handleClose(false)}>
-      <DialogContent className={`
-        ${styles.popupSize === 'sm' && 'sm:max-w-sm'}
-        ${styles.popupSize === 'md' && 'sm:max-w-md'}
-        ${styles.popupSize === 'lg' && 'sm:max-w-lg'}
-      `}>
+      {/* 3. ⬇️ className을 수정하여 너비를 자동으로 조절합니다. ⬇️ */}
+      <DialogContent className="w-auto max-w-[90vw] sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle className={`
-            ${styles.textSize === 'lg' && 'text-2xl'}
-            ${styles.textSize === 'sm' && 'text-base'}
-          `}>{popup.title}</DialogTitle>
-          
-          {/* 2. DialogDescription 삭제 */}
-          {/* <DialogDescription ...>{popup.content}</DialogDescription> */}
+          {/* 4. ⬇️ DialogTitle에서 className 제거 ⬇️ */}
+          <DialogTitle>{popup.title}</DialogTitle>
         </DialogHeader>
 
-        {/* 3. ⬇️ 기존 이미지 표시 로직을 삭제하고 HTML 렌더링으로 변경 ⬇️ */}
         <div 
-          className="py-4 ql-snow" // ql-snow 클래스로 감싸 Quill 스타일 적용
+          className="py-4 ql-snow" 
         >
           <div 
-            className="ql-editor" // ql-editor 내부 스타일 적용
+            className="ql-editor" 
             dangerouslySetInnerHTML={{ __html: popup.content }} 
           />
         </div>
-        {/* ⬆️ 변경 완료 ⬆️ */}
         
         <DialogFooter className="sm:justify-between gap-2">
           <Button type="button" variant="ghost" onClick={() => handleClose(true)}>
