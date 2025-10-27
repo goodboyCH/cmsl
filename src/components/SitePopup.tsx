@@ -8,6 +8,11 @@ interface PopupData {
   content: string;
   image_url: string;
   link_url: string;
+  styles: { // 2. styles 타입을 명확히 정의합니다.
+    popupSize: 'sm' | 'md' | 'lg';
+    imageSize: 'full' | 'contain';
+    textSize: 'sm' | 'base' | 'lg';
+  };
 }
 
 export function SitePopup() {
@@ -15,22 +20,20 @@ export function SitePopup() {
 
   useEffect(() => {
     const fetchAllActivePopups = async () => {
-      // 2. 활성화된(is_active = true) 팝업을 '모두' 불러옵니다. (limit 제거)
+      // 3. ⬇️ select 쿼리에 'styles'를 추가합니다. ⬇️
       const { data } = await supabase
         .from('popups')
-        .select('*')
+        .select('id, title, content, image_url, link_url, styles')
         .eq('is_active', true)
         .order('created_at', { ascending: false });
       
       if (data) {
-        setActivePopups(data);
+        setActivePopups(data as PopupData[]);
       }
     };
     fetchAllActivePopups();
   }, []); // 페이지 로드 시 한 번만 실행
 
-  // 3. 불러온 팝업 목록을 .map()으로 순회하며 각각의 다이얼로그를 렌더링합니다.
-  //    각 다이얼로그는 SinglePopupDialog 컴포넌트 내부의 로직에 따라 스스로 표시 여부를 결정합니다.
   return (
     <>
       {activePopups.map(popup => (
@@ -38,4 +41,4 @@ export function SitePopup() {
       ))}
     </>
   );
-} 
+}
