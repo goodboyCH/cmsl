@@ -6,10 +6,11 @@ import { EditMemberPage } from './EditMemberPage';
 import { EditAlumniPage } from './EditAlumniPage';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Session } from '@supabase/supabase-js';
+import { Badge } from '@/components/ui/badge';
 import { EditPageContentForm } from './EditPageContentForm';
 import { EditHomePageForm } from './EditHomePageForm';
 import { EditIntroductionPageForm } from './EditIntroductionPageForm'; // 1. 새로 만든 폼 import
-
+import { EditPopupPage } from './EditPopupPage'; // 새로 만들 폼 컴포넌트
 
 interface AdminPage2Props {
   onNavigate: (page: string) => void;
@@ -23,6 +24,7 @@ export function AdminPage2({  onNavigate }: AdminPage2Props) {
   const [alumni, setAlumni] = useState<any[]>([]);
   const [pages, setPages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [popups, setPopups] = useState<any[]>([]);
 
   const fetchMembers = useCallback(async () => {
     setLoading(true);
@@ -45,11 +47,19 @@ export function AdminPage2({  onNavigate }: AdminPage2Props) {
     setLoading(false);
   }, []);
 
+  const fetchPopups = useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase.from('popups').select('*').order('created_at', { ascending: false });
+    setPopups(data || []);
+    setLoading(false);
+  }, []);
+
   useEffect(() => {
     if (contentView === 'members') fetchMembers();
     if (contentView === 'alumni') fetchAlumni();
     if (contentView === 'pages') fetchPages();
-  }, [contentView, fetchMembers, fetchAlumni, fetchPages]);
+    if (contentView === 'popups') fetchPopups();
+  }, [contentView, fetchMembers, fetchAlumni, fetchPages,fetchPopups]);
 
   const handleDeleteMember = async (id: number) => {
     if (window.confirm('정말로 이 멤버를 삭제하시겠습니까?')) {
@@ -65,11 +75,19 @@ export function AdminPage2({  onNavigate }: AdminPage2Props) {
     }
   };
 
+  const handleDeletePopup = async (id: number) => {
+    if (window.confirm('정말로 이 팝업을 삭제하시겠습니까?')) {
+      await supabase.from('popups').delete().eq('id', id);
+      fetchPopups();
+    }
+  };
+
   const handleBackToList = () => {
     setEditView({ type: null });
     if (contentView === 'members') fetchMembers();
     if (contentView === 'alumni') fetchAlumni();
     if (contentView === 'pages') fetchPages();
+    if (contentView === 'popups') fetchPopups();
   };
 
   if (editView.type === 'page' && editView.key === 'home') {
@@ -112,6 +130,14 @@ export function AdminPage2({  onNavigate }: AdminPage2Props) {
     );
   }
 
+  if (editView.type === 'popup') {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8">
+         <EditPopupPage popupId={editView.id} onBack={handleBackToList} />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-4">
       <Card>
@@ -129,6 +155,7 @@ export function AdminPage2({  onNavigate }: AdminPage2Props) {
             <ToggleGroupItem value="members">Members</ToggleGroupItem>
             <ToggleGroupItem value="alumni">Alumni</ToggleGroupItem>
             <ToggleGroupItem value="pages">Page Contents</ToggleGroupItem>
+            <ToggleGroupItem value="popups">Popups</ToggleGroupItem>
           </ToggleGroup>
 
           {contentView === 'members' && (
@@ -181,6 +208,32 @@ export function AdminPage2({  onNavigate }: AdminPage2Props) {
                        (page.title || page.page_key)}
                     </p>
                     <Button variant="outline" size="sm" onClick={() => setEditView({ type: 'page', key: page.page_key })}>Edit</Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {contentView === 'popups' && (
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold">Popup Management</h3>
+                <Button onClick={() => setEditView({ type: 'popup' })}>Add New Popup</Button>
+              </div>
+              <div className="space-y-2">
+                {loading ? <p>Loading popups...</p> : popups.map(popup => (
+                  <div key={popup.id} className="flex items-center justify-between p-2 border rounded-md">
+                    <div>
+                      <p className="font-semibold">{popup.title}
+                        <Badge variant={popup.is_active ? 'default' : 'outline'} className="ml-2">
+                          {popup.is_active ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </p>
+                    </div>
+                    <div className="space-x-2">
+                      <Button variant="outline" size="sm" onClick={() => setEditView({ type: 'popup', id: popup.id })}>Edit</Button>
+                      <Button variant="destructive" size="sm" onClick={() => handleDeletePopup(popup.id)}>Delete</Button>
+                    </div>
                   </div>
                 ))}
               </div>
