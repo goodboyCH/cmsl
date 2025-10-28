@@ -1,11 +1,11 @@
 // src/components/VtkViewer.tsx
 import React, { useRef, useEffect, memo } from 'react';
-import { vtkGenericRenderWindow } from '@kitware/vtk.js/Rendering/Misc/GenericRenderWindow';import { vtkHttpDataSetReader } from '@kitware/vtk.js/IO/Core';
-import { vtkVolume } from '@kitware/vtk.js/Rendering/Core/Volume';
-import { vtkVolumeMapper } from '@kitware/vtk.js/Rendering/Core/VolumeMapper';
-import { vtkColorTransferFunction } from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
-import { vtkPiecewiseFunction } from '@kitware/vtk.js/Common/DataModel/PiecewiseFunction';
-
+import vtkGenericRenderWindow from '@kitware/vtk.js/Rendering/Misc/GenericRenderWindow';
+import vtkHttpDataSetReader from '@kitware/vtk.js/IO/Core/HttpDataSetReader';
+import vtkVolume from '@kitware/vtk.js/Rendering/Core/Volume';
+import vtkVolumeMapper from '@kitware/vtk.js/Rendering/Core/VolumeMapper';
+import vtkColorTransferFunction from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
+import vtkPiecewiseFunction from '@kitware/vtk.js/Common/DataModel/PiecewiseFunction';
 interface Props {
   vtiUrl: string | null;
 }
@@ -80,22 +80,23 @@ export const VtkViewer = memo(({ vtiUrl }: Props) => {
     actor.getProperty().setInterpolationTypeToLinear();
 
     // --- 데이터 로드 및 렌더링 ---
-    reader.setUrl(vtiUrl).then(() => {
-      reader.loadData().then(() => {
-        // 이전에 렌더링된 볼륨이 있다면 제거
-        if (vtkContext.current.actor) {
-          renderer.removeVolume(vtkContext.current.actor);
-        }
+    reader.setUrl(vtiUrl); // 1. URL 설정 (여기에는 .then()이 없습니다)
 
-        // 새 볼륨 추가 및 카메라 리셋
-        renderer.addVolume(actor);
-        renderer.resetCamera();
-        renderer.resetCameraClippingRange();
-        renderWindow.render();
+    // 2. loadData()에만 .then()을 붙입니다
+    reader.loadData().then(() => {
+      // 이전에 렌더링된 볼륨이 있다면 제거
+      if (vtkContext.current.actor) {
+        renderer.removeVolume(vtkContext.current.actor);
+      }
 
-        // 현재 actor를 context에 저장
-        vtkContext.current.actor = actor;
-      });
+      // 새 볼륨 추가 및 카메라 리셋
+      renderer.addVolume(actor);
+      renderer.resetCamera();
+      renderer.resetCameraClippingRange();
+      renderWindow.render();
+
+      // 현재 actor를 context에 저장
+      vtkContext.current.actor = actor;
     });
 
   }, [vtiUrl]); // vtiUrl이 바뀔 때마다 실행
