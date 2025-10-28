@@ -60,10 +60,10 @@ export function SinglePopupDialog({ popup }: SinglePopupDialogProps) {
         요청 2: 별도 오버레이(뒷배경) 없음
         요청 3: Draggable 컴포넌트로 감싸 드래그 기능 구현
       */}
-      <div className="fixed top-4 left-4 z-50 w-auto max-w-md bg-background border rounded-lg shadow-lg">
+      <div className="fixed top-4 left-4 z-50 w-auto max-w-[90vw] sm:max-w-3xl bg-background border rounded-lg shadow-lg">
         
         {/* 5. 드래그 핸들(.drag-handle)이 적용된 헤더 */}
-        <div className="drag-handle flex justify-between items-center p-4 border-b cursor-move">
+        <div className="drag-handle flex justify-between items-center p-4 cursor-move bg-primary text-primary-foreground rounded-t-lg">
           <h3 className="font-semibold text-primary">{popup.title}</h3>
           <Button variant="ghost" size="icon" onClick={() => handleClose(false)} className="cursor-pointer">
             <X className="h-4 w-4" />
@@ -72,7 +72,7 @@ export function SinglePopupDialog({ popup }: SinglePopupDialogProps) {
 
         {/* 6. Quill 콘텐츠 렌더링 (기존과 동일) */}
         <div 
-          className="p-4 ql-snow" // 콘텐츠 영역에 패딩 추가
+          className="p-4 ql-snow overflow-x-hidden" // 콘텐츠 영역에 패딩 추가
         >
           <div 
             className="ql-editor"
@@ -82,7 +82,7 @@ export function SinglePopupDialog({ popup }: SinglePopupDialogProps) {
         </div>
         
         {/* 7. 푸터 (기존과 동일) */}
-        <div className="flex justify-between items-center p-4 border-t bg-muted/50 rounded-b-lg">
+        <div className="flex justify-between items-center p-2 border-t bg-muted/50 rounded-b-lg">
           <Button type="button" variant="ghost" onClick={() => handleClose(true)}>
             오늘 하루 보지 않기
           </Button>
