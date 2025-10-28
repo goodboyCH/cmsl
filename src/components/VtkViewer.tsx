@@ -1,7 +1,6 @@
 // src/components/VtkViewer.tsx
 import React, { useRef, useEffect, memo } from 'react';
-import { vtkGenericRenderWindow } from '@kitware/vtk.js/Rendering/Misc';
-import { vtkHttpDataSetReader } from '@kitware/vtk.js/IO/Core';
+import { vtkGenericRenderWindow } from '@kitware/vtk.js/Rendering/Misc/GenericRenderWindow';import { vtkHttpDataSetReader } from '@kitware/vtk.js/IO/Core';
 import { vtkVolume } from '@kitware/vtk.js/Rendering/Core/Volume';
 import { vtkVolumeMapper } from '@kitware/vtk.js/Rendering/Core/VolumeMapper';
 import { vtkColorTransferFunction } from '@kitware/vtk.js/Rendering/Core/ColorTransferFunction';
