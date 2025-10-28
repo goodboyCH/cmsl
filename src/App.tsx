@@ -9,7 +9,6 @@ import { ScrollToTopButton } from '@/components/ScrollToTopButton';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useIdleTimer } from '@/hooks/useIdleTimer';
 import { SitePopup } from '@/components/SitePopup'; // 1. 방금 만든 팝업 import
-import { SinglePopupDialog } from '@/components/SinglePopupDialog'; // 1. 방금 만든 팝업 import
 
 // 페이지 컴포넌트 import는 변경 없습니다.
 import { HomePage } from '@/components/pages/HomePage';
@@ -34,6 +33,7 @@ import { GalleryDetailPage } from '@/components/pages/GalleryDetailPage';
 import { EditNoticePage } from '@/components/pages/EditNoticePage';
 import { EditGalleryPage } from '@/components/pages/EditGalleryPage';
 import { SimulationPage } from '@/components/pages/SimulationPage'; // 새로 만든 페이지 임포트
+import { VtiViewerPage } from '@/components/pages/VtiViewerPage';
 
 import { Quill } from 'react-quill';
 import ImageResize from 'quill-image-resize-module-react';
@@ -107,6 +107,7 @@ function App() {
           <Routes>
             {/* 라우팅 코드는 변경 없습니다. */}
             <Route path="/" element={<HomePage onPageChange={handlePageChange} />} />
+            <Route path="/viewer" element={<VtiViewerPage />} />
             <Route path="/simulation" element={<SimulationPage />} /> 
             <Route path="/introduction" element={<IntroductionPage />} />
             <Route path="/people/professor" element={<ProfessorPage />} />
