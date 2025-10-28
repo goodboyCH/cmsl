@@ -64,7 +64,7 @@ export function SinglePopupDialog({ popup }: SinglePopupDialogProps) {
         
         {/* 5. 드래그 핸들(.drag-handle)이 적용된 헤더 */}
         <div className="drag-handle flex justify-between items-center p-4 cursor-move bg-primary text-primary-foreground rounded-t-lg">
-          <h3 className="font-semibold text-primary-foreground">{popup.title}</h3>
+          <h3 className="font-semibold text-xl text-primary-foreground">{popup.title}</h3>
           <Button variant="ghost" size="icon" onClick={() => handleClose(false)} className="cursor-pointer">
             <X className="h-4 w-4" />
           </Button>
