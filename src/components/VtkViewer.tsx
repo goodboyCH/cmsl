@@ -72,18 +72,40 @@ export const VtkViewer = memo(({ vtiUrl }: Props) => {
 
     // --- 객체 연결 ---
     actor.setMapper(mapper);
-    mapper.setInputConnection(reader.getOutputPort());
+ // mapper.setInputConnection(reader.getOutputPort()); // <-- 이 줄을 삭제합니다!
+    // --- ⬆️ 1. 수정 완료 ⬆️ ---
     
-    // 컬러맵/불투명도 적용
     actor.getProperty().setRGBTransferFunction(0, ctf);
     actor.getProperty().setScalarOpacity(0, otf);
     actor.getProperty().setInterpolationTypeToLinear();
 
     // --- 데이터 로드 및 렌더링 ---
-    reader.setUrl(vtiUrl); // 1. URL 설정 (여기에는 .then()이 없습니다)
+    reader.setUrl(vtiUrl); 
 
-    // 2. loadData()에만 .then()을 붙입니다
     reader.loadData().then(() => {
+      // --- ⬇️ 2. 수정할 곳 (로직 추가) ⬇️ ---
+      
+      // (1) 로드된 데이터를 가져옵니다.
+      const data = reader.getOutputData();
+      
+      // (2) 매퍼에 데이터를 직접 연결합니다. (setInputConnection 대신)
+      mapper.setInputData(data);
+      
+      // (3) VTI 파일 헤더 에 따라 PointData를 사용하도록 명시합니다.
+      mapper.setScalarModeToUsePointData();
+      
+      // (4) VTI 파일 헤더 에 있는 'ImageScalars' 배열을 사용하도록 명시합니다.
+      mapper.selectScalarArray('ImageScalars'); 
+      
+      // (5) 데이터의 실제 값 범위를 가져옵니다. (VTI 헤더의 0~1 [cite: 1, 2] 범위)
+      const dataRange = data.getPointData().getScalars().getRange();
+      
+      // (6) 컬러맵과 불투명도 맵의 범위를 하드코딩된 0-1이 아닌,
+      //     데이터의 실제 범위로 설정합니다. (더욱 안정적)
+      ctf.setRange(dataRange[0], dataRange[1]);
+      otf.setRange(dataRange[0], dataRange[1]);
+      // --- ⬆️ 2. 수정 완료 ⬆️ ---
+
       // 이전에 렌더링된 볼륨이 있다면 제거
       if (vtkContext.current.actor) {
         renderer.removeVolume(vtkContext.current.actor);
