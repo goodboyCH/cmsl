@@ -115,7 +115,7 @@ export function HomePage({ onPageChange }: HomePageProps) {
                       <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent"/>
                       <motion.div layout="position" className="relative z-10 p-8 md:p-12 text-white h-full flex flex-col justify-start items-start text-left">
                         <h3 className="font-bold text-3xl">{selectedCapability.title}</h3>
-                        <p className="mt-2 max-w-md">{selectedCapability.description}</p>
+                        <p className="mt-2 max-w-xl text-lg whitespace-pre-line">{selectedCapability.description}</p>
                       </motion.div>
                     </motion.div>
                   )}
