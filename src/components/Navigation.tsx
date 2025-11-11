@@ -29,7 +29,7 @@ export function Navigation({ currentPage, onPageChange }: NavigationProps) {
       label: t('nav.research'),
       subItems: [
         { key: 'casting', path: '/research/casting', label: 'Casting Alloys' },
-        { key: 'films', path: '/research/films', label: 'Thin Films' },
+        { key: 'films', path: '/research/films', label: 'Ferroelectric Films' },
         { key: 'biodegradable', path: '/research/biodegradable', label: 'Biodegradable Alloys' }
       ]
     },
