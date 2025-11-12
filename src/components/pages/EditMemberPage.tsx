@@ -113,7 +113,7 @@ export function EditMemberPage({ memberId, onBack }: EditMemberPageProps) {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2"><Label>Name</Label><Input name="name" value={formData.name} onChange={handleChange} required /></div>
-              <div className="space-y-2"><Label>Position</Label><Select value={formData.position} onValueChange={(val) => setFormData(p => ({...p, position: val}))}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="Postdoctoral Researcher">Postdoctoral Researcher</SelectItem><SelectItem value="Ph.D. Student">Ph.D. Student</SelectItem><SelectItem value="M.S. Student">M.S. Student</SelectItem><SelectItem value="Undergraduate Student">Undergraduate Student</SelectItem></SelectContent></Select></div>
+              <div className="space-y-2"><Label>Position</Label><Select value={formData.position} onValueChange={(val) => setFormData(p => ({...p, position: val}))}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="Research Professor">Research Professor</SelectItem><SelectItem value="Postdoctoral Researcher">Postdoctoral Researcher</SelectItem><SelectItem value="Ph.D. Student">Ph.D. Student</SelectItem><SelectItem value="M.S. Student">M.S. Student</SelectItem><SelectItem value="Undergraduate Student">Undergraduate Student</SelectItem></SelectContent></Select></div>
               <div className="space-y-2"><Label>Year</Label><Input name="year" value={formData.year} onChange={handleChange} /></div>
               <div className="space-y-2"><Label>Email</Label><Input name="email" type="email" value={formData.email} onChange={handleChange} /></div>
             </div>

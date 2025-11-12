@@ -40,6 +40,7 @@ export function MembersPage() {
   }, []);
 
   const getPositionColor = (position: string) => {
+    if (position.includes('Research Professor')) return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300';
     if (position.includes('Postdoctoral')) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
     if (position.includes('Ph.D.')) return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
     if (position.includes('M.S.')) return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
@@ -47,6 +48,7 @@ export function MembersPage() {
   };
 
   const groupedMembers = {
+    'Research Professor': members.filter(m => m.position === 'Research Professor'),
     'Postdoctoral Researcher': members.filter(m => m.position === 'Postdoctoral Researcher'),
     'Ph.D. Student': members.filter(m => m.position === 'Ph.D. Student'),
     'M.S. Student': members.filter(m => m.position === 'M.S. Student'),
@@ -54,6 +56,7 @@ export function MembersPage() {
   };
 
   const memberGroups = [
+    { title: 'Research Professors', members: groupedMembers['Research Professor'] },
     { title: 'Postdoctoral Researchers', members: groupedMembers['Postdoctoral Researcher'] },
     { title: 'Ph.D. Students', members: groupedMembers['Ph.D. Student'] },
     { title: 'M.S. Students', members: groupedMembers['M.S. Student'] },
