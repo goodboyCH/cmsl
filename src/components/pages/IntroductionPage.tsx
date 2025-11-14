@@ -4,43 +4,13 @@ import { ScrollingFocusSection } from '@/components/ScrollingFocusSection';
 import { Cpu, Atom, TestTube2, BrainCircuit, Car, Film, HeartPulse, Magnet, Building, Users } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient'; 
 import merge from 'lodash/merge'; 
-// 1. Canvas와 useFrame을 fiber에서 직접 import
-import { Canvas, useFrame } from '@react-three/fiber'; 
-// 2. useTexture를 drei에서 직접 import
-import { useTexture } from '@react-three/drei'; 
-import * as THREE from 'three';
+import { ImageTransitionCanvas } from '../ImageTransitionCanvas'; 
 
-// 3. 텍스처 "배열"을 로드하는 디버깅 컴포넌트
-function DebugImagePlanes() {
-  const meshRef1 = useRef<THREE.Mesh>(null!);
-  const meshRef2 = useRef<THREE.Mesh>(null!);
-  
-  // 4. (핵심) useTexture 훅으로 "배열"을 로드합니다.
-  const [texture1, texture2] = useTexture([
-    '/images/logo1.png',    // 100% 존재하는 파일
-    '/images/kmu-logo.png'  // 100% 존재하는 파일
-  ]);
-
-  return (
-    <>
-      {/* 5. 로드된 텍스처 2개를 각각 다른 평면에 적용합니다. */}
-      <mesh ref={meshRef1} position={[-0.6, 0, 0]}>
-        <planeGeometry args={[1, 1]} />
-        <meshStandardMaterial map={texture1} />
-      </mesh>
-      <mesh ref={meshRef2} position={[0.6, 0, 0]}>
-        <planeGeometry args={[1, 1]} />
-        <meshStandardMaterial map={texture2} />
-      </mesh>
-    </>
-  );
-}
-
-// (기본값 객체는 변경 없음)
+// 기본값 객체 (DB 로딩 실패 시 사용)
 const pageContentDefault: any = {
   mission: { video_url: "/videos/bg1.mp4", korean_mission: "CMSL", english_mission: "Achieving Predictable Materials Design..." },
-  capabilities: { title: "Our Core Capabilities", items: [] },
-  research: { title: "Major Research Areas", items: [] },
+  capabilities: { title: "Our Core Capabilities", items: [{ imageUrl: "/images/logo1.png" }] }, // 최소 1개 이미지 보장
+  research: { title: "Major Research Areas", items: [{ imageUrl: "/images/logo1.png" }] }, // 최소 1개 이미지 보장
   impact: { title: "Our Impact", items: [], logos: [] }
 };
 
@@ -48,7 +18,7 @@ export function IntroductionPage() {
   const [content, setContent] = useState<any>(pageContentDefault);
   const [loading, setLoading] = useState(true);
 
-  // (useEffect는 변경 없음)
+  // (useEffect 로직은 변경 없음)
   useEffect(() => {
     const fetchContent = async () => {
       setLoading(true);
@@ -71,13 +41,50 @@ export function IntroductionPage() {
   }, []);
   
   const mainContentRef = useRef<HTMLDivElement>(null);
-  
-  // 6. 모핑 관련 훅들은 잠시 주석 처리
-  // const { scrollYProgress: contentScrollProgress } = useScroll(...);
-  // const imageTransitionUrls = useMemo(...);
-  // const scrollStops = useMemo(...);
 
-  // (Hero 비디오 스케일 훅은 그대로 둡니다)
+  const { scrollYProgress: contentScrollProgress } = useScroll({
+    target: mainContentRef,
+    offset: ['start start', 'end end'] 
+  });
+  
+  // --- ⬇️ (중요) 디버깅 코드를 원복하고, Supabase 데이터를 사용합니다 ⬇️ ---
+  const imageTransitionUrls = useMemo(() => {
+    // 1. 'capabilities', 'research', 'impact'에서 각각 이미지 URL 추출
+    const capabilitiesImages = (content.capabilities?.items || [])
+      .map((item: any) => item.imageUrl)
+      .filter((url: any) => typeof url === 'string' && url.trim() !== '');
+
+    const researchImages = (content.research?.items || [])
+      .map((item: any) => item.imageUrl)
+      .filter((url: any) => typeof url === 'string' && url.trim() !== '');
+      
+    const impactImages = (content.impact?.items || [])
+      .map((item: any) => item.imageUrl)
+      .filter((url: any) => typeof url === 'string' && url.trim() !== '');
+
+    // 2. 모든 섹션의 이미지를 순서대로 합칩니다.
+    const allImages = [...capabilitiesImages, ...researchImages, ...impactImages];
+      
+    // 3. (안전장치) 이미지가 2개 미만일 경우 로고 이미지로 채웁니다.
+    if (allImages.length === 0) {
+      return ["/images/logo1.png", "/images/logo1.png"]; 
+    }
+    if (allImages.length === 1) {
+      return [allImages[0], allImages[0]]; 
+    }
+    return allImages; 
+    
+  }, [content.capabilities?.items, content.research?.items, content.impact?.items]); 
+  // --- ⬆️ 수정 완료 ⬆️ ---
+
+  // (scrollStops useMemo 로직은 변경 없음)
+  const scrollStops = useMemo(() => {
+    const numStops = imageTransitionUrls.length - 1;
+    if (numStops <= 0) return [1.0];
+    return Array.from({ length: numStops }, (_, i) => (i + 1) / numStops);
+  }, [imageTransitionUrls.length]);
+
+
   const { scrollYProgress: missionProgress } = useScroll({ offset: ['start start', 'end start'] });
   const missionBgScale = useTransform(missionProgress, [0, 1], [1, 1.15]);
 
@@ -114,20 +121,23 @@ export function IntroductionPage() {
         </motion.div>
       </section>
 
+      {/* --- ⬇️ 메인 콘텐츠 래퍼 수정 ⬇️ --- */}
       <div ref={mainContentRef} className="relative"> 
         
-        {/* --- ⬇️ 7. 캔버스 래퍼를 DebugImagePlanes로 수정 ⬇️ --- */}
+        {/* WebGL 캔버스 배경 (스티키) */}
         <div className="absolute top-0 left-0 w-full h-screen z-0" style={{ position: 'sticky' }}>
+          {/* 4. Suspense로 캔버스를 감싸고, 로딩 중 표시할 fallback UI 지정 */}
           <Suspense fallback={<div className="w-full h-full bg-muted" />}>
-            <Canvas camera={{ position: [0, 0, 2] }}>
-              <ambientLight intensity={1.0} />
-              <DebugImagePlanes />
-            </Canvas>
+            <ImageTransitionCanvas 
+              scrollProgress={contentScrollProgress}
+              imageUrls={imageTransitionUrls}
+              scrollStops={scrollStops}
+            />
           </Suspense>
         </div>
         {/* --- ⬆️ 수정 완료 ⬆️ --- */}
         
-        {/* (스크롤 콘텐츠 변경 없음) */}
+        {/* 스크롤 콘텐츠 (z-10) */}
         <div className="relative z-10">
           <ScrollingFocusSection 
             sectionTitle={content?.capabilities?.title} 
