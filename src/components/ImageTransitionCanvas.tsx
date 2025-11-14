@@ -120,7 +120,7 @@ interface ImageTransitionCanvasProps {
 export function ImageTransitionCanvas({ scrollProgress, imageUrls, scrollStops }: ImageTransitionCanvasProps) {
   // 텍스처 로드 (변위 맵 경로는 public 폴더 기준)
   const textures = useTexture(imageUrls);
-  const dispTexture = useTexture('/textures/displacement-1.jpeg');
+  const dispTexture = useTexture('/textures/displacement-1.jpg');
 
   return (
     <Canvas camera={{ position: [0, 0, 1], fov: 50 }}>
