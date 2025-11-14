@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useMemo } from 'react';
+import React, { useRef, useState, useEffect, useMemo, Suspense } from 'react'; // 1. Suspense 추가
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ScrollingFocusSection } from '@/components/ScrollingFocusSection'; 
 import { Cpu, Atom, TestTube2, BrainCircuit, Car, Film, HeartPulse, Magnet, Building, Users } from 'lucide-react';
@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabaseClient';
 import merge from 'lodash/merge'; 
 import { ImageTransitionCanvas } from '../ImageTransitionCanvas'; // 1. WebGL 캔버스 import
 
-// 2. 기본값 객체 (DB 로딩 실패 시 사용)
+// (기본값 객체는 변경 없음)
 const pageContentDefault: any = {
   mission: { video_url: "/videos/bg1.mp4", korean_mission: "CMSL", english_mission: "Achieving Predictable Materials Design..." },
   capabilities: { title: "Our Core Capabilities", items: [{ imageUrl: "/images/logo1.png" }] },
@@ -18,8 +18,8 @@ export function IntroductionPage() {
   const [content, setContent] = useState<any>(pageContentDefault);
   const [loading, setLoading] = useState(true);
 
+  // (useEffect 로직은 변경 없음)
   useEffect(() => {
-    // (useEffect 로직은 변경 없음)
     const fetchContent = async () => {
       setLoading(true);
       const { data, error } = await supabase
@@ -42,14 +42,14 @@ export function IntroductionPage() {
   
   const mainContentRef = useRef<HTMLDivElement>(null);
 
+  // (useScroll 로직은 변경 없음)
   const { scrollYProgress: contentScrollProgress } = useScroll({
     target: mainContentRef,
     offset: ['start start', 'end end'] 
   });
   
-  // --- ⬇️ 3. imageTransitionUrls 로직 수정 ⬇️ ---
+  // (imageTransitionUrls useMemo 로직은 변경 없음)
   const imageTransitionUrls = useMemo(() => {
-    // 3.1 'capabilities', 'research', 'impact'에서 각각 이미지 URL 추출
     const capabilitiesImages = (content.capabilities?.items || [])
       .map((item: any) => item.imageUrl)
       .filter((url: any) => typeof url === 'string' && url.trim() !== '');
@@ -62,25 +62,22 @@ export function IntroductionPage() {
       .map((item: any) => item.imageUrl)
       .filter((url: any) => typeof url === 'string' && url.trim() !== '');
 
-    // 3.2 모든 섹션의 이미지를 순서대로 합칩니다.
     const allImages = [...capabilitiesImages, ...researchImages, ...impactImages];
       
-    // 3.3 (안정성 강화) 이미지가 2개 미만일 경우 로고 이미지로 채웁니다.
     if (allImages.length === 0) {
-      return ["/images/logo1.png", "/images/logo1.png"]; // 2개 보장
+      return ["/images/logo1.png", "/images/logo1.png"]; 
     }
     if (allImages.length === 1) {
-      return [allImages[0], allImages[0]]; // 2개 보장 (복제)
+      return [allImages[0], allImages[0]]; 
     }
-    return allImages; // 2개 이상이면 DB 이미지 목록 사용
+    return allImages; 
     
-  }, [content.capabilities?.items, content.research?.items, content.impact?.items]); // 3.4 의존성 배열 업데이트
+  }, [content.capabilities?.items, content.research?.items, content.impact?.items]); 
 
-  // 4. 스크롤 전환 지점 설정 (이미지 개수에 맞춰 자동 계산)
+  // (scrollStops useMemo 로직은 변경 없음)
   const scrollStops = useMemo(() => {
     const numStops = imageTransitionUrls.length - 1;
     if (numStops <= 0) return [1.0];
-    // 스크롤 영역을 (이미지 개수 - 1) 만큼 균등하게 분할
     return Array.from({ length: numStops }, (_, i) => (i + 1) / numStops);
   }, [imageTransitionUrls.length]);
 
@@ -98,9 +95,8 @@ export function IntroductionPage() {
 
   return (
     <div className="bg-background text-foreground overflow-x-hidden">
-      {/* (Hero 섹션은 변경 없음) */}
+      {/* (Hero 섹션 변경 없음) */}
       <section className="h-screen w-screen flex items-center justify-center relative text-white text-center p-4">
-        {/* ... (Hero 섹션 렌더링 코드) ... */}
         <motion.div
           className="absolute inset-0 bg-black z-0 overflow-hidden"
           style={{ scale: missionBgScale }}
@@ -122,19 +118,23 @@ export function IntroductionPage() {
         </motion.div>
       </section>
 
-      {/* --- ⬇️ 5. 메인 콘텐츠 래퍼 수정 (WebGL 캔버스 적용) ⬇️ --- */}
+      {/* --- ⬇️ 메인 콘텐츠 래퍼 수정 ⬇️ --- */}
       <div ref={mainContentRef} className="relative"> 
         
         {/* WebGL 캔버스 배경 (스티키) */}
         <div className="absolute top-0 left-0 w-full h-screen z-0" style={{ position: 'sticky' }}>
-          <ImageTransitionCanvas 
-            scrollProgress={contentScrollProgress}
-            imageUrls={imageTransitionUrls}
-            scrollStops={scrollStops}
-          />
+          {/* 2. Suspense로 캔버스를 감싸고, 로딩 중 표시할 fallback UI 지정 */}
+          <Suspense fallback={<div className="w-full h-full bg-muted" />}>
+            <ImageTransitionCanvas 
+              scrollProgress={contentScrollProgress}
+              imageUrls={imageTransitionUrls}
+              scrollStops={scrollStops}
+            />
+          </Suspense>
         </div>
+        {/* --- ⬆️ 수정 완료 ⬆️ --- */}
         
-        {/* 스크롤 콘텐츠 (z-10) */}
+        {/* 스크롤 콘텐츠 (z-10) (변경 없음) */}
         <div className="relative z-10">
           <ScrollingFocusSection 
             sectionTitle={content?.capabilities?.title} 
