@@ -85,9 +85,28 @@ export function IntroductionPage() {
     <div className="bg-background text-foreground overflow-x-hidden">
       {/* (Hero 섹션 변경 없음) */}
       <section className="h-screen w-screen flex items-center justify-center relative text-white text-center p-4">
-        {/* ... Hero 렌더링 ... */}
+        <motion.div
+          className="absolute inset-0 bg-black z-0 overflow-hidden"
+          style={{ scale: missionBgScale }}
+        >
+          <video
+            className="w-full h-full object-cover opacity-40"
+            src={content?.mission?.video_url} 
+            autoPlay loop muted playsInline
+          />
+        </motion.div>
+        <motion.div 
+          className="relative z-10 space-y-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.5 }}
+        >
+          <h1 className="text-5xl md:text-8xl font-bold tracking-tight text-shadow-lg">{content?.mission?.korean_mission}</h1>
+          <p className="text-lg md:text-2xl text-white/80 font-light text-shadow max-w-xs md:max-w-2xl mx-auto">"{content?.mission?.english_mission}"</p>
+        </motion.div>
       </section>
 
+      {/* --- ⬇️ 메인 콘텐츠 래퍼 ⬇️ --- */}
       <div ref={mainContentRef} className="relative"> 
         
         {/* 스티키 배경 래퍼 (SVG 캔버스) */}
