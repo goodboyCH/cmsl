@@ -134,7 +134,7 @@ export function IntroductionPage() {
         </div>
         {/* --- ⬆️ 수정 완료 ⬆️ --- */}
         
-        {/* (스크롤 콘텐츠 변경 없음) */}
+        {/* 스크롤 콘텐츠 (z-10) */}
         <div className="relative z-10">
           <ScrollingFocusSection 
             sectionTitle={content?.capabilities?.title} 
