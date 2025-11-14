@@ -24,7 +24,7 @@ export function SitePopup() {
         .from('popups')
         .select('id, title, content, image_url, link_url, styles')
         .eq('is_active', true)
-        .order('created_at', { ascending: false }); // 가장 최근 팝업이 0번째가 됨
+        .order('created_at', { ascending: false }); 
       
       if (data) {
         setActivePopups(data as PopupData[]);
@@ -35,10 +35,14 @@ export function SitePopup() {
 
   return (
     <>
-      {/* --- ⬇️ 겹침 문제 해결: .map() 대신 첫 번째 항목만 렌더링 ⬇️ --- */}
-      {activePopups.length > 0 && (
-        <SinglePopupDialog key={activePopups[0].id} popup={activePopups[0]} />
-      )}
+      {/* --- ⬇️ 겹침 문제 해결: .map()으로 변경하고 'index'를 전달 ⬇️ --- */}
+      {activePopups.map((popup, index) => (
+        <SinglePopupDialog 
+          key={popup.id} 
+          popup={popup} 
+          index={index} // 팝업 순서를 prop으로 전달
+        />
+      ))}
       {/* --- ⬆️ 수정 완료 ⬆️ --- */}
     </>
   );
