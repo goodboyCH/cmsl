@@ -1,10 +1,10 @@
 import React, { useRef } from 'react';
-import { Canvas, useFrame, extend } from '@react-three/fiber'; // 1. extend 추가
+import { Canvas, useFrame, extend } from '@react-three/fiber';
 import { useTexture, shaderMaterial } from '@react-three/drei';
 import * as THREE from 'three';
 import { MotionValue } from 'framer-motion';
 
-// 2. GLSL 셰이더 코드 (변경 없음)
+// 1. GLSL 셰이더 코드 (변경 없음)
 const vertexShader = `
   varying vec2 vUv;
   void main() {
@@ -34,7 +34,7 @@ const fragmentShader = `
   }
 `;
 
-// 3. 셰이더를 Material로 변환 (변경 없음)
+// 2. 셰이더를 Material로 변환 (변경 없음)
 const ImageMorphMaterial = shaderMaterial(
   {
     uProgress: 0.0,
@@ -46,10 +46,10 @@ const ImageMorphMaterial = shaderMaterial(
   fragmentShader
 );
 
-// 4. react-three-fiber에 커스텀 셰이더 등록
+// 3. react-three-fiber에 커스텀 셰이더 등록
 extend({ ImageMorphMaterial });
 
-// 5. TypeScript가 'imageMorphMaterial' 태그를 인식하도록 타입 선언
+// 4. TypeScript가 'imageMorphMaterial' 태그를 인식하도록 타입 선언
 declare global {
   namespace JSX {
     interface IntrinsicElements {
@@ -58,7 +58,7 @@ declare global {
   }
 }
 
-// 6. React 컴포넌트
+// 5. React 컴포넌트
 interface ImagePlaneProps {
   images: THREE.Texture[];
   dispTexture: THREE.Texture;
@@ -83,7 +83,6 @@ function ImagePlane({ images, dispTexture, scrollProgress, scrollStops }: ImageP
     const prevStop = currentStopIndex === 0 ? 0 : scrollStops[currentStopIndex - 1];
     const currentStop = scrollStops[currentStopIndex];
 
-    // 현재 섹션 내 진행률 (0~1) 계산
     const localProgress = (totalProgress - prevStop) / (currentStop - prevStop);
     
     const textureIndex1 = currentStopIndex % images.length;
@@ -99,7 +98,6 @@ function ImagePlane({ images, dispTexture, scrollProgress, scrollStops }: ImageP
   return (
     <mesh>
       <planeGeometry args={[1, 1, 32, 32]} />
-      {/* 7. 이제 TypeScript가 'imageMorphMaterial' 태그를 인식합니다. */}
       <imageMorphMaterial 
         ref={materialRef} 
         uDisp={dispTexture}
@@ -110,7 +108,7 @@ function ImagePlane({ images, dispTexture, scrollProgress, scrollStops }: ImageP
   );
 }
 
-// 8. 캔버스 설정 컴포넌트 (변경 없음)
+// 6. 캔버스 설정 컴포넌트
 interface ImageTransitionCanvasProps {
   scrollProgress: MotionValue<number>;
   imageUrls: string[];
@@ -120,6 +118,8 @@ interface ImageTransitionCanvasProps {
 export function ImageTransitionCanvas({ scrollProgress, imageUrls, scrollStops }: ImageTransitionCanvasProps) {
   // 텍스처 로드 (변위 맵 경로는 public 폴더 기준)
   const textures = useTexture(imageUrls);
+  
+  // 7. (중요) 파일 확장자를 .jpg로 수정
   const dispTexture = useTexture('/textures/displacement-1.jpg');
 
   return (
