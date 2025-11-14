@@ -120,8 +120,8 @@ export function ImageTransitionCanvas({ scrollProgress, imageUrls, scrollStops }
   const textures = useTexture(imageUrls);
   
   // 7. (중요) 파일 확장자를 .jpg로 수정
-  const dispTexture = useTexture('/textures/displacement-1.jpg');
-
+ // const dispTexture = useTexture('/textures/displacement-1.jpg');
+  const dispTexture = useTexture('/images/logo1.png');
   return (
     <Canvas camera={{ position: [0, 0, 1], fov: 50 }}>
       <ImagePlane 
