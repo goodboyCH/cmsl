@@ -1,16 +1,16 @@
-import React, { useRef, useState, useEffect, useMemo, Suspense } from 'react'; // 1. Suspense 추가
+import React, { useRef, useState, useEffect, useMemo, Suspense } from 'react'; // 1. Suspense가 import 되어 있는지 확인
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ScrollingFocusSection } from '@/components/ScrollingFocusSection'; 
 import { Cpu, Atom, TestTube2, BrainCircuit, Car, Film, HeartPulse, Magnet, Building, Users } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient'; 
 import merge from 'lodash/merge'; 
-import { ImageTransitionCanvas } from '../ImageTransitionCanvas'; // 1. WebGL 캔버스 import
+import { ImageTransitionCanvas } from '../ImageTransitionCanvas'; 
 
-// (기본값 객체는 변경 없음)
+// 기본값 객체 (DB 로딩 실패 시 사용)
 const pageContentDefault: any = {
   mission: { video_url: "/videos/bg1.mp4", korean_mission: "CMSL", english_mission: "Achieving Predictable Materials Design..." },
-  capabilities: { title: "Our Core Capabilities", items: [{ imageUrl: "/images/logo1.png" }] },
-  research: { title: "Major Research Areas", items: [{ imageUrl: "/images/logo1.png" }] },
+  capabilities: { title: "Our Core Capabilities", items: [{ imageUrl: "/images/logo1.png" }] }, // 최소 1개 이미지 보장
+  research: { title: "Major Research Areas", items: [{ imageUrl: "/images/logo1.png" }] }, // 최소 1개 이미지 보장
   impact: { title: "Our Impact", items: [], logos: [] }
 };
 
@@ -42,7 +42,6 @@ export function IntroductionPage() {
   
   const mainContentRef = useRef<HTMLDivElement>(null);
 
-  // (useScroll 로직은 변경 없음)
   const { scrollYProgress: contentScrollProgress } = useScroll({
     target: mainContentRef,
     offset: ['start start', 'end end'] 
@@ -64,6 +63,7 @@ export function IntroductionPage() {
 
     const allImages = [...capabilitiesImages, ...researchImages, ...impactImages];
       
+    // (안전장치) 이미지가 2개 미만일 경우 로고 이미지로 채웁니다.
     if (allImages.length === 0) {
       return ["/images/logo1.png", "/images/logo1.png"]; 
     }
@@ -134,31 +134,25 @@ export function IntroductionPage() {
         </div>
         {/* --- ⬆️ 수정 완료 ⬆️ --- */}
         
-        {/* 스크롤 콘텐츠 (z-10) (변경 없음) */}
+        {/* (스크롤 콘텐츠 변경 없음) */}
         <div className="relative z-10">
           <ScrollingFocusSection 
             sectionTitle={content?.capabilities?.title} 
             items={content?.capabilities?.items || []}
-            backgroundColor="bg-transparent" // 배경색 투명하게
+            backgroundColor="bg-transparent"
           />
-
           <div className="h-96" /> 
-          
           <ScrollingFocusSection 
             sectionTitle={content?.research?.title} 
             items={content?.research?.items || []}
-            backgroundColor="bg-transparent" // 배경색 투명하게
+            backgroundColor="bg-transparent"
           />
-
           <div className="h-96" />
-
           <ScrollingFocusSection 
             sectionTitle={content?.impact?.title} 
             items={content?.impact?.items || []}
-            backgroundColor="bg-transparent" // 배경색 투명하게
+            backgroundColor="bg-transparent"
           />
-
-          {/* 파트너 로고 섹션 (다시 배경색 적용) */}
           <section className="container pb-20 md:pb-32 text-center space-y-8 bg-background">
             <h3 className='text-xl md:text-2xl font-bold text-muted-foreground'>Key Partners</h3>
             <motion.div 
