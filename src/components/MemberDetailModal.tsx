@@ -48,7 +48,7 @@ export function MemberDetailModal({ member, onClose }: MemberDetailModalProps) {
                 </ul>
               </div>
               <div className="space-y-2">
-                <h4 className="font-semibold text-primary flex items-center gap-2"><Award className="h-5 w-5" /> Awards</h4>
+                <h4 className="font-semibold text-primary flex items-center gap-2"><Award className="h-5 w-5" /> Experience/Awards</h4>
                 <ul className="list-disc list-inside text-muted-foreground space-y-1">
                   {(member.awards || []).map((award, i) => <li key={i}>{award}</li>)}
                 </ul>

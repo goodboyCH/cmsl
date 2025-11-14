@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import Draggable from 'react-draggable'; // 1. react-draggable import
-import { X } from 'lucide-react'; // 2. 닫기 아이콘 import
+import Draggable from 'react-draggable';
+import { X } from 'lucide-react';
 import 'react-quill/dist/quill.snow.css';
 
-// '오늘 하루 보지 않기'를 위한 키 (localStorage 사용)
 const POPUP_LOCAL_STORAGE_PREFIX = 'cmsl-popup-seen-';
 
 interface PopupData {
@@ -13,31 +12,45 @@ interface PopupData {
   content: string; 
   image_url: string;
   link_url: string;
-  // styles 속성은 이제 사용되지 않습니다.
+  // styles는 이 컴포넌트에서 더 이상 사용되지 않습니다.
 }
 
 interface SinglePopupDialogProps {
   popup: PopupData;
 }
 
+// 1. 오늘 날짜를 YYYY-MM-DD 형식의 문자열로 반환하는 헬퍼 함수
+const getTodayDateString = () => {
+  return new Date().toISOString().split('T')[0];
+};
+
 export function SinglePopupDialog({ popup }: SinglePopupDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const localStorageKey = `${POPUP_LOCAL_STORAGE_PREFIX}${popup.id}`;
 
   useEffect(() => {
-    // 1. '오늘 하루 보지 않기'를 눌렀는지 (localStorage)만 확인합니다.
-    const hasSeenToday = localStorage.getItem(localStorageKey);
+    // --- ⬇️ '오늘 하루 보지 않기' 로직 수정 ⬇️ ---
+    // 2. localStorage에 저장된 날짜를 가져옵니다.
+    const storedDate = localStorage.getItem(localStorageKey);
+    // 3. 오늘 날짜를 가져옵니다.
+    const today = getTodayDateString();
     
-    if (!hasSeenToday) {
+    // 4. 저장된 날짜가 오늘 날짜와 다를 경우에만 팝업을 엽니다.
+    if (storedDate !== today) {
       setIsOpen(true);
     }
+    // --- ⬆️ 수정 완료 ⬆️ ---
   }, [localStorageKey]);
 
   const handleClose = (dontShowAgain = false) => {
     setIsOpen(false);
     
     if (dontShowAgain) {
-      localStorage.setItem(localStorageKey, 'true');
+      // --- ⬇️ '오늘 하루 보지 않기' 로직 수정 ⬇️ ---
+      // 5. 'true' 대신 오늘 날짜 문자열을 localStorage에 저장합니다.
+      const today = getTodayDateString();
+      localStorage.setItem(localStorageKey, today);
+      // --- ⬆️ 수정 완료 ⬆️ ---
     }
   };
 
@@ -48,21 +61,15 @@ export function SinglePopupDialog({ popup }: SinglePopupDialogProps) {
     handleClose(false);
   };
 
-  // 3. 팝업이 닫혀있으면 아무것도 렌더링하지 않습니다.
   if (!isOpen) {
     return null;
   }
 
-  // 4. ⬇️ Dialog 대신 Draggable 컴포넌트를 사용합니다. ⬇️
+  // Draggable 팝업 UI (변경 없음)
   return (
     <Draggable handle=".drag-handle">
-      {/* 요청 1: fixed top-4 left-4 (좌측 상단 위치)
-        요청 2: 별도 오버레이(뒷배경) 없음
-        요청 3: Draggable 컴포넌트로 감싸 드래그 기능 구현
-      */}
       <div className="fixed top-4 left-4 z-50 w-auto max-w-[90vw] sm:max-w-3xl bg-background border rounded-lg shadow-lg">
         
-        {/* 5. 드래그 핸들(.drag-handle)이 적용된 헤더 */}
         <div className="drag-handle flex justify-between items-center p-4 cursor-move bg-primary text-primary-foreground rounded-t-lg">
           <h3 className="font-semibold text-xl text-primary-foreground">{popup.title}</h3>
           <Button variant="ghost" size="icon" onClick={() => handleClose(false)} className="cursor-pointer">
@@ -70,18 +77,16 @@ export function SinglePopupDialog({ popup }: SinglePopupDialogProps) {
           </Button>
         </div>
 
-        {/* 6. Quill 콘텐츠 렌더링 (기존과 동일) */}
         <div 
-          className="p-4 ql-snow" // 콘텐츠 영역에 패딩 추가
+          className="p-4 ql-snow"
         >
           <div 
             className="ql-editor overflow-x-hidden"
-            style={{ padding: 0 }} // ql-editor 자체의 기본 패딩은 제거
+            style={{ padding: 0 }} 
             dangerouslySetInnerHTML={{ __html: popup.content }} 
           />
         </div>
         
-        {/* 7. 푸터 (기존과 동일) */}
         <div className="flex justify-between items-center p-2 border-t bg-muted/50 rounded-b-lg">
           <Button type="button" variant="ghost" onClick={() => handleClose(true)}>
             오늘 하루 보지 않기
