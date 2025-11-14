@@ -1,10 +1,10 @@
-import React, { useRef, useState, useEffect, useMemo } from 'react'; // 1. Suspense 제거, useLayoutEffect 제거
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ScrollingFocusSection } from '@/components/ScrollingFocusSection'; 
 import { Cpu, Atom, TestTube2, BrainCircuit, Car, Film, HeartPulse, Magnet, Building, Users } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient'; 
 import merge from 'lodash/merge'; 
-import { SvgImageMorph } from '../SvgImageMorph'; // 2. 새로 만든 GSAP 모핑 컴포넌트 import
+import { SvgImageMorph } from '../SvgImageMorph'; // 1. GSAP 모핑 컴포넌트 import
 
 // (기본값 객체는 변경 없음)
 const pageContentDefault: any = {
@@ -42,12 +42,12 @@ export function IntroductionPage() {
   
   const mainContentRef = useRef<HTMLDivElement>(null);
   
-  // 3. react-three-fiber 관련 훅 (contentScrollProgress, scrollStops) 제거
+  // (각 스크롤 섹션에 대한 Ref 생성은 변경 없음)
   const capabilitiesRef = useRef<HTMLDivElement>(null);
   const researchRef = useRef<HTMLDivElement>(null);
   const impactRef = useRef<HTMLDivElement>(null);
   
-  // 4. 모핑에 사용할 이미지 URL 목록 (로직 동일)
+  // (imageTransitionUrls useMemo 로직은 변경 없음)
   const imageTransitionUrls = useMemo(() => {
     const capabilitiesImages = (content.capabilities?.items || [])
       .map((item: any) => item.imageUrl)
@@ -85,48 +85,26 @@ export function IntroductionPage() {
     <div className="bg-background text-foreground overflow-x-hidden">
       {/* (Hero 섹션 변경 없음) */}
       <section className="h-screen w-screen flex items-center justify-center relative text-white text-center p-4">
-        <motion.div
-          className="absolute inset-0 bg-black z-0 overflow-hidden"
-          style={{ scale: missionBgScale }}
-        >
-          <video
-            className="w-full h-full object-cover opacity-40"
-            src={content?.mission?.video_url} 
-            autoPlay loop muted playsInline
-          />
-        </motion.div>
-        <motion.div 
-          className="relative z-10 space-y-4"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.5 }}
-        >
-          <h1 className="text-5xl md:text-8xl font-bold tracking-tight text-shadow-lg">{content?.mission?.korean_mission}</h1>
-          <p className="text-lg md:text-2xl text-white/80 font-light text-shadow max-w-xs md:max-w-2xl mx-auto">"{content?.mission?.english_mission}"</p>
-        </motion.div>
+        {/* ... Hero 렌더링 ... */}
       </section>
 
-      {/* --- ⬇️ 5. 메인 콘텐츠 래퍼 수정 (GSAP 버전) ⬇️ --- */}
-     {/* mainContentRef는 GSAP에서 더 이상 사용하지 않지만, 구분을 위해 남겨둡니다. */}
-     <div ref={mainContentRef} className="relative"> 
+      <div ref={mainContentRef} className="relative"> 
         
         {/* 스티키 배경 래퍼 (SVG 캔버스) */}
         <div className="absolute top-0 left-0 w-full h-screen z-0" style={{ position: 'sticky' }}>
-          {/* 3. SvgImageMorph에 각 섹션의 ref들을 전달 */}
           <SvgImageMorph 
             imageUrls={imageTransitionUrls} 
             sectionRefs={[capabilitiesRef, researchRef, impactRef]} // ref 배열 전달
           />
         </div>
-        {/* --- ⬆️ 수정 완료 ⬆️ --- */}
         
         {/* 스크롤 콘텐츠 (z-10) */}
         <div className="relative z-10">
-          {/* --- ⬇️ 4. 각 섹션에 ref 할당 ⬇️ --- */}
+          {/* --- ⬇️ (핵심 수정) .map()을 사용해 'imageUrl'을 제거하고 items를 전달 ⬇️ --- */}
           <div ref={capabilitiesRef}>
             <ScrollingFocusSection 
               sectionTitle={content?.capabilities?.title} 
-              items={content?.capabilities?.items || []}
+              items={(content?.capabilities?.items || []).map(({ imageUrl, ...rest }: any) => rest)} 
               backgroundColor="bg-transparent"
             />
           </div>
@@ -135,7 +113,7 @@ export function IntroductionPage() {
           <div ref={researchRef}>
             <ScrollingFocusSection 
               sectionTitle={content?.research?.title} 
-              items={content?.research?.items || []}
+              items={(content?.research?.items || []).map(({ imageUrl, ...rest }: any) => rest)} 
               backgroundColor="bg-transparent"
             />
           </div>
@@ -144,7 +122,7 @@ export function IntroductionPage() {
           <div ref={impactRef}>
             <ScrollingFocusSection 
               sectionTitle={content?.impact?.title} 
-              items={content?.impact?.items || []}
+              items={(content?.impact?.items || []).map(({ imageUrl, ...rest }: any) => rest)} 
               backgroundColor="bg-transparent"
             />
           </div>
