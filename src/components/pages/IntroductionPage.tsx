@@ -1,16 +1,36 @@
-import React, { useRef, useState, useEffect, useMemo, Suspense } from 'react'; // 1. Suspense 추가
+import React, { useRef, useState, useEffect, useMemo, Suspense } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ScrollingFocusSection } from '@/components/ScrollingFocusSection'; 
 import { Cpu, Atom, TestTube2, BrainCircuit, Car, Film, HeartPulse, Magnet, Building, Users } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient'; 
 import merge from 'lodash/merge'; 
-import { ImageTransitionCanvas } from '../ImageTransitionCanvas'; // 1. WebGL 캔버스 import
+// 1. ImageTransitionCanvas 대신 Canvas와 useFrame을 직접 import합니다.
+import { Canvas, useFrame } from '@react-three/fiber'; 
+import * as THREE from 'three';
+
+// 2. 디버깅용 큐브 컴포넌트
+function DebugCube() {
+  const meshRef = useRef<THREE.Mesh>(null!);
+  // 큐브를 회전시킵니다.
+  useFrame(() => {
+    if (meshRef.current) {
+      meshRef.current.rotation.x += 0.01;
+      meshRef.current.rotation.y += 0.01;
+    }
+  });
+  return (
+    <mesh ref={meshRef}>
+      <boxGeometry args={[1, 1, 1]} />
+      <meshStandardMaterial color="orange" />
+    </mesh>
+  );
+}
 
 // (기본값 객체는 변경 없음)
 const pageContentDefault: any = {
   mission: { video_url: "/videos/bg1.mp4", korean_mission: "CMSL", english_mission: "Achieving Predictable Materials Design..." },
-  capabilities: { title: "Our Core Capabilities", items: [{ imageUrl: "/images/logo1.png" }] },
-  research: { title: "Major Research Areas", items: [{ imageUrl: "/images/logo1.png" }] },
+  capabilities: { title: "Our Core Capabilities", items: [] },
+  research: { title: "Major Research Areas", items: [] },
   impact: { title: "Our Impact", items: [], logos: [] }
 };
 
@@ -18,7 +38,7 @@ export function IntroductionPage() {
   const [content, setContent] = useState<any>(pageContentDefault);
   const [loading, setLoading] = useState(true);
 
-  // (useEffect 로직은 변경 없음)
+  // (useEffect는 변경 없음)
   useEffect(() => {
     const fetchContent = async () => {
       setLoading(true);
@@ -41,47 +61,13 @@ export function IntroductionPage() {
   }, []);
   
   const mainContentRef = useRef<HTMLDivElement>(null);
-
-  // (useScroll 로직은 변경 없음)
-  const { scrollYProgress: contentScrollProgress } = useScroll({
-    target: mainContentRef,
-    offset: ['start start', 'end end'] 
-  });
   
-  // (imageTransitionUrls useMemo 로직은 변경 없음)
-  const imageTransitionUrls = useMemo(() => {
-    const capabilitiesImages = (content.capabilities?.items || [])
-      .map((item: any) => item.imageUrl)
-      .filter((url: any) => typeof url === 'string' && url.trim() !== '');
+  // 3. 모핑 관련 훅 (useScroll, useMemo 2개)은 이 테스트에서 필요 없으므로 잠시 주석 처리합니다.
+  // const { scrollYProgress: contentScrollProgress } = useScroll(...);
+  // const imageTransitionUrls = useMemo(...);
+  // const scrollStops = useMemo(...);
 
-    const researchImages = (content.research?.items || [])
-      .map((item: any) => item.imageUrl)
-      .filter((url: any) => typeof url === 'string' && url.trim() !== '');
-      
-    const impactImages = (content.impact?.items || [])
-      .map((item: any) => item.imageUrl)
-      .filter((url: any) => typeof url === 'string' && url.trim() !== '');
-
-    const allImages = [...capabilitiesImages, ...researchImages, ...impactImages];
-      
-    if (allImages.length === 0) {
-      return ["/images/logo1.png", "/images/logo1.png"]; 
-    }
-    if (allImages.length === 1) {
-      return [allImages[0], allImages[0]]; 
-    }
-    return allImages; 
-    
-  }, [content.capabilities?.items, content.research?.items, content.impact?.items]); 
-
-  // (scrollStops useMemo 로직은 변경 없음)
-  const scrollStops = useMemo(() => {
-    const numStops = imageTransitionUrls.length - 1;
-    if (numStops <= 0) return [1.0];
-    return Array.from({ length: numStops }, (_, i) => (i + 1) / numStops);
-  }, [imageTransitionUrls.length]);
-
-
+  // (Hero 비디오 스케일 훅은 그대로 둡니다)
   const { scrollYProgress: missionProgress } = useScroll({ offset: ['start start', 'end start'] });
   const missionBgScale = useTransform(missionProgress, [0, 1], [1, 1.15]);
 
@@ -118,47 +104,38 @@ export function IntroductionPage() {
         </motion.div>
       </section>
 
-      {/* --- ⬇️ 메인 콘텐츠 래퍼 수정 ⬇️ --- */}
       <div ref={mainContentRef} className="relative"> 
         
-        {/* WebGL 캔버스 배경 (스티키) */}
+        {/* --- ⬇️ 4. ImageTransitionCanvas 대신 DebugCube를 렌더링 ⬇️ --- */}
         <div className="absolute top-0 left-0 w-full h-screen z-0" style={{ position: 'sticky' }}>
-          {/* 2. Suspense로 캔버스를 감싸고, 로딩 중 표시할 fallback UI 지정 */}
           <Suspense fallback={<div className="w-full h-full bg-muted" />}>
-            <ImageTransitionCanvas 
-              scrollProgress={contentScrollProgress}
-              imageUrls={imageTransitionUrls}
-              scrollStops={scrollStops}
-            />
+            <Canvas camera={{ position: [0, 0, 2] }}>
+              <ambientLight intensity={0.5} />
+              <DebugCube />
+            </Canvas>
           </Suspense>
         </div>
         {/* --- ⬆️ 수정 완료 ⬆️ --- */}
         
-        {/* 스크롤 콘텐츠 (z-10) (변경 없음) */}
+        {/* 스크롤 콘텐츠 (z-10) */}
         <div className="relative z-10">
           <ScrollingFocusSection 
             sectionTitle={content?.capabilities?.title} 
             items={content?.capabilities?.items || []}
-            backgroundColor="bg-transparent" // 배경색 투명하게
+            backgroundColor="bg-transparent"
           />
-
           <div className="h-96" /> 
-          
           <ScrollingFocusSection 
             sectionTitle={content?.research?.title} 
             items={content?.research?.items || []}
-            backgroundColor="bg-transparent" // 배경색 투명하게
+            backgroundColor="bg-transparent"
           />
-
           <div className="h-96" />
-
           <ScrollingFocusSection 
             sectionTitle={content?.impact?.title} 
             items={content?.impact?.items || []}
-            backgroundColor="bg-transparent" // 배경색 투명하게
+            backgroundColor="bg-transparent"
           />
-
-          {/* 파트너 로고 섹션 (다시 배경색 적용) */}
           <section className="container pb-20 md:pb-32 text-center space-y-8 bg-background">
             <h3 className='text-xl md:text-2xl font-bold text-muted-foreground'>Key Partners</h3>
             <motion.div 
