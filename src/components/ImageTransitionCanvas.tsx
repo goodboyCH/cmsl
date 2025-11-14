@@ -4,7 +4,7 @@ import { useTexture, shaderMaterial } from '@react-three/drei';
 import * as THREE from 'three';
 import { MotionValue } from 'framer-motion';
 
-// 1. GLSL 셰이더 코드 (변경 없음)
+// 1. GLSL 셰이더 코드 (Vertex 셰이더는 변경 없음)
 const vertexShader = `
   varying vec2 vUv;
   void main() {
@@ -13,78 +13,72 @@ const vertexShader = `
   }
 `;
 
+// --- ⬇️ 2. Fragment 셰이더를 '단순 페이드'로 변경 ⬇️ ---
 const fragmentShader = `
   varying vec2 vUv;
   uniform sampler2D uTexture1;
   uniform sampler2D uTexture2;
-  uniform sampler2D uDisp;
   uniform float uProgress; // 0.0 -> 1.0
 
   void main() {
-    vec2 uv = vUv;
-    vec4 disp = texture2D(uDisp, uv);
+    vec4 texture1 = texture2D(uTexture1, vUv);
+    vec4 texture2 = texture2D(uTexture2, vUv);
     
-    vec2 distortedPosition1 = vec2(uv.x + uProgress * (disp.r - 0.5) * 0.5, uv.y);
-    vec2 distortedPosition2 = vec2(uv.x - (1.0 - uProgress) * (disp.r - 0.5) * 0.5, uv.y);
-
-    vec4 texture1 = texture2D(uTexture1, distortedPosition1);
-    vec4 texture2 = texture2D(uTexture2, distortedPosition2);
-
+    // 모핑(displacement) 로직을 제거하고, mix() 함수로 단순 교차 페이드
     gl_FragColor = mix(texture1, texture2, uProgress);
   }
 `;
+// --- ⬆️ 수정 완료 ⬆️ ---
 
-// 2. 셰이더를 Material로 변환 (변경 없음)
-const ImageMorphMaterial = shaderMaterial(
+// --- ⬇️ 3. Material에서 uDisp (변위 맵) 제거 ⬇️ ---
+const ImageFadeMaterial = shaderMaterial(
   {
     uProgress: 0.0,
     uTexture1: new THREE.Texture(),
     uTexture2: new THREE.Texture(),
-    uDisp: new THREE.Texture(),
+    // uDisp: new THREE.Texture(), // 변위 맵 제거
   },
   vertexShader,
   fragmentShader
 );
+// --- ⬆️ 수정 완료 ⬆️ ---
 
-// 3. react-three-fiber에 커스텀 셰이더 등록
-extend({ ImageMorphMaterial });
+// 4. react-three-fiber에 새 셰이더 등록
+extend({ ImageFadeMaterial });
 
-// 4. TypeScript가 'imageMorphMaterial' 태그를 인식하도록 타입 선언
+// 5. TypeScript가 새 태그를 인식하도록 타입 선언
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      imageMorphMaterial: any; // any로 처리하여 타입 오류 해결
+      imageFadeMaterial: any; // 새 이름으로 변경
     }
   }
 }
 
-// 5. React 컴포넌트
+// 6. React 컴포넌트
 interface ImagePlaneProps {
   images: THREE.Texture[];
-  dispTexture: THREE.Texture;
+  // dispTexture 제거
   scrollProgress: MotionValue<number>;
   scrollStops: number[]; 
 }
 
-function ImagePlane({ images, dispTexture, scrollProgress, scrollStops }: ImagePlaneProps) {
+function ImagePlane({ images, scrollProgress, scrollStops }: ImagePlaneProps) {
   const materialRef = useRef<any>();
   
   images.forEach(tex => {
     tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
   });
-  dispTexture.wrapS = dispTexture.wrapT = THREE.RepeatWrapping;
+  // dispTexture.wrapS 제거
 
   useFrame(() => {
+    // (useFrame 내부 로직은 변경 없음)
     const totalProgress = scrollProgress.get();
-
     let currentStopIndex = scrollStops.findIndex(stop => totalProgress <= stop);
     if (currentStopIndex === -1) currentStopIndex = scrollStops.length - 1; 
-
     const prevStop = currentStopIndex === 0 ? 0 : scrollStops[currentStopIndex - 1];
     const currentStop = scrollStops[currentStopIndex];
-
     const localProgress = (totalProgress - prevStop) / (currentStop - prevStop);
-    
     const textureIndex1 = currentStopIndex % images.length;
     const textureIndex2 = (currentStopIndex + 1) % images.length;
 
@@ -98,9 +92,10 @@ function ImagePlane({ images, dispTexture, scrollProgress, scrollStops }: ImageP
   return (
     <mesh>
       <planeGeometry args={[1, 1, 32, 32]} />
-      <imageMorphMaterial 
+      {/* --- ⬇️ 7. 태그 이름을 imageFadeMaterial로 변경 ⬇️ --- */}
+      <imageFadeMaterial 
         ref={materialRef} 
-        uDisp={dispTexture}
+        // uDisp 제거
         uTexture1={images[0]}
         uTexture2={images[1] || images[0]} 
       />
@@ -108,7 +103,7 @@ function ImagePlane({ images, dispTexture, scrollProgress, scrollStops }: ImageP
   );
 }
 
-// 6. 캔버스 설정 컴포넌트
+// 8. 캔버스 설정 컴포넌트
 interface ImageTransitionCanvasProps {
   scrollProgress: MotionValue<number>;
   imageUrls: string[];
@@ -116,17 +111,17 @@ interface ImageTransitionCanvasProps {
 }
 
 export function ImageTransitionCanvas({ scrollProgress, imageUrls, scrollStops }: ImageTransitionCanvasProps) {
-  // 텍스처 로드 (변위 맵 경로는 public 폴더 기준)
   const textures = useTexture(imageUrls);
   
-  // 7. (중요) 파일 확장자를 .jpg로 수정
-  const dispTexture = useTexture('/textures/displacement-1.jpg');
+  // --- ⬇️ 9. 변위 맵(displacement-1.jpg) 로드 제거 ⬇️ ---
+  // const dispTexture = useTexture('/textures/displacement-1.jpg');
+  // --- ⬆️ 수정 완료 ⬆️ ---
 
   return (
     <Canvas camera={{ position: [0, 0, 1], fov: 50 }}>
       <ImagePlane 
         images={textures} 
-        dispTexture={dispTexture} 
+        // dispTexture 제거
         scrollProgress={scrollProgress}
         scrollStops={scrollStops}
       />
