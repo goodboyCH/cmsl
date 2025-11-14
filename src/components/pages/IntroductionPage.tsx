@@ -1,54 +1,25 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react'; // 1. useMemo 추가
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ScrollingFocusSection } from '@/components/ScrollingFocusSection'; 
 import { Cpu, Atom, TestTube2, BrainCircuit, Car, Film, HeartPulse, Magnet, Building, Users } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient'; 
-import merge from 'lodash/merge'; // 1. lodash/merge 임포트
+import merge from 'lodash/merge'; 
+import { ImageTransitionCanvas } from '../ImageTransitionCanvas'; // 2. 새로 만든 캔버스 import
 
-// (pageContentDefault 데이터는 변경 없음)
-const pageContentDefault = {
-  mission: {
-    video_url: "/videos/bg.mp4",
-    korean_mission: "CMSL",
-    english_mission: "Achieving Predictable Materials Design from the Physics of Microstructure"
-  },
-  capabilities: {
-    title: "Our Core Capabilities",
-    items: [
-      { icon: Cpu, title: "Multi-scale Phase-Field Modeling", description: "다중 스케일에서 미세조직의 상변태 및 동적 거동을 정밀하게 예측하여, NdFeB 자성재료, Al-Si 합금 등 다양한 소재의 특성을 제어합니다." },
-      { icon: BrainCircuit, title: "AI-driven Active Learning", description: "KISTI 슈퍼컴퓨터를 활용한 대규모 시뮬레이션과 AI 액티브 러닝을 통해, 실험적 한계를 뛰어넘는 새로운 재료 물성 및 Landau 계수를 효율적으로 탐색합니다." },
-      { icon: TestTube2, title: "Electrochemical Potential Mapping", description: "부식 현상 예측을 위해 Mg-Ca, Silafont 합금 등의 전기화학적 전위 분포를 분석하고, KPFM 측정 데이터와 비교하여 모델의 정확도를 검증합니다." },
-      { icon: Atom, title: "Thermodynamic & Kinetic Analysis", description: "계면 에너지 이방성(Anisotropy), Jackson-Hunt 이론 등 재료의 열역학 및 반응속도론적 원리를 깊이 있게 탐구하여 시뮬레이션의 물리적 기반을 다집니다." }
-    ]
-  },
-  research: {
-    title: "Major Research Areas",
-    items: [
-      { icon: Car, title: "Advanced Automotive Alloys", description: "현대자동차와 협력하여 Al-Fe-Mn-Si 합금의 응고 거동을 시뮬레이션하고, 고강도 경량 차체 및 부품 소재 개발에 기여합니다.", imageUrl: "/images/research-auto.jpg" },
-      { icon: Magnet, title: "Next-Gen Magnetic Materials", description: "NdFeB 스트립 캐스팅 공정 시뮬레이션을 통해 차세대 고성능 영구자석의 미세조직 제어 기술을 확보하고, 전기차 모터 및 풍력 발전기 효율 향상에 기여합니다.", imageUrl: "/images/research-magnet.jpg" },
-      { icon: Film, title: "Functional HZO Thin Films", description: "반강자성(AFE) 특성을 지닌 HZO 박막을 모델링하여, 차세대 메모리 소자 및 센서에 적용 가능한 신소재 개발의 이론적 기반을 제공합니다.", imageUrl: "/images/research-film.jpg" },
-      { icon: HeartPulse, title: "Biomedical & Lightweight Alloys", description: "Mg-Ca 합금의 부식 메커니즘을 분석하여 체내에서 안전하게 분해되는 생분해성 임플란트 및 초경량 항공우주 부품 소재를 설계합니다.", imageUrl: "/images/research-bio.jpg" }
-    ]
-  },
-  impact: {
-    title: "Our Impact",
-    items: [
-        { icon: Building, title: "Bridging Science and Industry", description: "저희 연구실은 심도 있는 물리 기반 모델링과 최신 AI 기술을 융합하여, 기초 과학적 원리 탐구에서부터 산업적 난제 해결에 이르기까지 재료 과학의 새로운 지평을 열어가고 있습니다." },
-        { icon: Users, title: "Fostering Future Leaders", description: "다양한 국책 및 기업 과제 수행을 통해 학생들이 이론과 실제를 겸비한 재료 분야의 전문가로 성장할 수 있도록 지원하며, 국내외 학회에서 연구 성과를 활발히 교류합니다." }
-    ],
-    logos: [
-      { name: "Hyundai Motors", url: "/images/hyundai-logo.png" },
-      { name: "KISTI", url: "/images/kisti-logo.png" },
-    ]
-  }
+// 3. 기본값 객체 (안정성을 위해 수정)
+const pageContentDefault: any = {
+  mission: { video_url: "", korean_mission: "Loading...", english_mission: "Loading..." },
+  capabilities: { title: "", items: [] },
+  research: { title: "", items: [] },
+  impact: { title: "", items: [], logos: [] }
 };
 
 export function IntroductionPage() {
   const [content, setContent] = useState<any>(pageContentDefault);
   const [loading, setLoading] = useState(true);
 
-  // --- ⬇️ 2. useEffect 로직 수정 ⬇️ ---
   useEffect(() => {
+    // (useEffect 로직은 lodash/merge를 사용)
     const fetchContent = async () => {
       setLoading(true);
       const { data, error } = await supabase
@@ -59,13 +30,10 @@ export function IntroductionPage() {
       
       if (error || !data?.content) {
         console.warn('DB에서 소개 페이지 콘텐츠 로딩 실패. 기본값을 사용합니다.', error);
-        // 실패 시 기본값(pageContentDefault)을 사용
         setContent(pageContentDefault);
       } else {
-        // [핵심 수정] 기본값과 DB 데이터를 병합하여 항상 완전한 객체 보장
-        // merge({}, ...)는 원본(pageContentDefault)을 변경하지 않고 새 객체를 만듭니다.
         const mergedContent = merge({}, pageContentDefault, data.content);
-        setContent(mergedContent); // 성공 시 '병합된' 데이터로 state 업데이트
+        setContent(mergedContent);
       }
       setLoading(false);
     };
@@ -74,24 +42,37 @@ export function IntroductionPage() {
   
   const mainContentRef = useRef<HTMLDivElement>(null);
 
-  // (useScroll, useTransform 훅은 변경 없음)
   const { scrollYProgress: contentScrollProgress } = useScroll({
     target: mainContentRef,
     offset: ['start start', 'end end'] 
   });
 
-  const backgroundColor = useTransform(
-    contentScrollProgress,
-    [0, 0.25, 0.35, 0.6, 0.7, 1], 
-    [
-      "hsl(0 0% 100%)",
-      "hsl(0 0% 100%)",
-      "hsl(221.2 83.2% 95.3%)",
-      "hsl(221.2 83.2% 95.3%)",
-      "hsl(0 0% 100%)",
-      "hsl(0 0% 100%)"
-    ]
-  );
+  // 4. 배경색 로직(backgroundColor)은 삭제합니다.
+  
+  // 5. 모핑에 사용할 이미지 목록 준비 (useMemo로 불필요한 리렌더링 방지)
+  const imageTransitionUrls = useMemo(() => {
+    // content.research.items에서 imageUrl을 추출합니다.
+    const researchImages = (content.research?.items || [])
+      .map((item: any) => item.imageUrl)
+      .filter(Boolean); // null이나 undefined 제거
+      
+    // 최소 2개의 이미지가 필요하므로, 부족하면 기본 이미지로 채웁니다.
+    if (researchImages.length === 0) {
+      return ["/images/research-auto.jpg", "/images/research-magnet.jpg"]; // 기본 이미지
+    }
+    if (researchImages.length === 1) {
+      return [researchImages[0], researchImages[0]]; // 1개면 2개로 복사
+    }
+    return researchImages;
+  }, [content.research?.items]);
+
+  // 6. 스크롤 전환 지점 설정 (이미지 개수에 맞춰 자동 계산)
+  const scrollStops = useMemo(() => {
+    const numStops = imageTransitionUrls.length - 1;
+    if (numStops <= 0) return [1.0];
+    return Array.from({ length: numStops }, (_, i) => (i + 1) / numStops);
+  }, [imageTransitionUrls.length]);
+
 
   const { scrollYProgress: missionProgress } = useScroll({ offset: ['start start', 'end start'] });
   const missionBgScale = useTransform(missionProgress, [0, 1], [1, 1.15]);
@@ -104,9 +85,9 @@ export function IntroductionPage() {
     );
   }
 
-  // --- ⬇️ 3. 렌더링 부분에 Optional Chaining (?.) 추가하여 안정성 확보 ⬇️ ---
   return (
     <div className="bg-background text-foreground overflow-x-hidden">
+      {/* (Hero 섹션은 변경 없음) */}
       <section className="h-screen w-screen flex items-center justify-center relative text-white text-center p-4">
         <motion.div
           className="absolute inset-0 bg-black z-0 overflow-hidden"
@@ -114,7 +95,7 @@ export function IntroductionPage() {
         >
           <video
             className="w-full h-full object-cover opacity-40"
-            src={content?.mission?.video_url} // mission이 없을 경우 대비
+            src={content?.mission?.video_url} 
             autoPlay loop muted playsInline
           />
         </motion.div>
@@ -129,54 +110,69 @@ export function IntroductionPage() {
         </motion.div>
       </section>
 
-      <motion.div ref={mainContentRef} style={{ backgroundColor }}>
-
-        <ScrollingFocusSection 
-          sectionTitle={content?.capabilities?.title} // capabilities가 없을 경우 대비
-          items={content?.capabilities?.items || []} // items가 없으면 빈 배열 전달
-          backgroundColor="bg-transparent"
-        />
-
-        <div className="h-96" /> 
+      {/* --- ⬇️ 7. 메인 콘텐츠 래퍼 수정 ⬇️ --- */}
+      {/* ref를 여기로 이동하고, style(backgroundColor) 제거 */}
+      <div ref={mainContentRef} className="relative"> 
         
-        <ScrollingFocusSection 
-          sectionTitle={content?.research?.title} // research가 없을 경우 대비
-          items={content?.research?.items || []} // items가 없으면 빈 배열 전달
-          backgroundColor="bg-transparent"
-        />
+        {/* WebGL 캔버스 배경 */}
+        <div className="absolute top-0 left-0 w-full h-screen z-0" style={{ position: 'sticky' }}>
+          <ImageTransitionCanvas 
+            scrollProgress={contentScrollProgress}
+            imageUrls={imageTransitionUrls}
+            scrollStops={scrollStops}
+          />
+        </div>
+        
+        {/* 스크롤 콘텐츠 */}
+        <div className="relative z-10">
+          <ScrollingFocusSection 
+            sectionTitle={content?.capabilities?.title} 
+            items={content?.capabilities?.items || []}
+            backgroundColor="bg-transparent" // 배경색 투명하게
+          />
 
-        <div className="h-96" />
+          <div className="h-96" /> 
+          
+          <ScrollingFocusSection 
+            sectionTitle={content?.research?.title} 
+            items={content?.research?.items || []}
+            backgroundColor="bg-transparent" // 배경색 투명하게
+          />
 
-        <ScrollingFocusSection 
-          sectionTitle={content?.impact?.title} // impact가 없을 경우 대비
-          items={content?.impact?.items || []} // items가 없으면 빈 배열 전달
-          backgroundColor="bg-transparent"
-        />
+          <div className="h-96" />
 
-        <section className="container pb-20 md:pb-32 text-center space-y-8">
-          <h3 className='text-xl md:text-2xl font-bold text-muted-foreground'>Key Partners</h3>
-          <motion.div 
-            className="flex justify-center items-center gap-8 md:gap-12 flex-wrap"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ staggerChildren: 0.3 }}
-          >
-            {/* logos가 없으면 빈 배열로 처리하여 map 오류 방지 */}
-            {(content?.impact?.logos || []).map((logo: any, index: number) => (
-              <motion.div
-                key={index}
-                variants={{
-                  hidden: { opacity: 0, scale: 0.5 },
-                  visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: 'easeOut' } }
-                }}
-              >
-                <img src={logo.url} alt={logo.name} className="h-10 md:h-16 opacity-70 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-300" />
-              </motion.div>
-            ))}
-          </motion.div>
-        </section>
-      </motion.div>
+          <ScrollingFocusSection 
+            sectionTitle={content?.impact?.title} 
+            items={content?.impact?.items || []}
+            backgroundColor="bg-transparent" // 배경색 투명하게
+          />
+
+          {/* 파트너 로고 섹션 (다시 배경색 적용) */}
+          <section className="container pb-20 md:pb-32 text-center space-y-8 bg-background">
+            <h3 className='text-xl md:text-2xl font-bold text-muted-foreground'>Key Partners</h3>
+            <motion.div 
+              className="flex justify-center items-center gap-8 md:gap-12 flex-wrap"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ staggerChildren: 0.3 }}
+            >
+              {(content?.impact?.logos || []).map((logo: any, index: number) => (
+                <motion.div
+                  key={index}
+                  variants={{
+                    hidden: { opacity: 0, scale: 0.5 },
+                    visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: 'easeOut' } }
+                  }}
+                >
+                  <img src={logo.url} alt={logo.name} className="h-10 md:h-16 opacity-70 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-300" />
+                </motion.div>
+              ))}
+            </motion.div>
+          </section>
+        </div>
+      </div>
+      {/* --- ⬆️ 수정 완료 ⬆️ --- */}
     </div>
   );
 }
