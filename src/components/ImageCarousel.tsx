@@ -39,8 +39,15 @@ export function ImageCarousel({ images }: ImageCarouselProps) {
           </CarouselItem>
         ))}
       </CarouselContent>
-      <CarouselPrevious className="left-4" />
-      <CarouselNext className="right-4" />
+      
+      {/* --- ⬇️ 화살표 버튼이 잘 보이도록 수정 ⬇️ --- */}
+      <CarouselPrevious 
+        className="left-4 bg-background/50 hover:bg-background/75 opacity-80 hover:opacity-100" 
+      />
+      <CarouselNext 
+        className="right-4 bg-background/50 hover:bg-background/75 opacity-80 hover:opacity-100" 
+      />
+      {/* --- ⬆️ 수정 완료 ⬆️ --- */}
     </Carousel>
   );
 }
