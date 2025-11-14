@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import Draggable from 'react-draggable'; 
-import { X } from 'lucide-react'; 
+import Draggable from 'react-draggable';
+import { X } from 'lucide-react';
 import 'react-quill/dist/quill.snow.css';
 
 const POPUP_LOCAL_STORAGE_PREFIX = 'cmsl-popup-seen-';
@@ -12,37 +12,45 @@ interface PopupData {
   content: string; 
   image_url: string;
   link_url: string;
+  // styles는 이 컴포넌트에서 더 이상 사용되지 않습니다.
 }
 
 interface SinglePopupDialogProps {
   popup: PopupData;
-  index: number; // 1. SitePopup에서 전달받을 index prop 추가
 }
 
+// 1. 오늘 날짜를 YYYY-MM-DD 형식의 문자열로 반환하는 헬퍼 함수
 const getTodayDateString = () => {
   return new Date().toISOString().split('T')[0];
 };
 
-// 2. props에서 index를 받도록 수정
-export function SinglePopupDialog({ popup, index }: SinglePopupDialogProps) {
+export function SinglePopupDialog({ popup }: SinglePopupDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const localStorageKey = `${POPUP_LOCAL_STORAGE_PREFIX}${popup.id}`;
 
   useEffect(() => {
+    // --- ⬇️ '오늘 하루 보지 않기' 로직 수정 ⬇️ ---
+    // 2. localStorage에 저장된 날짜를 가져옵니다.
     const storedDate = localStorage.getItem(localStorageKey);
+    // 3. 오늘 날짜를 가져옵니다.
     const today = getTodayDateString();
     
+    // 4. 저장된 날짜가 오늘 날짜와 다를 경우에만 팝업을 엽니다.
     if (storedDate !== today) {
       setIsOpen(true);
     }
+    // --- ⬆️ 수정 완료 ⬆️ ---
   }, [localStorageKey]);
 
   const handleClose = (dontShowAgain = false) => {
     setIsOpen(false);
     
     if (dontShowAgain) {
+      // --- ⬇️ '오늘 하루 보지 않기' 로직 수정 ⬇️ ---
+      // 5. 'true' 대신 오늘 날짜 문자열을 localStorage에 저장합니다.
       const today = getTodayDateString();
       localStorage.setItem(localStorageKey, today);
+      // --- ⬆️ 수정 완료 ⬆️ ---
     }
   };
 
@@ -57,19 +65,10 @@ export function SinglePopupDialog({ popup, index }: SinglePopupDialogProps) {
     return null;
   }
 
-  // 3. index 값에 따라 계단식으로 위치를 계산합니다.
-  // 1rem(16px) + (index * 2rem(32px))
-  const offset = 16 + (index * 32);
-
+  // Draggable 팝업 UI (변경 없음)
   return (
-    // 4. Draggable에 defaultPosition을 설정합니다.
-    <Draggable 
-      handle=".drag-handle" 
-      defaultPosition={{ x: offset, y: offset }} // X, Y 위치를 index에 따라 설정
-    >
-      {/* --- ⬇️ 팝업 위치 클래스(top-4 left-4) 제거 ⬇️ --- */}
-      {/* Draggable이 위치를 제어하므로 top/left 클래스는 제거합니다. */}
-      <div className="fixed z-50 w-auto max-w-[90vw] sm:max-w-lg bg-background border rounded-lg shadow-lg">
+    <Draggable handle=".drag-handle">
+      <div className="fixed top-4 left-4 z-50 w-auto max-w-[90vw] sm:max-w-xl bg-background border rounded-lg shadow-lg">
         
         <div className="drag-handle flex justify-between items-center p-4 cursor-move bg-primary text-primary-foreground rounded-t-lg">
           <h3 className="font-semibold text-xl text-primary-foreground">{popup.title}</h3>
