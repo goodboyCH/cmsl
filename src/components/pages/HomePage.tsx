@@ -80,7 +80,7 @@ export function HomePage({ onPageChange }: HomePageProps) {
         {/* 5. 모든 하드코딩된 값을 pageContent state에서 가져옵니다. */}
         <div className="absolute inset-0 z-0"><video
           // pageContent에서 비디오 URL을 동적으로 가져옵니다.
-          src={pageContent.hero.background_video_url} 
+          src={pageContent.hero.background_gif_url} 
           className="absolute inset-0 w-full h-full object-cover z-0"
           autoPlay
           loop

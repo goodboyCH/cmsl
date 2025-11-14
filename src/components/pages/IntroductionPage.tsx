@@ -1,10 +1,11 @@
-import React, { useRef, useState, useEffect } from 'react'; // 1. useState, useEffect 추가
+import React, { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ScrollingFocusSection } from '@/components/ScrollingFocusSection'; 
 import { Cpu, Atom, TestTube2, BrainCircuit, Car, Film, HeartPulse, Magnet, Building, Users } from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient'; // 2. Supabase 클라이언트 import
+import { supabase } from '@/lib/supabaseClient'; 
+import merge from 'lodash/merge'; // 1. lodash/merge 임포트
 
-// 3. 기존 하드코딩 데이터를 '기본값' 또는 '폴백' 용도로 변경
+// (pageContentDefault 데이터는 변경 없음)
 const pageContentDefault = {
   mission: {
     video_url: "/videos/bg.mp4",
@@ -43,11 +44,10 @@ const pageContentDefault = {
 };
 
 export function IntroductionPage() {
-  // --- ⬇️ 4. Supabase 데이터를 담을 state와 로딩 state 추가 ⬇️ ---
   const [content, setContent] = useState<any>(pageContentDefault);
   const [loading, setLoading] = useState(true);
 
-  // --- ⬇️ 5. Supabase에서 데이터를 가져오는 useEffect 추가 ⬇️ ---
+  // --- ⬇️ 2. useEffect 로직 수정 ⬇️ ---
   useEffect(() => {
     const fetchContent = async () => {
       setLoading(true);
@@ -59,9 +59,13 @@ export function IntroductionPage() {
       
       if (error || !data?.content) {
         console.warn('DB에서 소개 페이지 콘텐츠 로딩 실패. 기본값을 사용합니다.', error);
-        // 실패 시 pageContentDefault가 이미 설정되어 있으므로 별도 처리는 불필요
+        // 실패 시 기본값(pageContentDefault)을 사용
+        setContent(pageContentDefault);
       } else {
-        setContent(data.content); // 성공 시 DB에서 가져온 데이터로 state 업데이트
+        // [핵심 수정] 기본값과 DB 데이터를 병합하여 항상 완전한 객체 보장
+        // merge({}, ...)는 원본(pageContentDefault)을 변경하지 않고 새 객체를 만듭니다.
+        const mergedContent = merge({}, pageContentDefault, data.content);
+        setContent(mergedContent); // 성공 시 '병합된' 데이터로 state 업데이트
       }
       setLoading(false);
     };
@@ -70,12 +74,12 @@ export function IntroductionPage() {
   
   const mainContentRef = useRef<HTMLDivElement>(null);
 
+  // (useScroll, useTransform 훅은 변경 없음)
   const { scrollYProgress: contentScrollProgress } = useScroll({
     target: mainContentRef,
     offset: ['start start', 'end end'] 
   });
 
-  // (useTransform, useScroll 등 나머지 훅은 변경 없음)
   const backgroundColor = useTransform(
     contentScrollProgress,
     [0, 0.25, 0.35, 0.6, 0.7, 1], 
@@ -92,7 +96,6 @@ export function IntroductionPage() {
   const { scrollYProgress: missionProgress } = useScroll({ offset: ['start start', 'end start'] });
   const missionBgScale = useTransform(missionProgress, [0, 1], [1, 1.15]);
 
-  // --- ⬇️ 6. 로딩 중일 때 표시할 화면 ⬇️ ---
   if (loading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center">
@@ -101,7 +104,7 @@ export function IntroductionPage() {
     );
   }
 
-  // --- ⬇️ 7. 모든 'pageContent' 참조를 'content'로 변경 ⬇️ ---
+  // --- ⬇️ 3. 렌더링 부분에 Optional Chaining (?.) 추가하여 안정성 확보 ⬇️ ---
   return (
     <div className="bg-background text-foreground overflow-x-hidden">
       <section className="h-screen w-screen flex items-center justify-center relative text-white text-center p-4">
@@ -111,7 +114,7 @@ export function IntroductionPage() {
         >
           <video
             className="w-full h-full object-cover opacity-40"
-            src={content.mission.video_url}
+            src={content?.mission?.video_url} // mission이 없을 경우 대비
             autoPlay loop muted playsInline
           />
         </motion.div>
@@ -121,32 +124,32 @@ export function IntroductionPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.5 }}
         >
-          <h1 className="text-5xl md:text-8xl font-bold tracking-tight text-shadow-lg">{content.mission.korean_mission}</h1>
-          <p className="text-lg md:text-2xl text-white/80 font-light text-shadow max-w-xs md:max-w-2xl mx-auto">"{content.mission.english_mission}"</p>
+          <h1 className="text-5xl md:text-8xl font-bold tracking-tight text-shadow-lg">{content?.mission?.korean_mission}</h1>
+          <p className="text-lg md:text-2xl text-white/80 font-light text-shadow max-w-xs md:max-w-2xl mx-auto">"{content?.mission?.english_mission}"</p>
         </motion.div>
       </section>
 
       <motion.div ref={mainContentRef} style={{ backgroundColor }}>
 
         <ScrollingFocusSection 
-          sectionTitle={content.capabilities.title} 
-          items={content.capabilities.items}
+          sectionTitle={content?.capabilities?.title} // capabilities가 없을 경우 대비
+          items={content?.capabilities?.items || []} // items가 없으면 빈 배열 전달
           backgroundColor="bg-transparent"
         />
 
         <div className="h-96" /> 
         
         <ScrollingFocusSection 
-          sectionTitle={content.research.title} 
-          items={content.research.items}
+          sectionTitle={content?.research?.title} // research가 없을 경우 대비
+          items={content?.research?.items || []} // items가 없으면 빈 배열 전달
           backgroundColor="bg-transparent"
         />
 
         <div className="h-96" />
 
         <ScrollingFocusSection 
-          sectionTitle={content.impact.title} 
-          items={content.impact.items}
+          sectionTitle={content?.impact?.title} // impact가 없을 경우 대비
+          items={content?.impact?.items || []} // items가 없으면 빈 배열 전달
           backgroundColor="bg-transparent"
         />
 
@@ -159,7 +162,8 @@ export function IntroductionPage() {
             viewport={{ once: true, amount: 0.3 }}
             transition={{ staggerChildren: 0.3 }}
           >
-            {content.impact.logos.map((logo: any, index: number) => (
+            {/* logos가 없으면 빈 배열로 처리하여 map 오류 방지 */}
+            {(content?.impact?.logos || []).map((logo: any, index: number) => (
               <motion.div
                 key={index}
                 variants={{
