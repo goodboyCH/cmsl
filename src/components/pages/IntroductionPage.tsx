@@ -43,7 +43,10 @@ export function IntroductionPage() {
   const mainContentRef = useRef<HTMLDivElement>(null);
   
   // 3. react-three-fiber 관련 훅 (contentScrollProgress, scrollStops) 제거
-
+  const capabilitiesRef = useRef<HTMLDivElement>(null);
+  const researchRef = useRef<HTMLDivElement>(null);
+  const impactRef = useRef<HTMLDivElement>(null);
+  
   // 4. 모핑에 사용할 이미지 URL 목록 (로직 동일)
   const imageTransitionUrls = useMemo(() => {
     const capabilitiesImages = (content.capabilities?.items || [])
@@ -104,37 +107,49 @@ export function IntroductionPage() {
       </section>
 
       {/* --- ⬇️ 5. 메인 콘텐츠 래퍼 수정 (GSAP 버전) ⬇️ --- */}
-      <div ref={mainContentRef} className="relative"> 
+     {/* mainContentRef는 GSAP에서 더 이상 사용하지 않지만, 구분을 위해 남겨둡니다. */}
+     <div ref={mainContentRef} className="relative"> 
         
         {/* 스티키 배경 래퍼 (SVG 캔버스) */}
         <div className="absolute top-0 left-0 w-full h-screen z-0" style={{ position: 'sticky' }}>
-          {/* 6. WebGL 캔버스 대신 SVG 모핑 컴포넌트 렌더링 */}
+          {/* 3. SvgImageMorph에 각 섹션의 ref들을 전달 */}
           <SvgImageMorph 
             imageUrls={imageTransitionUrls} 
-            scrollTriggerRef={mainContentRef} // 스크롤 기준 ref 전달
+            sectionRefs={[capabilitiesRef, researchRef, impactRef]} // ref 배열 전달
           />
         </div>
         {/* --- ⬆️ 수정 완료 ⬆️ --- */}
         
         {/* 스크롤 콘텐츠 (z-10) */}
         <div className="relative z-10">
-          <ScrollingFocusSection 
-            sectionTitle={content?.capabilities?.title} 
-            items={content?.capabilities?.items || []}
-            backgroundColor="bg-transparent"
-          />
+          {/* --- ⬇️ 4. 각 섹션에 ref 할당 ⬇️ --- */}
+          <div ref={capabilitiesRef}>
+            <ScrollingFocusSection 
+              sectionTitle={content?.capabilities?.title} 
+              items={content?.capabilities?.items || []}
+              backgroundColor="bg-transparent"
+            />
+          </div>
           <div className="h-96" /> 
-          <ScrollingFocusSection 
-            sectionTitle={content?.research?.title} 
-            items={content?.research?.items || []}
-            backgroundColor="bg-transparent"
-          />
+          
+          <div ref={researchRef}>
+            <ScrollingFocusSection 
+              sectionTitle={content?.research?.title} 
+              items={content?.research?.items || []}
+              backgroundColor="bg-transparent"
+            />
+          </div>
           <div className="h-96" />
-          <ScrollingFocusSection 
-            sectionTitle={content?.impact?.title} 
-            items={content?.impact?.items || []}
-            backgroundColor="bg-transparent"
-          />
+
+          <div ref={impactRef}>
+            <ScrollingFocusSection 
+              sectionTitle={content?.impact?.title} 
+              items={content?.impact?.items || []}
+              backgroundColor="bg-transparent"
+            />
+          </div>
+          {/* --- ⬆️ 수정 완료 ⬆️ --- */}
+          
           <section className="container pb-20 md:pb-32 text-center space-y-8 bg-background">
             <h3 className='text-xl md:text-2xl font-bold text-muted-foreground'>Key Partners</h3>
             <motion.div 
