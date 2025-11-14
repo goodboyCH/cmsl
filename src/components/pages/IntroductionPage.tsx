@@ -1,10 +1,10 @@
-import React, { useRef, useState, useEffect, useMemo } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react'; // 1. Suspense 제거, useLayoutEffect 제거
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ScrollingFocusSection } from '@/components/ScrollingFocusSection'; 
 import { Cpu, Atom, TestTube2, BrainCircuit, Car, Film, HeartPulse, Magnet, Building, Users } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient'; 
 import merge from 'lodash/merge'; 
-import { SvgImageMorph } from '../SvgImageMorph'; // 1. GSAP 모핑 컴포넌트 import
+import { SvgImageMorph } from '../SvgImageMorph'; // 2. 새로 만든 GSAP 모핑 컴포넌트 import
 
 // (기본값 객체는 변경 없음)
 const pageContentDefault: any = {
@@ -42,7 +42,9 @@ export function IntroductionPage() {
   
   const mainContentRef = useRef<HTMLDivElement>(null);
   
-  // 2. 모핑에 사용할 이미지 URL 목록 (로직 동일)
+  // 3. react-three-fiber 관련 훅 (contentScrollProgress, scrollStops) 제거
+
+  // 4. 모핑에 사용할 이미지 URL 목록 (로직 동일)
   const imageTransitionUrls = useMemo(() => {
     const capabilitiesImages = (content.capabilities?.items || [])
       .map((item: any) => item.imageUrl)
@@ -64,8 +66,6 @@ export function IntroductionPage() {
     return allImages; 
   }, [content.capabilities?.items, content.research?.items, content.impact?.items]); 
 
-  // 3. react-three-fiber 훅 제거 (contentScrollProgress, scrollStops)
-
   // (Hero 비디오 스케일 훅은 그대로 둡니다)
   const { scrollYProgress: missionProgress } = useScroll({ offset: ['start start', 'end start'] });
   const missionBgScale = useTransform(missionProgress, [0, 1], [1, 1.15]);
@@ -82,18 +82,36 @@ export function IntroductionPage() {
     <div className="bg-background text-foreground overflow-x-hidden">
       {/* (Hero 섹션 변경 없음) */}
       <section className="h-screen w-screen flex items-center justify-center relative text-white text-center p-4">
-        {/* ... Hero 렌더링 ... */}
+        <motion.div
+          className="absolute inset-0 bg-black z-0 overflow-hidden"
+          style={{ scale: missionBgScale }}
+        >
+          <video
+            className="w-full h-full object-cover opacity-40"
+            src={content?.mission?.video_url} 
+            autoPlay loop muted playsInline
+          />
+        </motion.div>
+        <motion.div 
+          className="relative z-10 space-y-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.5 }}
+        >
+          <h1 className="text-5xl md:text-8xl font-bold tracking-tight text-shadow-lg">{content?.mission?.korean_mission}</h1>
+          <p className="text-lg md:text-2xl text-white/80 font-light text-shadow max-w-xs md:max-w-2xl mx-auto">"{content?.mission?.english_mission}"</p>
+        </motion.div>
       </section>
 
-      {/* --- ⬇️ 4. 메인 콘텐츠 래퍼 수정 (GSAP 버전) ⬇️ --- */}
+      {/* --- ⬇️ 5. 메인 콘텐츠 래퍼 수정 (GSAP 버전) ⬇️ --- */}
       <div ref={mainContentRef} className="relative"> 
         
         {/* 스티키 배경 래퍼 (SVG 캔버스) */}
         <div className="absolute top-0 left-0 w-full h-screen z-0" style={{ position: 'sticky' }}>
-          {/* 5. WebGL 캔버스 대신 SVG 모핑 컴포넌트 렌더링 */}
+          {/* 6. WebGL 캔버스 대신 SVG 모핑 컴포넌트 렌더링 */}
           <SvgImageMorph 
             imageUrls={imageTransitionUrls} 
-            scrollTriggerRef={mainContentRef} 
+            scrollTriggerRef={mainContentRef} // 스크롤 기준 ref 전달
           />
         </div>
         {/* --- ⬆️ 수정 완료 ⬆️ --- */}
@@ -134,7 +152,7 @@ export function IntroductionPage() {
                     visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: 'easeOut' } }
                   }}
                 >
-                  <img src={logo.url} alt={logo.name} className="h-10 md:h-16 opacity-70 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration: 0.3s" />
+                  <img src={logo.url} alt={logo.name} className="h-10 md:h-16 opacity-70 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-300" />
                 </motion.div>
               ))}
             </motion.div>
