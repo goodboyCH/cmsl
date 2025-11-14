@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/lib/supabaseClient';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Trash2 } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // 1. Select import 추가
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; 
 
 interface EditPageContentFormProps {
   pageKey: string;
@@ -36,7 +36,7 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
       const { data } = await supabase.from('pages').select('content').eq('page_key', pageKey).single();
       
       if (data?.content) {
-        // 2. content.projects의 tags를 string으로 미리 변환
+        // 'projects'의 tags를 string으로 미리 변환
         const processedContent = { ...data.content };
         if (processedContent.projects) {
           processedContent.projects = processedContent.projects.map((proj: any) => ({
@@ -47,6 +47,7 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
         setContent(processedContent);
         
         if (pageKey === 'professor') {
+          // (교수님 폼 데이터 로드 로직은 동일)
           setTextBlocks({
             education: (data.content.education || []).map((item: any) => `${item.period} | ${item.description}`).join('\n'),
             experience: (data.content.experience || []).map((item: any) => `${item.period} | ${item.description}`).join('\n'),
@@ -62,7 +63,7 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
     fetchContent();
   }, [pageKey]);
 
-  // 배열 관리 헬퍼 함수
+  // (배열 관리 헬퍼 함수들은 변경 없음)
   const handleArrayItemChange = (arrayName: string, index: number, field: string, value: string) => {
     if (!content) return;
     const updatedItems = [...(content[arrayName] || [])];
@@ -82,7 +83,7 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
     setContent(prev => (prev ? { ...prev, [arrayName]: updatedItems } : { [arrayName]: updatedItems }));
   };
 
-  // (다른 핸들러들은 동일)
+  // (다른 핸들러들은 변경 없음)
   const handleContentChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setContent(prev => (prev ? { ...prev, [name]: value } : { [name]: value }));
@@ -101,6 +102,7 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
     }
   };
 
+  // (handleSubmit은 변경 없음, 'projects' 태그 변환 로직 포함)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -109,7 +111,7 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
       let finalContent = { ...content };
 
       if (pageKey === 'professor') {
-        // ... (교수님 폼 저장 로직)
+        // (교수님 폼 저장 로직은 동일)
         finalContent.education = textBlocks.education.split('\n').filter(line => line.includes('|')).map(line => ({ period: line.split('|')[0].trim(), description: line.split('|')[1].trim() }));
         finalContent.experience = textBlocks.experience.split('\n').filter(line => line.includes('|')).map(line => ({ period: line.split('|')[0].trim(), description: line.split('|')[1].trim() }));
         finalContent.awards_and_honors = textBlocks.awards_and_honors.split('\n').filter(line => line.includes('|')).map(line => ({ period: line.split('|')[0].trim(), description: line.split('|')[1].trim() }));
@@ -127,14 +129,12 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
         }
       }
       
-      // 'projects' 배열의 'tags'를 string에서 string[]로 변환
       if (finalContent.projects) {
         finalContent.projects = finalContent.projects.map((proj: any) => ({
           ...proj,
-          // 폼의 string을 DB의 string[]로 변환
           tags: typeof proj.tags === 'string' 
             ? proj.tags.split('\n').filter(line => line.trim() !== '') 
-            : proj.tags // 이미 배열이면 (오류 상황) 그대로 둠
+            : proj.tags
         }));
       }
 
@@ -149,6 +149,7 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
     }
   };
 
+
   if (loading) return <p className="text-center p-8">Loading page content...</p>;
 
   return (
@@ -161,9 +162,8 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
         <form onSubmit={handleSubmit} className="space-y-4">
           
           {pageKey === 'professor' ? (
-            // Professor 페이지 전용 폼
             <>
-              {/* ... (교수님 폼 UI) ... */}
+              {/* --- 교수님 폼 (변경 없음) --- */}
               <div className="space-y-2"><Label>Name</Label><Input name="name" value={content?.name || ''} onChange={handleContentChange} /></div>
               <div className="space-y-2"><Label>Title (e.g., Professor)</Label><Input name="title" value={content?.title || ''} onChange={handleContentChange} /></div>
               <div className="space-y-2"><Label>Department</Label><Input name="department" value={content?.department || ''} onChange={handleContentChange} /></div>
@@ -186,7 +186,7 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
               <div className="space-y-2"><Label>Awards & Honors (형식: 기간 | 내용)</Label><Textarea name="awards_and_honors" value={textBlocks.awards_and_honors} onChange={handleTextBlockChange} rows={5} /></div>
             </>
           ) : (
-            // 리서치 페이지 폼
+            // --- 리서치 페이지 폼 ---
             <Accordion type="multiple" defaultValue={['item-1']} className="w-full">
               <AccordionItem value="item-1">
                 <AccordionTrigger>페이지 소개 (상단)</AccordionTrigger>
@@ -195,13 +195,28 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
                   <div className="space-y-2"><Label>Subtitle (p)</Label><Input name="subtitle" value={content?.subtitle || ''} onChange={handleContentChange} /></div>
                   <div className="space-y-2"><Label>Main Paragraph 1</Label><Textarea name="main_paragraph_1" value={content?.main_paragraph_1 || ''} onChange={handleContentChange} rows={5} /></div>
                   <div className="space-y-2"><Label>Main Paragraph 2</Label><Textarea name="main_paragraph_2" value={content?.main_paragraph_2 || ''} onChange={handleContentChange} rows={5} /></div>
-                  <div className="space-y-2"><Label>Main Image URL</Label><Input name="main_image_url" value={content?.main_image_url || ''} onChange={handleContentChange} placeholder="https://..."/></div>
+                  
+                  {/* --- ⬇️ (요청 2) 단일 이미지 입력을 갤러리 관리로 변경 ⬇️ --- */}
+                  <div className="space-y-3 pt-2">
+                    <Label className="font-semibold">Image Gallery (상단 이미지 캐러셀)</Label>
+                    {(content?.gallery_images || []).map((image: any, index: number) => (
+                      <div key={index} className="p-4 border rounded-md space-y-3 relative">
+                        <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeItemFromArray('gallery_images', index)}><Trash2 className="h-4 w-4"/></Button>
+                        <div className="space-y-2"><Label>Image URL</Label><Input value={image.url || ''} onChange={(e) => handleArrayItemChange('gallery_images', index, 'url', e.target.value)} placeholder="https://..." /></div>
+                        <div className="space-y-2"><Label>Alt Text (Optional)</Label><Input value={image.alt || ''} onChange={(e) => handleArrayItemChange('gallery_images', index, 'alt', e.target.value)} placeholder="Image description (for accessibility)" /></div>
+                      </div>
+                    ))}
+                    <Button type="button" variant="outline" size="sm" onClick={() => addItemToArray('gallery_images', { url: '', alt: '' })}>Add Image to Gallery</Button>
+                  </div>
+                  {/* --- ⬆️ 변경 완료 ⬆️ --- */}
+                  
                 </AccordionContent>
               </AccordionItem>
               
               <AccordionItem value="item-2">
                 <AccordionTrigger>프로젝트 카드 (하단)</AccordionTrigger>
                 <AccordionContent className="space-y-4 pt-2">
+                  {/* --- (프로젝트 카드 폼은 변경 없음) --- */}
                   <div className="space-y-2"><Label>Projects Section Title</Label><Input name="projects_title" value={content?.projects_title || ''} onChange={handleContentChange} /></div>
                   <div className="space-y-2"><Label>Projects Section Subtitle</Label><Input name="projects_subtitle" value={content?.projects_subtitle || ''} onChange={handleContentChange} /></div>
                   
@@ -224,22 +239,18 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
                         </div>
                       </div>
                       
-                      {/* --- ⬇️ 문제의 'Tags' Textarea 수정 ⬇️ --- */}
                       <div className="space-y-2">
                         <Label>Tags (한 줄에 하나씩)</Label>
                         <Textarea 
-                          // `project.tags`는 이제 항상 string입니다.
                           value={project.tags || ''} 
                           onChange={(e) => handleArrayItemChange('projects', index, 'tags', e.target.value)} 
                           rows={3} 
                         />
                       </div>
-                      {/* --- ⬆️ 수정 완료 ⬆️ --- */}
-                      
                     </div>
                   ))}
                   <Button type="button" variant="outline" size="sm" onClick={() => addItemToArray('projects', {
-                    title: '', description: '', person_in_charge: '', logo_url: '', status: 'Active', tags: '' // 3. tags의 기본값을 빈 string으로
+                    title: '', description: '', person_in_charge: '', logo_url: '', status: 'Active', tags: ''
                   })}>Add Project Card</Button>
                 </AccordionContent>
               </AccordionItem>
