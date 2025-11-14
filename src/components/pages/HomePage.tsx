@@ -78,7 +78,15 @@ export function HomePage({ onPageChange }: HomePageProps) {
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* 5. 모든 하드코딩된 값을 pageContent state에서 가져옵니다. */}
-        <div className="absolute inset-0 z-0"><img src={pageContent.hero.background_gif_url} alt="Computational Materials Science Animation" className="w-full h-full object-cover"/></div>
+        <div className="absolute inset-0 z-0"><video
+          // pageContent에서 비디오 URL을 동적으로 가져옵니다.
+          src={pageContent.hero.background_video_url} 
+          className="absolute inset-0 w-full h-full object-cover z-0"
+          autoPlay
+          loop
+          muted
+          playsInline
+        /></div>
         <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-12 text-center text-white">
           <div className="space-y-8 bg-black/40 backdrop-blur-sm rounded-2xl p-8 lg:p-12">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight text-center whitespace-pre-line">{pageContent.hero.title}</h1>
