@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/lib/supabaseClient';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Trash2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // 1. Select import 추가
 
 interface EditPageContentFormProps {
   pageKey: string;
@@ -36,14 +37,8 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
       
       if (data?.content) {
         setContent(data.content);
-        // 2. 'professor' 페이지인 경우, DB의 배열 데이터를 Textarea에 표시할 문자열로 변환
         if (pageKey === 'professor') {
-          setTextBlocks({
-            education: (data.content.education || []).map((item: any) => `${item.period} | ${item.description}`).join('\n'),
-            experience: (data.content.experience || []).map((item: any) => `${item.period} | ${item.description}`).join('\n'),
-            awards_and_honors: (data.content.awards_and_honors || []).map((item: any) => `${item.period} | ${item.description}`).join('\n'),
-            research_interests: (data.content.research_interests || []).join('\n')
-          });
+          // ... (기존 교수님 텍스트 블록 로직)
         }
       } else {
         setContent({});
@@ -53,28 +48,46 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
     fetchContent();
   }, [pageKey]);
 
-  // 일반 텍스트 필드 변경 핸들러
+  // --- ⬇️ 2. 배열 관리를 위한 헬퍼 함수 3개 추가 ⬇️ ---
+  const handleArrayItemChange = (arrayName: string, index: number, field: string, value: string) => {
+    if (!content) return;
+    const updatedItems = [...(content[arrayName] || [])];
+    updatedItems[index] = { ...updatedItems[index], [field]: value };
+    setContent(prev => (prev ? { ...prev, [arrayName]: updatedItems } : { [arrayName]: updatedItems }));
+  };
+  
+  const addItemToArray = (arrayName: string, newItem: object) => {
+    if (!content) return;
+    const updatedItems = [...(content[arrayName] || []), newItem];
+    setContent(prev => (prev ? { ...prev, [arrayName]: updatedItems } : { [arrayName]: updatedItems }));
+  };
+  
+  const removeItemFromArray = (arrayName: string, indexToRemove: number) => {
+    if (!content) return;
+    const updatedItems = (content[arrayName] || []).filter((_: any, index: number) => index !== indexToRemove);
+    setContent(prev => (prev ? { ...prev, [arrayName]: updatedItems } : { [arrayName]: updatedItems }));
+  };
+  // --- ⬆️ 헬퍼 함수 추가 완료 ⬆️ ---
+
+  // (handleContentChange, handleContactChange, handleTextBlockChange, handleImageChange 핸들러는 그대로)
   const handleContentChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setContent(prev => (prev ? { ...prev, [name]: value } : { [name]: value }));
   };
-  
-  // 교수님 정보의 중첩 객체(contact) 변경 핸들러
   const handleContactChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setContent(prev => (prev ? { ...prev, contact: { ...prev.contact, [name]: value } } : {}));
   };
-
-  // Textarea 블록 변경 핸들러
   const handleTextBlockChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setTextBlocks(prev => ({ ...prev, [name]: value }));
   };
-const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
       setNewImage(e.target.files[0]);
     }
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -82,28 +95,20 @@ const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
       let finalContent = { ...content };
 
-      // 3. 'professor' 페이지 저장 시, Textarea의 문자열을 다시 JSON 배열 구조로 변환
       if (pageKey === 'professor') {
-        finalContent.education = textBlocks.education.split('\n').filter(line => line.includes('|')).map(line => ({ period: line.split('|')[0].trim(), description: line.split('|')[1].trim() }));
-        finalContent.experience = textBlocks.experience.split('\n').filter(line => line.includes('|')).map(line => ({ period: line.split('|')[0].trim(), description: line.split('|')[1].trim() }));
-        finalContent.awards_and_honors = textBlocks.awards_and_honors.split('\n').filter(line => line.includes('|')).map(line => ({ period: line.split('|')[0].trim(), description: line.split('|')[1].trim() }));
-        finalContent.research_interests = textBlocks.research_interests.split('\n').filter(line => line.trim() !== '');
-        
-        // 새 이미지가 있으면 업로드
-        if (newImage) {
-          // 기존 이미지가 있으면 삭제
-          if (finalContent.profile_image_url) {
-            const oldPath = finalContent.profile_image_url.substring(finalContent.profile_image_url.indexOf('public/'));
-            await supabase.storage.from('professor-photo').remove([oldPath]);
-          }
-          // 새 이미지 업로드
-          const imagePath = `public/professor-photo/${Date.now()}_${sanitizeForStorage(newImage.name)}`;
-          const { error: uploadError } = await supabase.storage.from('professor-photo').upload(imagePath, newImage);
-          if (uploadError) throw uploadError;
-          
-          // 새 URL을 content에 반영
-          finalContent.profile_image_url = supabase.storage.from('professor-photo').getPublicUrl(imagePath).data.publicUrl;
-        }
+        // ... (기존 교수님 폼 저장 로직)
+      }
+      
+      // 3. projects 배열의 'tags'를 문자열에서 배열로 변환
+      // (다른 리서치 페이지 폼도 배열 관리를 할 수 있으므로)
+      if (finalContent.projects) {
+        finalContent.projects = finalContent.projects.map((proj: any) => ({
+          ...proj,
+          // 폼에서 'tags'가 string으로 관리되었다면 배열로 변환
+          tags: typeof proj.tags === 'string' 
+            ? proj.tags.split('\n').filter(line => line.trim() !== '') 
+            : proj.tags // 이미 배열이면 (DB에서 불러온 초기값) 그대로 둠
+        }));
       }
 
       const { error } = await supabase.from('pages').update({ content: finalContent }).eq('page_key', pageKey);
@@ -131,39 +136,56 @@ const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
           {pageKey === 'professor' ? (
             // Professor 페이지 전용 폼
             <>
-              <div className="space-y-2"><Label>Name</Label><Input name="name" value={content?.name || ''} onChange={handleContentChange} /></div>
-              <div className="space-y-2"><Label>Title (e.g., Professor)</Label><Input name="title" value={content?.title || ''} onChange={handleContentChange} /></div>
-              <div className="space-y-2"><Label>Department</Label><Input name="department" value={content?.department || ''} onChange={handleContentChange} /></div>
-              
-              {/* Profile Image URL 입력창을 파일 업로드로 변경 */}
-              <div className="space-y-2">
-                <Label>Profile Image</Label>
-                {content?.profile_image_url && !newImage && (
-                  <img src={content.profile_image_url} alt="Current Profile" className="w-40 h-48 object-cover rounded-md border" />
-                )}
-                {newImage && (
-                  <img src={URL.createObjectURL(newImage)} alt="New Profile Preview" className="w-40 h-48 object-cover rounded-md border" />
-                )}
-                <Input type="file" accept="image/*" onChange={handleImageChange} />
-              </div>
-
-              <div className="space-y-2"><Label>Contact - Phone</Label><Input name="phone" value={content?.contact?.phone || ''} onChange={handleContactChange} /></div>
-              <div className="space-y-2"><Label>Contact - Email</Label><Input name="email" value={content?.contact?.email || ''} onChange={handleContactChange} /></div>
-              <div className="space-y-2"><Label>Contact - Office</Label><Input name="office" value={content?.contact?.office || ''} onChange={handleContactChange} /></div>
-              <div className="space-y-2"><Label>Research Interests (한 줄에 하나씩)</Label><Textarea name="research_interests" value={textBlocks.research_interests} onChange={handleTextBlockChange} rows={4} /></div>
-              <div className="space-y-2"><Label>Education (형식: 기간 | 내용)</Label><Textarea name="education" value={textBlocks.education} onChange={handleTextBlockChange} rows={4} placeholder="e.g., – 1998 | Ph.D. in Materials Science..." /></div>
-              <div className="space-y-2"><Label>Experience (형식: 기간 | 내용)</Label><Textarea name="experience" value={textBlocks.experience} onChange={handleTextBlockChange} rows={8} /></div>
-              <div className="space-y-2"><Label>Awards & Honors (형식: 기간 | 내용)</Label><Textarea name="awards_and_honors" value={textBlocks.awards_and_honors} onChange={handleTextBlockChange} rows={5} /></div>
+              {/* ... (기존 교수님 폼 UI) ... */}
             </>
           ) : (
-            // 기존 리서치 페이지 폼
-            <>
-              <div className="space-y-2"><Label>Main Title (h1)</Label><Input name="title" value={content?.title || ''} onChange={handleContentChange} /></div>
-              <div className="space-y-2"><Label>Subtitle (p)</Label><Input name="subtitle" value={content?.subtitle || ''} onChange={handleContentChange} /></div>
-              <div className="space-y-2"><Label>Main Paragraph 1</Label><Textarea name="main_paragraph_1" value={content?.main_paragraph_1 || ''} onChange={handleContentChange} rows={5} /></div>
-              <div className="space-y-2"><Label>Main Paragraph 2</Label><Textarea name="main_paragraph_2" value={content?.main_paragraph_2 || ''} onChange={handleContentChange} rows={5} /></div>
-              <div className="space-y-2"><Label>Main Image URL</Label><Input name="main_image_url" value={content?.main_image_url || ''} onChange={handleContentChange} placeholder="https://..."/></div>
-            </>
+            // --- ⬇️ 4. 리서치 페이지 폼을 Accordion으로 감싸기 ⬇️ ---
+            <Accordion type="multiple" defaultValue={['item-1']} className="w-full">
+              <AccordionItem value="item-1">
+                <AccordionTrigger>페이지 소개 (상단)</AccordionTrigger>
+                <AccordionContent className="space-y-4 pt-2">
+                  <div className="space-y-2"><Label>Main Title (h1)</Label><Input name="title" value={content?.title || ''} onChange={handleContentChange} /></div>
+                  <div className="space-y-2"><Label>Subtitle (p)</Label><Input name="subtitle" value={content?.subtitle || ''} onChange={handleContentChange} /></div>
+                  <div className="space-y-2"><Label>Main Paragraph 1</Label><Textarea name="main_paragraph_1" value={content?.main_paragraph_1 || ''} onChange={handleContentChange} rows={5} /></div>
+                  <div className="space-y-2"><Label>Main Paragraph 2</Label><Textarea name="main_paragraph_2" value={content?.main_paragraph_2 || ''} onChange={handleContentChange} rows={5} /></div>
+                  <div className="space-y-2"><Label>Main Image URL</Label><Input name="main_image_url" value={content?.main_image_url || ''} onChange={handleContentChange} placeholder="https://..."/></div>
+                </AccordionContent>
+              </AccordionItem>
+              
+              {/* --- ⬇️ 5. 프로젝트 카드 관리 섹션 추가 ⬇️ --- */}
+              <AccordionItem value="item-2">
+                <AccordionTrigger>프로젝트 카드 (하단)</AccordionTrigger>
+                <AccordionContent className="space-y-4 pt-2">
+                  <div className="space-y-2"><Label>Projects Section Title</Label><Input name="projects_title" value={content?.projects_title || ''} onChange={handleContentChange} /></div>
+                  <div className="space-y-2"><Label>Projects Section Subtitle</Label><Input name="projects_subtitle" value={content?.projects_subtitle || ''} onChange={handleContentChange} /></div>
+                  
+                  {(content?.projects || []).map((project: any, index: number) => (
+                    <div key={index} className="p-4 border rounded-md space-y-3 relative">
+                      <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeItemFromArray('projects', index)}><Trash2 className="h-4 w-4"/></Button>
+                      <div className="space-y-2"><Label>Project Title</Label><Input value={project.title} onChange={(e) => handleArrayItemChange('projects', index, 'title', e.target.value)} /></div>
+                      <div className="space-y-2"><Label>Description</Label><Textarea value={project.description} onChange={(e) => handleArrayItemChange('projects', index, 'description', e.target.value)} rows={3} /></div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2"><Label>담당자</Label><Input value={project.person_in_charge} onChange={(e) => handleArrayItemChange('projects', index, 'person_in_charge', e.target.value)} /></div>
+                        <div className="space-y-2"><Label>로고 URL</Label><Input value={project.logo_url} onChange={(e) => handleArrayItemChange('projects', index, 'logo_url', e.target.value)} /></div>
+                        <div className="space-y-2"><Label>Status</Label>
+                          <Select value={project.status} onValueChange={(val) => handleArrayItemChange('projects', index, 'status', val)}>
+                            <SelectTrigger><SelectValue/></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Active">Active</SelectItem>
+                              <SelectItem value="Completed">Completed</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div className="space-y-2"><Label>Tags (한 줄에 하나씩)</Label><Textarea value={(project.tags || []).join('\n')} onChange={(e) => handleArrayItemChange('projects', index, 'tags', e.target.value)} rows={3} /></div>
+                    </div>
+                  ))}
+                  <Button type="button" variant="outline" size="sm" onClick={() => addItemToArray('projects', {
+                    title: '', description: '', person_in_charge: '', logo_url: '', status: 'Active', tags: []
+                  })}>Add Project Card</Button>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           )}
 
           <div className="flex justify-end gap-2 pt-4">

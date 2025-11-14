@@ -11,6 +11,7 @@ interface PageContent {
   main_image_url: string;
   projects_title: string;
   projects_subtitle: string;
+  projects: any[]; // ⬅️ 이 줄을 추가해야 합니다
 }
 
 export function ThinFilmsPage() {
@@ -72,13 +73,16 @@ export function ThinFilmsPage() {
           </div>
           {/* --- ⬇️ 프로젝트 카드 그리드 및 간격을 반응형으로 수정 ⬇️ --- */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
-            {projects.map((project) => (
+            {(content.projects || []).map((project, index) => ( // 5. content.projects 사용
               <ProjectCard 
-                key={project.id}
+                key={index} // DB id가 없으므로 index 사용
                 title={project.title}
                 description={project.description}
                 tags={project.tags || []}
                 status={project.status as 'Active' | 'Completed'}
+                // 6. 새 prop 전달
+                logo_url={project.logo_url}
+                person_in_charge={project.person_in_charge}
               />
             ))}
           </div>
