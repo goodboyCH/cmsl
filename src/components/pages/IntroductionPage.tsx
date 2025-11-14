@@ -4,32 +4,35 @@ import { ScrollingFocusSection } from '@/components/ScrollingFocusSection';
 import { Cpu, Atom, TestTube2, BrainCircuit, Car, Film, HeartPulse, Magnet, Building, Users } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient'; 
 import merge from 'lodash/merge'; 
-// 1. Canvas, useFrame을 fiber에서 직접 import
+// 1. Canvas와 useFrame을 fiber에서 직접 import
 import { Canvas, useFrame } from '@react-three/fiber'; 
 // 2. useTexture를 drei에서 직접 import
 import { useTexture } from '@react-three/drei'; 
 import * as THREE from 'three';
 
-// 3. 텍스처를 로드하는 디버깅 큐브
-function DebugCubeWithTexture() {
-  const meshRef = useRef<THREE.Mesh>(null!);
+// 3. 텍스처 "배열"을 로드하는 디버깅 컴포넌트
+function DebugImagePlanes() {
+  const meshRef1 = useRef<THREE.Mesh>(null!);
+  const meshRef2 = useRef<THREE.Mesh>(null!);
   
-  // 4. (핵심) useTexture 훅을 Suspense 내부에서 직접 테스트합니다.
-  // 이 훅이 실패하면 흰 화면이 뜹니다.
-  const texture = useTexture('/images/logo1.png'); // 100% 존재하는 파일
+  // 4. (핵심) useTexture 훅으로 "배열"을 로드합니다.
+  const [texture1, texture2] = useTexture([
+    '/images/logo1.png',    // 100% 존재하는 파일
+    '/images/kmu-logo.png'  // 100% 존재하는 파일
+  ]);
 
-  useFrame(() => {
-    if (meshRef.current) {
-      meshRef.current.rotation.x += 0.01;
-      meshRef.current.rotation.y += 0.01;
-    }
-  });
   return (
-    <mesh ref={meshRef}>
-      <boxGeometry args={[1, 1, 1]} />
-      {/* 5. 로드된 텍스처를 큐브의 map으로 적용합니다. */}
-      <meshStandardMaterial map={texture} />
-    </mesh>
+    <>
+      {/* 5. 로드된 텍스처 2개를 각각 다른 평면에 적용합니다. */}
+      <mesh ref={meshRef1} position={[-0.6, 0, 0]}>
+        <planeGeometry args={[1, 1]} />
+        <meshStandardMaterial map={texture1} />
+      </mesh>
+      <mesh ref={meshRef2} position={[0.6, 0, 0]}>
+        <planeGeometry args={[1, 1]} />
+        <meshStandardMaterial map={texture2} />
+      </mesh>
+    </>
   );
 }
 
@@ -69,7 +72,7 @@ export function IntroductionPage() {
   
   const mainContentRef = useRef<HTMLDivElement>(null);
   
-  // 6. 모핑 관련 훅들은 잠시 주석 처리 (에러 방지)
+  // 6. 모핑 관련 훅들은 잠시 주석 처리
   // const { scrollYProgress: contentScrollProgress } = useScroll(...);
   // const imageTransitionUrls = useMemo(...);
   // const scrollStops = useMemo(...);
@@ -113,12 +116,12 @@ export function IntroductionPage() {
 
       <div ref={mainContentRef} className="relative"> 
         
-        {/* --- ⬇️ 7. 캔버스 래퍼를 DebugCubeWithTexture로 수정 ⬇️ --- */}
+        {/* --- ⬇️ 7. 캔버스 래퍼를 DebugImagePlanes로 수정 ⬇️ --- */}
         <div className="absolute top-0 left-0 w-full h-screen z-0" style={{ position: 'sticky' }}>
           <Suspense fallback={<div className="w-full h-full bg-muted" />}>
             <Canvas camera={{ position: [0, 0, 2] }}>
-              <ambientLight intensity={1.0} /> {/* 텍스처가 보이도록 조명을 밝게 합니다. */}
-              <DebugCubeWithTexture />
+              <ambientLight intensity={1.0} />
+              <DebugImagePlanes />
             </Canvas>
           </Suspense>
         </div>
