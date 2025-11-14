@@ -1,17 +1,17 @@
-import React, { useRef, useState, useEffect, useMemo } from 'react'; // 1. useMemo 추가
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ScrollingFocusSection } from '@/components/ScrollingFocusSection'; 
 import { Cpu, Atom, TestTube2, BrainCircuit, Car, Film, HeartPulse, Magnet, Building, Users } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient'; 
 import merge from 'lodash/merge'; 
-import { ImageTransitionCanvas } from '../ImageTransitionCanvas'; // 2. 새로 만든 캔버스 import
+import { ImageTransitionCanvas } from '../ImageTransitionCanvas'; // 1. WebGL 캔버스 import
 
-// 3. 기본값 객체 (안정성을 위해 수정)
+// 2. 기본값 객체 (DB 로딩 실패 시 사용)
 const pageContentDefault: any = {
-  mission: { video_url: "", korean_mission: "Loading...", english_mission: "Loading..." },
-  capabilities: { title: "", items: [] },
-  research: { title: "", items: [] },
-  impact: { title: "", items: [], logos: [] }
+  mission: { video_url: "/videos/bg1.mp4", korean_mission: "CMSL", english_mission: "Achieving Predictable Materials Design..." },
+  capabilities: { title: "Our Core Capabilities", items: [{ imageUrl: "/images/logo1.png" }] },
+  research: { title: "Major Research Areas", items: [{ imageUrl: "/images/logo1.png" }] },
+  impact: { title: "Our Impact", items: [], logos: [] }
 };
 
 export function IntroductionPage() {
@@ -19,7 +19,7 @@ export function IntroductionPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // (useEffect 로직은 lodash/merge를 사용)
+    // (useEffect 로직은 변경 없음)
     const fetchContent = async () => {
       setLoading(true);
       const { data, error } = await supabase
@@ -46,30 +46,41 @@ export function IntroductionPage() {
     target: mainContentRef,
     offset: ['start start', 'end end'] 
   });
-
-  // 4. 배경색 로직(backgroundColor)은 삭제합니다.
   
-  // 5. 모핑에 사용할 이미지 목록 준비 (useMemo로 불필요한 리렌더링 방지)
+  // --- ⬇️ 3. imageTransitionUrls 로직 수정 ⬇️ ---
   const imageTransitionUrls = useMemo(() => {
-    // content.research.items에서 imageUrl을 추출합니다.
+    // 3.1 'capabilities', 'research', 'impact'에서 각각 이미지 URL 추출
+    const capabilitiesImages = (content.capabilities?.items || [])
+      .map((item: any) => item.imageUrl)
+      .filter((url: any) => typeof url === 'string' && url.trim() !== '');
+
     const researchImages = (content.research?.items || [])
       .map((item: any) => item.imageUrl)
-      .filter(Boolean); // null이나 undefined 제거
+      .filter((url: any) => typeof url === 'string' && url.trim() !== '');
       
-    // 최소 2개의 이미지가 필요하므로, 부족하면 기본 이미지로 채웁니다.
-    if (researchImages.length === 0) {
-      return ["/images/research-auto.jpg", "/images/research-magnet.jpg"]; // 기본 이미지
-    }
-    if (researchImages.length === 1) {
-      return [researchImages[0], researchImages[0]]; // 1개면 2개로 복사
-    }
-    return researchImages;
-  }, [content.research?.items]);
+    const impactImages = (content.impact?.items || [])
+      .map((item: any) => item.imageUrl)
+      .filter((url: any) => typeof url === 'string' && url.trim() !== '');
 
-  // 6. 스크롤 전환 지점 설정 (이미지 개수에 맞춰 자동 계산)
+    // 3.2 모든 섹션의 이미지를 순서대로 합칩니다.
+    const allImages = [...capabilitiesImages, ...researchImages, ...impactImages];
+      
+    // 3.3 (안정성 강화) 이미지가 2개 미만일 경우 로고 이미지로 채웁니다.
+    if (allImages.length === 0) {
+      return ["/images/logo1.png", "/images/logo1.png"]; // 2개 보장
+    }
+    if (allImages.length === 1) {
+      return [allImages[0], allImages[0]]; // 2개 보장 (복제)
+    }
+    return allImages; // 2개 이상이면 DB 이미지 목록 사용
+    
+  }, [content.capabilities?.items, content.research?.items, content.impact?.items]); // 3.4 의존성 배열 업데이트
+
+  // 4. 스크롤 전환 지점 설정 (이미지 개수에 맞춰 자동 계산)
   const scrollStops = useMemo(() => {
     const numStops = imageTransitionUrls.length - 1;
     if (numStops <= 0) return [1.0];
+    // 스크롤 영역을 (이미지 개수 - 1) 만큼 균등하게 분할
     return Array.from({ length: numStops }, (_, i) => (i + 1) / numStops);
   }, [imageTransitionUrls.length]);
 
@@ -89,6 +100,7 @@ export function IntroductionPage() {
     <div className="bg-background text-foreground overflow-x-hidden">
       {/* (Hero 섹션은 변경 없음) */}
       <section className="h-screen w-screen flex items-center justify-center relative text-white text-center p-4">
+        {/* ... (Hero 섹션 렌더링 코드) ... */}
         <motion.div
           className="absolute inset-0 bg-black z-0 overflow-hidden"
           style={{ scale: missionBgScale }}
@@ -110,11 +122,10 @@ export function IntroductionPage() {
         </motion.div>
       </section>
 
-      {/* --- ⬇️ 7. 메인 콘텐츠 래퍼 수정 ⬇️ --- */}
-      {/* ref를 여기로 이동하고, style(backgroundColor) 제거 */}
+      {/* --- ⬇️ 5. 메인 콘텐츠 래퍼 수정 (WebGL 캔버스 적용) ⬇️ --- */}
       <div ref={mainContentRef} className="relative"> 
         
-        {/* WebGL 캔버스 배경 */}
+        {/* WebGL 캔버스 배경 (스티키) */}
         <div className="absolute top-0 left-0 w-full h-screen z-0" style={{ position: 'sticky' }}>
           <ImageTransitionCanvas 
             scrollProgress={contentScrollProgress}
@@ -123,7 +134,7 @@ export function IntroductionPage() {
           />
         </div>
         
-        {/* 스크롤 콘텐츠 */}
+        {/* 스크롤 콘텐츠 (z-10) */}
         <div className="relative z-10">
           <ScrollingFocusSection 
             sectionTitle={content?.capabilities?.title} 
@@ -172,7 +183,6 @@ export function IntroductionPage() {
           </section>
         </div>
       </div>
-      {/* --- ⬆️ 수정 완료 ⬆️ --- */}
     </div>
   );
 }

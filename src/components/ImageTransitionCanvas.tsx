@@ -1,8 +1,8 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef } from 'react';
 import { Canvas, useFrame, extend } from '@react-three/fiber'; // 1. extend 추가
 import { useTexture, shaderMaterial } from '@react-three/drei';
 import * as THREE from 'three';
-import { MotionValue, useTransform } from 'framer-motion';
+import { MotionValue } from 'framer-motion';
 
 // 2. GLSL 셰이더 코드 (변경 없음)
 const vertexShader = `
@@ -47,14 +47,13 @@ const ImageMorphMaterial = shaderMaterial(
 );
 
 // 4. react-three-fiber에 커스텀 셰이더 등록
-//    'ImageMorphMaterial' 클래스를 'imageMorphMaterial' 태그로 쓸 수 있게 합니다.
 extend({ ImageMorphMaterial });
 
 // 5. TypeScript가 'imageMorphMaterial' 태그를 인식하도록 타입 선언
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      imageMorphMaterial: any; // 간단하게 any로 처리하여 타입 오류 해결
+      imageMorphMaterial: any; // any로 처리하여 타입 오류 해결
     }
   }
 }
@@ -84,6 +83,7 @@ function ImagePlane({ images, dispTexture, scrollProgress, scrollStops }: ImageP
     const prevStop = currentStopIndex === 0 ? 0 : scrollStops[currentStopIndex - 1];
     const currentStop = scrollStops[currentStopIndex];
 
+    // 현재 섹션 내 진행률 (0~1) 계산
     const localProgress = (totalProgress - prevStop) / (currentStop - prevStop);
     
     const textureIndex1 = currentStopIndex % images.length;
@@ -104,9 +104,7 @@ function ImagePlane({ images, dispTexture, scrollProgress, scrollStops }: ImageP
         ref={materialRef} 
         uDisp={dispTexture}
         uTexture1={images[0]}
-        uTexture2={images[1] || images[0]}
-        // shaderMaterial의 key prop과 충돌하지 않도록 'key' 대신 'materialKey' 사용 (예시)
-        // materialKey="image-morph-material" 
+        uTexture2={images[1] || images[0]} 
       />
     </mesh>
   );
@@ -120,8 +118,9 @@ interface ImageTransitionCanvasProps {
 }
 
 export function ImageTransitionCanvas({ scrollProgress, imageUrls, scrollStops }: ImageTransitionCanvasProps) {
+  // 텍스처 로드 (변위 맵 경로는 public 폴더 기준)
   const textures = useTexture(imageUrls);
-  const dispTexture = useTexture('/textures/displacement-1.jpg');
+  const dispTexture = useTexture('/textures/displacement-1.jpeg');
 
   return (
     <Canvas camera={{ position: [0, 0, 1], fov: 50 }}>

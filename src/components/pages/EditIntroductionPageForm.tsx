@@ -11,7 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 interface EditIntroductionPageFormProps { onBack: () => void; }
 
-// 사용 가능한 아이콘 목록을 늘립니다.
 const iconOptions = ["Cpu", "Atom", "FlaskConical", "TestTube2", "BrainCircuit", "Car", "Film", "HeartPulse", "Magnet", "Building", "Users"];
 
 export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormProps) {
@@ -29,6 +28,7 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
     fetchContent();
   }, []);
 
+  // (헬퍼 함수들은 변경 없음)
   const handleSectionChange = (section: string, field: string, value: any) => {
     setContent((prev: any) => ({
       ...prev,
@@ -53,6 +53,7 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    // (handleSubmit 로직은 변경 없음)
     e.preventDefault();
     setLoading(true);
     setMessage('');
@@ -78,10 +79,10 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <Accordion type="multiple" defaultValue={['item-1']} className="w-full">
+          <Accordion type="multiple" defaultValue={['item-1', 'item-2', 'item-3', 'item-4']} className="w-full">
             
             <AccordionItem value="item-1">
-              {/* Mission 섹션 폼은 이전과 동일 */}
+              {/* Mission 섹션 (변경 없음) */}
               <AccordionTrigger>Section 1: Mission</AccordionTrigger>
                <AccordionContent className="space-y-4 pt-2">
                 <div className="space-y-2"><Label>Background Video URL</Label><Input value={content?.mission?.video_url || ''} onChange={(e) => handleSectionChange('mission', 'video_url', e.target.value)} /></div>
@@ -101,13 +102,16 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
                     <div className="space-y-2"><Label>Icon</Label><Select value={item.icon} onValueChange={(value) => handleArrayItemChange('capabilities', 'items', index, 'icon', value)}><SelectTrigger><SelectValue placeholder="Select an icon" /></SelectTrigger><SelectContent>{iconOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}</SelectContent></Select></div>
                     <div className="space-y-2"><Label>Title</Label><Input value={item.title} onChange={(e) => handleArrayItemChange('capabilities', 'items', index, 'title', e.target.value)} /></div>
                     <div className="space-y-2"><Label>Description</Label><Textarea value={item.description} onChange={(e) => handleArrayItemChange('capabilities', 'items', index, 'description', e.target.value)} /></div>
+                    {/* --- ⬇️ 1. 'Capabilities'에 imageUrl 입력란 추가 ⬇️ --- */}
+                    <div className="space-y-2"><Label>Background Image URL (For Morphing)</Label><Input value={item.imageUrl || ''} onChange={(e) => handleArrayItemChange('capabilities', 'items', index, 'imageUrl', e.target.value)} placeholder="https://..." /></div>
                   </div>
                 ))}
-                <Button type="button" variant="outline" size="sm" onClick={() => addItemToArray('capabilities', 'items', {icon: 'Cpu', title: '', description: ''})}>Add Capability</Button>
+                {/* --- ⬇️ 2. 'Add' 버튼에 imageUrl 필드 추가 ⬇️ --- */}
+                <Button type="button" variant="outline" size="sm" onClick={() => addItemToArray('capabilities', 'items', {icon: 'Cpu', title: '', description: '', imageUrl: ''})}>Add Capability</Button>
               </AccordionContent>
             </AccordionItem>
 
-            {/* Research Areas 섹션 폼 */}
+            {/* Research Areas 섹션 폼 (변경 없음, 이미 imageUrl 존재) */}
             <AccordionItem value="item-3">
               <AccordionTrigger>Section 3: Research Areas</AccordionTrigger>
               <AccordionContent className="space-y-4 pt-2">
@@ -138,14 +142,18 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
                         <div className="space-y-2"><Label>Icon</Label><Select value={item.icon} onValueChange={(value) => handleArrayItemChange('impact', 'items', index, 'icon', value)}><SelectTrigger><SelectValue placeholder="Select an icon" /></SelectTrigger><SelectContent>{iconOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}</SelectContent></Select></div>
                         <div className="space-y-2"><Label>Title</Label><Input value={item.title} onChange={(e) => handleArrayItemChange('impact', 'items', index, 'title', e.target.value)} /></div>
                         <div className="space-y-2"><Label>Description</Label><Textarea value={item.description} onChange={(e) => handleArrayItemChange('impact', 'items', index, 'description', e.target.value)} /></div>
+                        {/* --- ⬇️ 3. 'Impact'에 imageUrl 입력란 추가 ⬇️ --- */}
+                        <div className="space-y-2"><Label>Background Image URL (For Morphing)</Label><Input value={item.imageUrl || ''} onChange={(e) => handleArrayItemChange('impact', 'items', index, 'imageUrl', e.target.value)} placeholder="https://..." /></div>
                       </div>
                     ))}
-                    <Button type="button" variant="outline" size="sm" onClick={() => addItemToArray('impact', 'items', {icon: 'Building', title: '', description: ''})}>Add Impact Point</Button>
+                    {/* --- ⬇️ 4. 'Add' 버튼에 imageUrl 필드 추가 ⬇️ --- */}
+                    <Button type="button" variant="outline" size="sm" onClick={() => addItemToArray('impact', 'items', {icon: 'Building', title: '', description: '', imageUrl: ''})}>Add Impact Point</Button>
                   </div>
                 </div>
                 <div>
                   <Label className="text-lg font-semibold">Partner Logos</Label>
                   <div className="space-y-4 mt-2">
+                    {/* (로고 폼은 변경 없음) */}
                     {(content?.impact?.logos || []).map((logo: any, index: number) => (
                       <div key={index} className="p-4 border rounded-md space-y-3 relative">
                          <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeItemFromArray('impact', 'logos', index)}><Trash2 className="h-4 w-4"/></Button>
