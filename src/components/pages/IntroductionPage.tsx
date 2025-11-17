@@ -1,8 +1,7 @@
-import React, { useRef, useState, useEffect, useMemo, useLayoutEffect } from 'react'; // 1. useLayoutEffect 추가
+import React, { useRef, useState, useEffect, useMemo, useLayoutEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-// 2. Root와 useScrollytelling 임포트
 import { Root, useScrollytelling } from '@bsmnt/scrollytelling';
-import { gsap } from 'gsap'; // 3. gsap 임포트
+import { gsap } from 'gsap';
 import { Cpu, Atom, TestTube2, BrainCircuit, Car, Film, HeartPulse, Magnet, Building, Users } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import merge from 'lodash/merge';
@@ -19,7 +18,7 @@ function ScrollyText({ item, className }: ScrollyTextProps) {
   return (
     <div
       className={`min-h-screen w-full flex flex-col items-center justify-center text-center p-8 text-white absolute inset-0 ${className}`}
-      style={{ opacity: 0 }} // 4. GSAP이 제어하도록 opacity: 0 추가
+      style={{ opacity: 0 }} // GSAP이 제어하도록 opacity: 0
     >
       <IconComponent className="h-12 w-12 text-primary" />
       <h2 className="text-3xl md:text-5xl font-bold text-shadow-lg mt-4">{item.title}</h2>
@@ -125,6 +124,8 @@ export function IntroductionPage() {
         end={`+=${allItems.length * 100}%`}
         scrub={1}
       >
+        {/* <-- 1. ScrollyTextAnimator에 mainContentRef를 prop으로 전달 --> */}
+        <ScrollyTextAnimator allItems={allItems} mainContentRef={mainContentRef} />
         <div ref={mainContentRef} className="relative">
           {/* 스티키 배경 래퍼 (z-0) */}
           <div className="absolute top-0 left-0 w-full h-screen z-0" style={{ position: 'sticky' }}>
@@ -177,49 +178,56 @@ export function IntroductionPage() {
   );
 }
 
-function ScrollyTextAnimator({ allItems }: { allItems: any[] }) {
-  // 10. <Root>의 메인 타임라인을 가져옴
+// <-- 2. ScrollyTextAnimator의 props 타입과 시그니처 수정 -->
+function ScrollyTextAnimator({ allItems, mainContentRef }: { 
+  allItems: any[], 
+  mainContentRef: React.RefObject<HTMLDivElement> 
+}) {
   const { timeline } = useScrollytelling();
 
   useLayoutEffect(() => {
-    if (!timeline || allItems.length === 0) return;
+    // <-- 3. mainContentRef.current가 준비될 때까지 기다리는 가드 추가 -->
+    if (!timeline || allItems.length === 0 || !mainContentRef.current) return;
 
-    // 11. 첫 번째 텍스트는 즉시 보이게 함 (타임라인 시작과 동시에)
-    const textSections = gsap.utils.toArray<HTMLElement>('.scrolly-text-item');
-    gsap.set(textSections[0], { opacity: 1 }); // (혹은 timeline.set(...) 사용)
+    // <-- 4. mainContentRef.current를 'scope'로 지정하여 텍스트 요소 검색 -->
+    const textSections = gsap.utils.toArray<HTMLElement>('.scrolly-text-item', mainContentRef.current);
 
-    // 12. 메인 타임라인에 텍스트 전환 애니메이션 '등록'
+    // <-- 5. (안전장치) 요소를 찾지 못하면 경고만 띄우고 종료 -->
+    if (textSections.length === 0) {
+      console.warn("ScrollyTextAnimator: '.scrolly-text-item'을 찾을 수 없습니다.");
+      return;
+    }
+
+    // (이후 로직은 동일)
+    gsap.set(textSections[0], { opacity: 1 });
+
+    // <-- 6. gsap.context의 scope도 mainContentRef.current로 지정 (권장) -->
     const ctx = gsap.context(() => {
       allItems.forEach((_, i) => {
-        if (i === 0) return; // 0번은 이미 처리됨
+        if (i === 0) return;
 
         const prevText = textSections[i - 1];
         const currentText = textSections[i];
         if (!prevText || !currentText) return;
         
-        // 이 아이템(텍스트)이 시작되는 시점 (0.0 ~ 1.0)
         const itemStartTime = (1 / allItems.length) * i;
-        const itemDuration = (1 / allItems.length);
 
-        // 페이드아웃/인 로컬 타임라인
         const tl = gsap.timeline();
         tl
           .to(prevText, { opacity: 0, scale: 0.95, y: -30, ease: 'power2.in', duration: 0.4 })
           .fromTo(currentText, 
             { opacity: 0, scale: 0.95, y: 30 },
             { opacity: 1, scale: 1, y: 0, ease: 'power2.out', duration: 0.4 }, 
-            0 // 로컬 타임라인 0초에 동시 시작
+            0
           );
 
-        // 13. (가장 중요) 이 로컬 타임라인(tl)을 메인 타임라인(timeline)에 추가
-        //     전환 시점(itemStartTime) 0.2초 '전'에 시작 (애니메이션 길이 0.4초의 절반)
         timeline.add(tl, itemStartTime - 0.2);
       });
-    });
+    }, mainContentRef.current); // <-- 6. scope 지정
 
     return () => ctx.revert();
     
-  }, [allItems, timeline]); // timeline을 의존성 배열에 추가
+  }, [allItems, timeline, mainContentRef]); // <-- 7. 의존성 배열에 mainContentRef 추가
 
-  return null; // 이 컴포넌트는 UI를 렌더링하지 않음
+  return null;
 }
