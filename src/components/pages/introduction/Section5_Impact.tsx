@@ -55,7 +55,7 @@ export function Section5_Impact({ content }: { content: any }) {
     // (JSX는 변경 없음)
     <div ref={sectionRef} className="relative" style={{ height: sectionHeight }}>
       <div className="sticky top-0 h-screen flex flex-col justify-center items-center p-8">
-        <h2 className="absolute top-16 text-3xl font-bold text-primary z-20 opacity-0">
+        <h2 className="absolute top-32 text-3xl font-bold text-primary z-20 opacity-0">
           {content.title || "Our Impact"}
         </h2>
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl">

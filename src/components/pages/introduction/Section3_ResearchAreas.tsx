@@ -59,7 +59,7 @@ export function Section3_ResearchAreas({ content }: { content: any }) {
     // (JSX는 변경 없음, 'Sectoin2'에서 복사해옴)
     <div ref={sectionRef} className="relative" style={{ height: sectionHeight }}>
       <div className="sticky top-0 h-screen">
-        <h2 className="absolute top-16 left-1/2 -translate-x-1/2 text-3xl font-bold text-primary z-20 opacity-0">
+        <h2 className="absolute top-32 left-1/2 -translate-x-1/2 text-3xl font-bold text-primary z-20 opacity-0">
           {content.title}
         </h2>
         <div className="absolute inset-0 z-0">

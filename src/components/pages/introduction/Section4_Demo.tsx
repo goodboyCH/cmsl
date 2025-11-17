@@ -15,10 +15,10 @@ export function Section4_Demo() {
   const imgRef = useRef<HTMLImageElement>(null);
 
   // --- ⬇️ '새 악보' (2350%) 적용 ⬇️ ---
-  const startTime = 14.5; // 8.5 -> 14.5
-  const endTime = 16.5; // (14.5 + 2.0)
-  const sectionDuration = endTime - startTime; // 2.0 (200vh)
-  const sectionHeight = `${sectionDuration * 100}vh`; // "200vh"
+  const startTime = 14.5; // (시작은 14.5 동일)
+  const endTime = 17.5; // 16.5 -> 17.5
+  const sectionDuration = endTime - startTime; // 2.0 -> 3.0 (300vh)
+  const sectionHeight = `${sectionDuration * 100}vh`; // "300vh"
   // --- ⬆️ '새 악보' 적용 ⬆️ ---
 
   useLayoutEffect(() => {
