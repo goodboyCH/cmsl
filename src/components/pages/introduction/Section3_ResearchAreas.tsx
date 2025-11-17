@@ -2,96 +2,89 @@
 import { useScrollytelling } from '@bsmnt/scrollytelling';
 import { gsap } from 'gsap';
 import React, { useLayoutEffect, useRef } from 'react';
-
-// '소품'(Dumb UI) 컴포넌트 임포트 (동일)
-import { SvgImageMorph } from '../../SvgImageMorph';
 import { ScrollyText_UI } from '../../ui/ScrollyText_UI';
 
-// Supabase의 'research' 객체를 받음
 export function Section3_ResearchAreas({ content }: { content: any }) {
   const { timeline } = useScrollytelling();
-  const sectionRef = useRef<HTMLDivElement>(null); // 'Scope' 문제 해결용 ref
+  const sectionRef = useRef<HTMLDivElement>(null);
 
-  // '악보' 시점
-  const startTime = 0.30; // 30%
-  const endTime = 0.60; // 60%
-  const sectionDuration = endTime - startTime; // 30% (0.30)
-  const sectionHeight = `${sectionDuration * 1000}vh`; // "300vh"
+  const startTime = 0.30;
+  const endTime = 0.60;
+  const sectionDuration = endTime - startTime;
+  const sectionHeight = `${sectionDuration * 1000}vh`;
 
   const items = content.items || [];
   const imageList = items.map((item: any) => item.imageUrl);
 
-  // Level 2 'Hook' 접근 방식
   useLayoutEffect(() => {
     if (!timeline || !sectionRef.current || items.length === 0) return;
 
     const ctx = gsap.context(() => {
-      // 'Scope' 내부에서 고유한 클래스 이름으로 GSAP 대상들을 찾음
+      const title = sectionRef.current?.querySelector('h2');
       const textSections = gsap.utils.toArray<HTMLElement>('.research-text', sectionRef.current);
-      const images = gsap.utils.toArray<SVGImageElement>('.research-image', sectionRef.current);
-      const displacementFilter = sectionRef.current?.querySelector('#displacement-filter feDisplacementMap');
+      const images = gsap.utils.toArray<HTMLImageElement>('.research-image', sectionRef.current);
       
-      if (textSections.length === 0 || images.length === 0 || !displacementFilter) return;
+      if (!title || textSections.length === 0 || images.length === 0) return;
 
-      // 첫 번째 항목은 'startTime' (30%)에 보이도록 등록
-      timeline.set(textSections[0], { opacity: 1, scale: 1, y: 0 }, startTime);
-      timeline.set(images[0], { autoAlpha: 1 }, startTime);
+      // (제목 애니메이션 추가)
+      timeline.fromTo(title, { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.01 }, startTime);
+      timeline.to(title, { opacity: 0, y: -20, duration: 0.01 }, endTime - 0.01);
 
-      // --- ⬇️ 수정된 부분 (Section2와 동일한 로직 적용) ⬇️ ---
-
-      // 1. (신규) 아이템 1개에 할당된 '진행도'
+      // (아이템 1개에 할당된 '진행도' - 이 로직은 이미 올바름)
       const itemDuration = sectionDuration / items.length;
+      
+      const itemsTL = gsap.timeline(); 
+      itemsTL.set(textSections[0], { opacity: 1, scale: 1, y: 0 });
+      itemsTL.set(images[0], { opacity: 1, scale: 1 });
 
       items.forEach((_, i: number) => {
         if (i === 0) return; 
 
-        // 2. 각 아이템의 '절대' 시작 시점
-        const itemStartTime = startTime + (i * itemDuration);
-        
-        // 3. 텍스트 전환 (duration을 '진행도' 비례로 수정)
+        // (텍스트/이미지 전환 로직은 이미 'itemDuration' 비례로 올바르게 되어 있음)
         const textTL = gsap.timeline();
-        textTL
-          .to(textSections[i - 1], { opacity: 0, scale: 0.95, y: -30, duration: itemDuration * 0.4 })
-          .fromTo(textSections[i], { opacity: 0, scale: 0.95, y: 30 }, 
-                { opacity: 1, scale: 1, y: 0, duration: itemDuration * 0.4 }, 0);
+        textTL.to(textSections[i - 1], { opacity: 0, scale: 0.95, y: -30, duration: itemDuration * 0.4 }).fromTo(textSections[i], { opacity: 0, scale: 0.95, y: 30 }, { opacity: 1, scale: 1, y: 0, duration: itemDuration * 0.4 }, 0);
         
-        // 4. 이미지 모핑 (duration을 '진행도' 비례로 수정)
-        const morphTL = gsap.timeline();
-        morphTL
-          .to(displacementFilter, { attr: { scale: 150 }, duration: itemDuration * 0.5 }) // itemDuration의 50%
-          .to(images[i - 1], { autoAlpha: 0 }, '<')
-          .to(images[i], { autoAlpha: 1 }, '<')
-          .to(displacementFilter, { attr: { scale: 0 }, duration: itemDuration * 0.5 });
-          
-        // 5. 마스터 타임라인에 '절대 시점'으로 등록 (초 빼기 제거)
-        timeline.add(textTL, itemStartTime);
-        timeline.add(morphTL, itemStartTime);
-        // --- ⬆️ 수정된 부분 ⬆️ ---
+        const morphTL = gsap.timeline(); // (이름은 morphTL이지만 실제론 교차 페이드)
+        morphTL.to(images[i - 1], { opacity: 0, scale: 0.95, duration: itemDuration * 0.5 }).fromTo(images[i], { opacity: 0, scale: 1.05 }, { opacity: 1, scale: 1, duration: itemDuration * 0.5 }, '<');
+        
+        // (timeline.add 시점이 itemStartTime이었던 것을 로컬 타임라인으로 통합)
+        itemsTL.add(textTL, `item-${i}`); // 로컬 타임라인에 라벨로 추가
+        itemsTL.add(morphTL, `item-${i}`); // 로컬 타임라인에 라벨로 추가
       });
-    }, sectionRef.current); // <-- 'Scope' 적용
 
+      // --- ⬇️ 수정된 부분 ⬇️ ---
+      // 7. 이 '순수 시퀀스'를 30% 스크롤(sectionDuration) 동안 'scrub'
+      timeline.add(itemsTL, startTime); // 3개 인수를 2개 인수로 수정
+      // --- ⬆️ 수정된 부분 ⬆️ ---
+
+    }, sectionRef.current); 
     return () => ctx.revert();
-  }, [timeline, items, startTime, sectionDuration]); // <-- 의존성 배열
+  }, [timeline, items, startTime, sectionDuration, endTime]);
 
   return (
-    // 핀(pin) 효과: '악보' 30%~60% 동안 화면에 고정
+    // (JSX는 변경 없음)
     <div ref={sectionRef} className="relative" style={{ height: sectionHeight }}>
-      {/* '소품'(Visuals)들만 'sticky'를 사용해 화면에 고정 */}
       <div className="sticky top-0 h-screen">
-        <h2 className="absolute top-16 left-1/2 -translate-x-1/2 text-3xl font-bold text-primary z-20">
+        <h2 className="absolute top-16 left-1/2 -translate-x-1/2 text-3xl font-bold text-primary z-20 opacity-0">
           {content.title}
         </h2>
-
-        {/* '소품' 렌더링: '배우'가 찾을 수 있도록 고유한 클래스 이름 전달 */}
-        <SvgImageMorph imageUrls={imageList} imageClassName="research-image" />
-
-        {/* '소품' 렌더링: 텍스트 UI */}
+        <div className="absolute inset-0 z-0">
+          {imageList.map((url, index) => (
+            <img
+              key={url}
+              src={url}
+              alt={items[index]?.title || 'Research Image'}
+              className="research-image w-full h-full object-cover absolute inset-0"
+              style={{ opacity: 0 }}
+            />
+          ))}
+        </div>
         <div className="absolute inset-0 z-10">
           {items.map((item: any, index: number) => (
             <ScrollyText_UI
               key={index}
               item={item}
-              className={`research-text`} // 고유한 클래스
+              className={`research-text`}
             />
           ))}
         </div>

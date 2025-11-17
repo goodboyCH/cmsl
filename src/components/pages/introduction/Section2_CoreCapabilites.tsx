@@ -2,90 +2,81 @@
 import { useScrollytelling } from '@bsmnt/scrollytelling';
 import { gsap } from 'gsap';
 import React, { useLayoutEffect, useRef } from 'react';
-
-// 1. '소품'(Dumb UI) 컴포넌트 임포트
 import { SvgImageMorph } from '../../SvgImageMorph';
 import { ScrollyText_UI } from '../../ui/ScrollyText_UI';
 
-// Supabase의 'capabilities' 객체를 받음
 export function Section2_CoreCapabilites({ content }: { content: any }) {
   const { timeline } = useScrollytelling();
-  const sectionRef = useRef<HTMLDivElement>(null); // 'Scope' 문제 해결용 ref
+  const sectionRef = useRef<HTMLDivElement>(null); 
 
-  // 2. '악보'에 정의된 이 섹션의 마스터 타임라인 시점
-  const startTime = 0.05; // 5%
-  const endTime = 0.30; // 30%
-  const sectionDuration = endTime - startTime; // 25% (0.25)
-  
-  // '악보' 25% = 1000%의 25% = 250%. 즉, 250vh의 '높이'를 할당합니다.
-  const sectionHeight = `${sectionDuration * 1000}vh`; // "250vh"
+  const startTime = 0.05;
+  const endTime = 0.30;
+  const sectionDuration = endTime - startTime;
+  const sectionHeight = `${sectionDuration * 1000}vh`;
+
   const items = content.items || [];
   const imageList = items.map((item: any) => item.imageUrl);
 
-  // 3. Level 2 'Hook' 접근 방식
   useLayoutEffect(() => {
-    // 4. 가드: timeline, ref, data가 모두 준비되었는지 확인
     if (!timeline || !sectionRef.current || items.length === 0) return;
 
-    // 5. 'Scope' 지정 (가장 중요)
     const ctx = gsap.context(() => {
-      // 6. 'Scope' 내부에서 GSAP 대상들을 찾음
-      const textSections = gsap.utils.toArray<HTMLElement>('.core-cap-text');
-      const images = gsap.utils.toArray<SVGImageElement>('.core-cap-image');
+      const title = sectionRef.current?.querySelector('h2');
+      const textSections = gsap.utils.toArray<HTMLElement>('.core-cap-text', sectionRef.current);
+      const images = gsap.utils.toArray<SVGImageElement>('.core-cap-image', sectionRef.current);
       const displacementFilter = sectionRef.current?.querySelector('#displacement-filter feDisplacementMap');
       
-      if (textSections.length === 0 || images.length === 0 || !displacementFilter) return;
+      if (!title || textSections.length === 0 || images.length === 0 || !displacementFilter) return;
 
-      // 7. 첫 번째 항목은 즉시 보이도록 '마스터 타임라인'에 등록
-      timeline.set(textSections[0], { opacity: 1, scale: 1, y: 0 }, startTime); // 5% 시점에 바로 등장
-      timeline.set(images[0], { autoAlpha: 1 }, startTime);
+      // (제목 애니메이션은 동일)
+      timeline.fromTo(title, { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.01 }, startTime);
+      timeline.to(title, { opacity: 0, y: -20, duration: 0.01 }, endTime - 0.01);
 
+      // --- ⬇️ 수정된 부분 ⬇️ ---
+
+      // 1. (문제 2 해결) 아이템 1개에 할당된 '진행도'
       const itemDuration = sectionDuration / items.length;
 
+      // 2. 아이템들을 '순차적으로' 실행할 로컬 타임라인
+      const itemsTL = gsap.timeline();
+      
+      itemsTL.set(textSections[0], { opacity: 1, scale: 1, y: 0 });
+      itemsTL.set(images[0], { autoAlpha: 1 });
+
       items.forEach((_, i: number) => {
-        if (i === 0) return; 
+        if (i === 0) return;
 
-        // 2. 각 아이템의 '절대' 시작 시점
-        const itemStartTime = startTime + (i * itemDuration);
-        
-        // --- ⬇️ 수정된 부분 ⬇️ ---
-        // 3. 텍스트 전환 (로컬 타임라인) - duration을 '초'가 아닌 '진행도'로
-        const textTL = gsap.timeline();
-        textTL
-          .to(textSections[i - 1], { opacity: 0, scale: 0.95, y: -30, duration: itemDuration * 0.4 })
+        // 3. 텍스트 전환 (duration을 '진행도' 비례로 수정)
+        itemsTL
+          .to(textSections[i - 1], { opacity: 0, scale: 0.95, y: -30, duration: itemDuration * 0.4 }, `item-${i}`)
           .fromTo(textSections[i], { opacity: 0, scale: 0.95, y: 30 }, 
-                { opacity: 1, scale: 1, y: 0, duration: itemDuration * 0.4 }, 0);
+                { opacity: 1, scale: 1, y: 0, duration: itemDuration * 0.4 }, `<`);
         
-        // 4. 이미지 모핑 (로컬 타임라인) - duration을 '초'가 아닌 '진행도'로
-        const morphTL = gsap.timeline();
-        morphTL
-          .to(displacementFilter, { attr: { scale: 150 }, duration: itemDuration * 0.5 })
-          .to(images[i - 1], { autoAlpha: 0 }, '<')
-          .to(images[i], { autoAlpha: 1 }, '<')
+        // 4. 이미지 모핑 등록 (duration을 '진행도' 비례로 수정)
+        itemsTL
+          .to(displacementFilter, { attr: { scale: 150 }, duration: itemDuration * 0.5 }, `item-${i}`)
+          .to(images[i - 1], { autoAlpha: 0, duration: itemDuration * 0.5 }, '<')
+          .to(images[i], { autoAlpha: 1, duration: itemDuration * 0.5 }, '<')
           .to(displacementFilter, { attr: { scale: 0 }, duration: itemDuration * 0.5 });
-          
-        // 5. 마스터 타임라인에 '절대 시점'으로 등록 (초 빼기 제거)
-        // (아이템 시작 시점에 정확히 애니메이션 시작)
-        timeline.add(textTL, itemStartTime);
-        timeline.add(morphTL, itemStartTime); // 1.0초 애니메이션의 절반
       });
-    }, sectionRef.current); // <-- 'Scope' 적용
 
+      // 5. 이 로컬 타임라인을 '2개 인수'로 마스터 타임라인에 '등록'
+      //    (itemsTL의 총 duration은 'sectionDuration'과 거의 같아짐)
+      timeline.add(itemsTL, startTime);
+      // --- ⬆️ 수정된 부분 ⬆️ ---
+
+    }, sectionRef.current); 
     return () => ctx.revert();
-  }, [timeline, items, startTime, sectionDuration]); // <-- 의존성 배열
+  }, [timeline, items, startTime, sectionDuration, endTime]);
 
   return (
-    // 12. 핀(pin) 효과: '악보' 5%~30% 동안 화면에 고정
+    // (JSX는 변경 없음)
     <div ref={sectionRef} className="relative" style={{ height: sectionHeight }}>
-      
-      {/* 2. '소품'(Visuals)들만 'sticky'를 사용해 화면에 고정시킵니다. */}
       <div className="sticky top-0 h-screen">
-        <h2 className="absolute top-16 left-1/2 -translate-x-1/2 text-3xl font-bold text-primary z-20">
+        <h2 className="absolute top-16 left-1/2 -translate-x-1/2 text-3xl font-bold text-primary z-20 opacity-0">
           {content.title}
         </h2>
-        
         <SvgImageMorph imageUrls={imageList} imageClassName="core-cap-image" />
-
         <div className="absolute inset-0 z-10">
           {items.map((item: any, index: number) => (
             <ScrollyText_UI
