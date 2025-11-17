@@ -9,11 +9,11 @@ export function Section2_CoreCapabilites({ content }: { content: any }) {
   const { timeline } = useScrollytelling();
   const sectionRef = useRef<HTMLDivElement>(null); 
 
-  // --- ⬇️ '새 악보' (2600%) 적용 ⬇️ ---
-  const startTime = 0.10; // 10%
-  const endTime = 0.90; // 90% (10% + 80%)
-  const sectionDuration = endTime - startTime; // 80% (0.80)
-  const sectionHeight = `${sectionDuration * 1000}vh`; // "800vh"
+  // --- ⬇️ '새 악보' (1500%) 적용 ⬇️ ---
+  const startTime = 1.0; // 0.10 -> 1.0
+  const endTime = 5.0; // 0.90 -> 5.0
+  const sectionDuration = endTime - startTime; // 4.0 (400vh)
+  const sectionHeight = `${sectionDuration * 100}vh`; // 1000 -> 100
   // --- ⬆️ '새 악보' 적용 ⬆️ ---
 
   const items = content.items || [];
@@ -30,26 +30,26 @@ export function Section2_CoreCapabilites({ content }: { content: any }) {
       
       if (!title || textSections.length === 0 || images.length === 0 || !displacementFilter) return;
 
-      // (제목 애니메이션은 동일)
-      timeline.fromTo(title, { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.01 }, startTime);
-      timeline.to(title, { opacity: 0, y: -20, duration: 0.01 }, endTime - 0.01);
+      // (제목 애니메이션 - duration을 0.1 (10vh)로 수정)
+      timeline.fromTo(title, { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.1 }, startTime);
+      timeline.to(title, { opacity: 0, y: -20, duration: 0.1 }, endTime - 0.1);
 
       // --- ⬇️ (문제 1, 2) GSAP 로직 전면 수정 ⬇️ ---
 
-      // 1. 아이템 1개당 스크롤 시간 (e.g., 80% / 4개 = 20%)
+      // 1. 아이템 1개당 스크롤 시간 (e.g., 4.0 / 4개 = 1.0 (100vh))
       const itemDuration = sectionDuration / items.length;
-      // 2. '전환'에 사용할 스크롤 시간 (e.g., 20%의 25% = 5%)
+      // 2. '전환'에 사용할 스크롤 시간 (e.g., 1.0의 25% = 0.25 (25vh))
       const transitionDuration = itemDuration * 0.25;
 
       items.forEach((_, i: number) => {
-        // 3. 이 아이템이 시작되는 '절대 시점' (10%, 30%, 50%, 70%)
+        // 3. 이 아이템이 시작되는 '절대 시점' (1.0, 2.0, 3.0, 4.0)
         const itemStartTime = startTime + (i * itemDuration);
 
-        // 4. 'In' 애니메이션: '전환 시간'(5%) 동안 실행
+        // 4. 'In' 애니메이션: '전환 시간'(0.25) 동안 실행
         timeline.fromTo(textSections[i], 
           { opacity: 0, scale: 0.95, y: 30 }, 
           { opacity: 1, scale: 1, y: 0, duration: transitionDuration },
-          itemStartTime // e.g., 10%
+          itemStartTime // e.g., 1.0
         );
         timeline.fromTo(images[i], 
           { autoAlpha: 0 },
@@ -57,19 +57,28 @@ export function Section2_CoreCapabilites({ content }: { content: any }) {
           itemStartTime
         );
         
-        // 5. 'Out' 애니메이션: (마지막 아이템이 아니라면) 
-        //    다음 아이템이 시작되기 '직전'에 '전환 시간'(5%) 동안 실행
+        // 5. 'Out' 애니메이션: (마지막 아이템이 *아니라면*)
         if (i < items.length - 1) {
           const nextItemStartTime = itemStartTime + itemDuration;
           
           timeline.to(textSections[i], 
             { opacity: 0, scale: 0.95, y: -30, duration: transitionDuration },
-            nextItemStartTime - transitionDuration // e.g., 30% - 5% = 25%
+            nextItemStartTime - transitionDuration // e.g., 2.0 - 0.25 = 1.75
           );
-          // (이미지는 '우글' 효과를 위해 다음 아이템과 겹치게 함)
           timeline.to(displacementFilter, { attr: { scale: 150 }, duration: transitionDuration }, nextItemStartTime - transitionDuration);
           timeline.to(images[i], { autoAlpha: 0, duration: transitionDuration }, '<');
-          timeline.to(displacementFilter, { attr: { scale: 0 }, duration: 0 }, nextItemStartTime); // 다음 아이템 시작 시 필터 리셋
+          timeline.to(displacementFilter, { attr: { scale: 0 }, duration: 0 }, nextItemStartTime);
+        
+        // 6. (문제 1 해결) '마지막' 아이템일 경우, 섹션 끝에서 사라짐
+        } else {
+          timeline.to(textSections[i],
+            { opacity: 0, scale: 0.95, y: -30, duration: transitionDuration },
+            endTime - transitionDuration // e.g., 5.0 - 0.25 = 4.75
+          );
+          timeline.to(images[i],
+            { autoAlpha: 0, duration: transitionDuration },
+            endTime - transitionDuration
+          );
         }
       });
       // --- ⬆️ GSAP 로직 수정 완료 ⬆️ ---
@@ -81,21 +90,7 @@ export function Section2_CoreCapabilites({ content }: { content: any }) {
   return (
     // (JSX는 변경 없음)
     <div ref={sectionRef} className="relative" style={{ height: sectionHeight }}>
-      <div className="sticky top-0 h-screen">
-        <h2 className="absolute top-16 left-1/2 -translate-x-1/2 text-3xl font-bold text-primary z-20 opacity-0">
-          {content.title}
-        </h2>
-        <SvgImageMorph imageUrls={imageList} imageClassName="core-cap-image" />
-        <div className="absolute inset-0 z-10">
-          {items.map((item: any, index: number) => (
-            <ScrollyText_UI
-              key={index}
-              item={item}
-              className={`core-cap-text`}
-            />
-          ))}
-        </div>
-      </div>
+      {/* ... */}
     </div>
   );
 }

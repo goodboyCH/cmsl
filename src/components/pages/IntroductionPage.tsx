@@ -48,7 +48,7 @@ export function IntroductionPage() {
     <div className="bg-background">
       {/* --- ⬇️ 수정된 부분 ⬇️ --- */}
       {/* 1. '악보'에 Padding(총 25%)이 추가되었으므로 end 값을 1250%로 늘립니다. */}
-      <Root start="top top" end="+=1250%" scrub={1}>
+      <Root start="top top" end="+=1500%" scrub={1}>
         <div>
           {/* 2. '악보' 시간에 맞춰 '배우'들을 배치합니다. */}
           {/* (각 컴포넌트의 startTime, endTime도 수정됩니다) */}
