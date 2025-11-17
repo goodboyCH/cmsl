@@ -7,10 +7,12 @@ export function Section5_Impact({ content }: { content: any }) {
   const { timeline } = useScrollytelling();
   const sectionRef = useRef<HTMLDivElement>(null);
 
-  const startTime = 0.90; // 70% -> 90%
-  const endTime = 1.10; // 90% -> 110%
-  const sectionDuration = endTime - startTime; // 20% (동일)
-  const sectionHeight = `${sectionDuration * 1000}vh`; // "200vh"
+  // --- ⬇️ '새 악보' (2600%) 적용 ⬇️ ---
+  const startTime = 1.80; // 180%
+  const endTime = 2.40; // 240% (180% + 60%)
+  const sectionDuration = endTime - startTime; // 60% (0.60)
+  const sectionHeight = `${sectionDuration * 1000}vh`; // "600vh"
+  // --- ⬆️ '새 악보' 적용 ⬆️ ---
 
   const items = content.items || [];
 
@@ -23,23 +25,26 @@ export function Section5_Impact({ content }: { content: any }) {
       
       if (!title || impactCards.length === 0) return;
 
-      // (제목 애니메이션 추가)
+      // (제목 애니메이션은 동일)
       timeline.fromTo(title, { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.01 }, startTime);
       timeline.to(title, { opacity: 0, y: -20, duration: 0.01 }, endTime - 0.01);
 
-      // 1. 아이템 1개에 할당된 '진행도' (스크롤 시간)
-      const itemDuration = sectionDuration / items.length; // 20% / 3개 = 6.6%
+      // --- ⬇️ (문제 1, 2) GSAP 로직 전면 수정 ⬇️ ---
 
-      // 2. 'stagger' 대신 'forEach' 루프로 각 카드를 개별 등록
+      // 1. 아이템 1개당 스크롤 시간 (e.g., 60% / 3개 = 20%)
+      const itemDuration = sectionDuration / items.length;
+      // 2. '전환'에 사용할 스크롤 시간 (e.g., 20%의 30% = 6%)
+      const transitionDuration = itemDuration * 0.3;
+
       items.forEach((_, i: number) => {
         const card = impactCards[i];
         
         // 3. 이 카드가 애니메이션을 시작할 '절대 시점'
         const cardStartTime = startTime + (i * itemDuration);
-
+        
         // 4. "1번 내용 (텀) 2번 내용 (텀)" 구현:
         //    (itemDuration * 0.7) 동안 애니메이션하고 (itemDuration * 0.3) 동안 멈춥니다.
-        const animationDuration = itemDuration * 0.7; 
+        const animationDuration = itemDuration * 0.7; // '텀'을 위한 애니메이션 시간 (14%)
 
         // 5. 마스터 타임라인에 'cardStartTime'에 맞춰 개별 등록
         timeline.fromTo(
@@ -48,13 +53,13 @@ export function Section5_Impact({ content }: { content: any }) {
           { 
             opacity: 1, 
             y: 0, 
-            duration: animationDuration, // 70% 스크롤 동안만 애니메이션
+            duration: animationDuration, // 14% 스크롤 동안만 애니메이션
             ease: 'power2.out'
           },
           cardStartTime // 이 카드의 시작 시간
         );
       });
-      // --- ⬆️ (문제 4 해결) ⬆️ ---
+      // --- ⬆️ GSAP 로직 수정 완료 ⬆️ ---
 
     }, sectionRef.current); 
     return () => ctx.revert();
@@ -67,7 +72,6 @@ export function Section5_Impact({ content }: { content: any }) {
         <h2 className="absolute top-16 text-3xl font-bold text-primary z-20 opacity-0">
           {content.title || "Our Impact"}
         </h2>
-        
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl">
           {items.map((item: any, index: number) => (
             <div

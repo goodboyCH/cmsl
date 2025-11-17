@@ -8,10 +8,12 @@ export function Section3_ResearchAreas({ content }: { content: any }) {
   const { timeline } = useScrollytelling();
   const sectionRef = useRef<HTMLDivElement>(null);
 
-  const startTime = 0.40; // 30% -> 40%
-  const endTime = 0.70; // 60% -> 70%
-  const sectionDuration = endTime - startTime; // 30% (0.30)
-  const sectionHeight = `${sectionDuration * 1000}vh`; // "300vh" (동일)
+  // --- ⬇️ '새 악보' (2600%) 적용 ⬇️ ---
+  const startTime = 0.95; // 95%
+  const endTime = 1.55; // 155% (95% + 60%)
+  const sectionDuration = endTime - startTime; // 60% (0.60)
+  const sectionHeight = `${sectionDuration * 1000}vh`; // "600vh"
+  // --- ⬆️ '새 악보' 적용 ⬆️ ---
 
   const items = content.items || [];
   const imageList = items.map((item: any) => item.imageUrl);
@@ -26,43 +28,55 @@ export function Section3_ResearchAreas({ content }: { content: any }) {
       
       if (!title || textSections.length === 0 || images.length === 0) return;
 
-      // (제목 애니메이션 추가)
+      // (제목 애니메이션은 동일)
       timeline.fromTo(title, { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.01 }, startTime);
       timeline.to(title, { opacity: 0, y: -20, duration: 0.01 }, endTime - 0.01);
 
-      // (아이템 1개에 할당된 '진행도' - 이 로직은 이미 올바름)
+      // --- ⬇️ (문제 1, 2, 3) GSAP 로직 전면 수정 ⬇️ ---
+
+      // 1. 아이템 1개당 스크롤 시간 (e.g., 60% / 3개 = 20%)
       const itemDuration = sectionDuration / items.length;
-      
-      const itemsTL = gsap.timeline(); 
-      itemsTL.set(textSections[0], { opacity: 1, scale: 1, y: 0 });
-      itemsTL.set(images[0], { opacity: 1, scale: 1 });
+      // 2. '전환'에 사용할 스크롤 시간 (e.g., 20%의 25% = 5%)
+      const transitionDuration = itemDuration * 0.25;
 
       items.forEach((_, i: number) => {
-        if (i === 0) return; 
+        // 3. 이 아이템이 시작되는 '절대 시점'
+        const itemStartTime = startTime + (i * itemDuration);
 
-        // (텍스트/이미지 전환 로직은 이미 'itemDuration' 비례로 올바르게 되어 있음)
-        const textTL = gsap.timeline();
-        textTL.to(textSections[i - 1], { opacity: 0, scale: 0.95, y: -30, duration: itemDuration * 0.4 }).fromTo(textSections[i], { opacity: 0, scale: 0.95, y: 30 }, { opacity: 1, scale: 1, y: 0, duration: itemDuration * 0.4 }, 0);
+        // 4. 'In' 애니메이션: '전환 시간'(5%) 동안 실행
+        timeline.fromTo(textSections[i], 
+          { opacity: 0, scale: 0.95, y: 30 }, 
+          { opacity: 1, scale: 1, y: 0, duration: transitionDuration },
+          itemStartTime
+        );
+        timeline.fromTo(images[i], // (교차 페이드)
+          { opacity: 0, scale: 1.05 },
+          { opacity: 1, scale: 1, duration: transitionDuration },
+          itemStartTime
+        );
         
-        const morphTL = gsap.timeline(); // (이름은 morphTL이지만 실제론 교차 페이드)
-        morphTL.to(images[i - 1], { opacity: 0, scale: 0.95, duration: itemDuration * 0.5 }).fromTo(images[i], { opacity: 0, scale: 1.05 }, { opacity: 1, scale: 1, duration: itemDuration * 0.5 }, '<');
-        
-        // (timeline.add 시점이 itemStartTime이었던 것을 로컬 타임라인으로 통합)
-        itemsTL.add(textTL, `item-${i}`); // 로컬 타임라인에 라벨로 추가
-        itemsTL.add(morphTL, `item-${i}`); // 로컬 타임라인에 라벨로 추가
+        // 5. 'Out' 애니메이션: (마지막 아이템이 아니라면) 
+        if (i < items.length - 1) {
+          const nextItemStartTime = itemStartTime + itemDuration;
+          
+          timeline.to(textSections[i], 
+            { opacity: 0, scale: 0.95, y: -30, duration: transitionDuration },
+            nextItemStartTime - transitionDuration
+          );
+          timeline.to(images[i], // (교차 페이드)
+            { opacity: 0, scale: 0.95, duration: transitionDuration },
+            nextItemStartTime - transitionDuration
+          );
+        }
       });
-
-      // --- ⬇️ 수정된 부분 ⬇️ ---
-      // 7. 이 '순수 시퀀스'를 30% 스크롤(sectionDuration) 동안 'scrub'
-      timeline.add(itemsTL, startTime); // 3개 인수를 2개 인수로 수정
-      // --- ⬆️ 수정된 부분 ⬆️ ---
+      // --- ⬆️ GSAP 로직 수정 완료 ⬆️ ---
 
     }, sectionRef.current); 
     return () => ctx.revert();
   }, [timeline, items, startTime, sectionDuration, endTime]);
 
   return (
-    // (JSX는 변경 없음)
+    // (JSX는 변경 없음, 'Sectoin2'에서 복사해옴)
     <div ref={sectionRef} className="relative" style={{ height: sectionHeight }}>
       <div className="sticky top-0 h-screen">
         <h2 className="absolute top-16 left-1/2 -translate-x-1/2 text-3xl font-bold text-primary z-20 opacity-0">

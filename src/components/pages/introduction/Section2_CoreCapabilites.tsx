@@ -9,10 +9,12 @@ export function Section2_CoreCapabilites({ content }: { content: any }) {
   const { timeline } = useScrollytelling();
   const sectionRef = useRef<HTMLDivElement>(null); 
 
-  const startTime = 0.10; // 5% -> 10%
-  const endTime = 0.35; // 30% -> 35%
-  const sectionDuration = endTime - startTime; // 25% (동일)
-  const sectionHeight = `${sectionDuration * 1000}vh`; // "250vh" (동일)
+  // --- ⬇️ '새 악보' (2600%) 적용 ⬇️ ---
+  const startTime = 0.10; // 10%
+  const endTime = 0.90; // 90% (10% + 80%)
+  const sectionDuration = endTime - startTime; // 80% (0.80)
+  const sectionHeight = `${sectionDuration * 1000}vh`; // "800vh"
+  // --- ⬆️ '새 악보' 적용 ⬆️ ---
 
   const items = content.items || [];
   const imageList = items.map((item: any) => item.imageUrl);
@@ -32,38 +34,45 @@ export function Section2_CoreCapabilites({ content }: { content: any }) {
       timeline.fromTo(title, { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.01 }, startTime);
       timeline.to(title, { opacity: 0, y: -20, duration: 0.01 }, endTime - 0.01);
 
-      // --- ⬇️ 수정된 부분 ⬇️ ---
+      // --- ⬇️ (문제 1, 2) GSAP 로직 전면 수정 ⬇️ ---
 
-      // 1. (문제 2 해결) 아이템 1개에 할당된 '진행도'
+      // 1. 아이템 1개당 스크롤 시간 (e.g., 80% / 4개 = 20%)
       const itemDuration = sectionDuration / items.length;
-
-      // 2. 아이템들을 '순차적으로' 실행할 로컬 타임라인
-      const itemsTL = gsap.timeline();
-      
-      itemsTL.set(textSections[0], { opacity: 1, scale: 1, y: 0 });
-      itemsTL.set(images[0], { autoAlpha: 1 });
+      // 2. '전환'에 사용할 스크롤 시간 (e.g., 20%의 25% = 5%)
+      const transitionDuration = itemDuration * 0.25;
 
       items.forEach((_, i: number) => {
-        if (i === 0) return;
+        // 3. 이 아이템이 시작되는 '절대 시점' (10%, 30%, 50%, 70%)
+        const itemStartTime = startTime + (i * itemDuration);
 
-        // 3. 텍스트 전환 (duration을 '진행도' 비례로 수정)
-        itemsTL
-          .to(textSections[i - 1], { opacity: 0, scale: 0.95, y: -30, duration: itemDuration * 0.4 }, `item-${i}`)
-          .fromTo(textSections[i], { opacity: 0, scale: 0.95, y: 30 }, 
-                { opacity: 1, scale: 1, y: 0, duration: itemDuration * 0.4 }, `<`);
+        // 4. 'In' 애니메이션: '전환 시간'(5%) 동안 실행
+        timeline.fromTo(textSections[i], 
+          { opacity: 0, scale: 0.95, y: 30 }, 
+          { opacity: 1, scale: 1, y: 0, duration: transitionDuration },
+          itemStartTime // e.g., 10%
+        );
+        timeline.fromTo(images[i], 
+          { autoAlpha: 0 },
+          { autoAlpha: 1, duration: transitionDuration },
+          itemStartTime
+        );
         
-        // 4. 이미지 모핑 등록 (duration을 '진행도' 비례로 수정)
-        itemsTL
-          .to(displacementFilter, { attr: { scale: 150 }, duration: itemDuration * 0.5 }, `item-${i}`)
-          .to(images[i - 1], { autoAlpha: 0, duration: itemDuration * 0.5 }, '<')
-          .to(images[i], { autoAlpha: 1, duration: itemDuration * 0.5 }, '<')
-          .to(displacementFilter, { attr: { scale: 0 }, duration: itemDuration * 0.5 });
+        // 5. 'Out' 애니메이션: (마지막 아이템이 아니라면) 
+        //    다음 아이템이 시작되기 '직전'에 '전환 시간'(5%) 동안 실행
+        if (i < items.length - 1) {
+          const nextItemStartTime = itemStartTime + itemDuration;
+          
+          timeline.to(textSections[i], 
+            { opacity: 0, scale: 0.95, y: -30, duration: transitionDuration },
+            nextItemStartTime - transitionDuration // e.g., 30% - 5% = 25%
+          );
+          // (이미지는 '우글' 효과를 위해 다음 아이템과 겹치게 함)
+          timeline.to(displacementFilter, { attr: { scale: 150 }, duration: transitionDuration }, nextItemStartTime - transitionDuration);
+          timeline.to(images[i], { autoAlpha: 0, duration: transitionDuration }, '<');
+          timeline.to(displacementFilter, { attr: { scale: 0 }, duration: 0 }, nextItemStartTime); // 다음 아이템 시작 시 필터 리셋
+        }
       });
-
-      // 5. 이 로컬 타임라인을 '2개 인수'로 마스터 타임라인에 '등록'
-      //    (itemsTL의 총 duration은 'sectionDuration'과 거의 같아짐)
-      timeline.add(itemsTL, startTime);
-      // --- ⬆️ 수정된 부분 ⬆️ ---
+      // --- ⬆️ GSAP 로직 수정 완료 ⬆️ ---
 
     }, sectionRef.current); 
     return () => ctx.revert();
