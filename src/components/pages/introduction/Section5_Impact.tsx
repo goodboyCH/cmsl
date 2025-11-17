@@ -46,12 +46,15 @@ export function Section5_Impact({ content }: { content: any }) {
         
         // 4. 'Out' 애니메이션: (마지막 아이템이 *아니라면*)
         if (i < items.length - 1) {
-          timeline.to(card, { opacity: 0, y: -100, duration: animationDuration * 0.5, ease: 'power2.in' }, itemEndTime - (animationDuration * 0.5));
-        
-        // 5. '마지막' 아이템은 섹션 끝(endTime)에서 사라짐
-        } else {
-          timeline.to(card, { opacity: 0, y: -100, duration: animationDuration }, endTime - animationDuration);
-        }
+            const nextItemStartTime = itemStartTime + itemDuration;
+            const outStartTime = nextItemStartTime - (animationDuration * 0.5); 
+            
+            timeline.to(card, { opacity: 0, y: -100, duration: animationDuration * 0.5, ease: 'power2.in' }, outStartTime);
+          
+          // 5. (문제 해결) '마지막' 아이템의 'Out' 애니메이션을 '제거'
+          } else {
+            // (아무것도 하지 않음)
+          }
       });
       // --- ⬆️ GSAP 로직 수정 완료 ⬆️ ---
 

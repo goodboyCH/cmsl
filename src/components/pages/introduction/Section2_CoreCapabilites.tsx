@@ -59,25 +59,17 @@ export function Section2_CoreCapabilites({ content }: { content: any }) {
         
         // 5. 'Out' 애니메이션: (마지막 아이템이 *아니라면*)
         if (i < items.length - 1) {
-          timeline.to(textSections[i], 
-            { opacity: 0, scale: 0.95, y: -30, duration: transitionDuration },
-            itemEndTime - transitionDuration // e.g., (0.5+1.0) - 0.25 = 1.25
-          );
-          timeline.to(displacementFilter, { attr: { scale: 150 }, duration: transitionDuration }, itemEndTime - transitionDuration);
-          timeline.to(images[i], { autoAlpha: 0, duration: transitionDuration }, '<');
-          timeline.to(displacementFilter, { attr: { scale: 0 }, duration: 0 }, itemEndTime);
-        
-        // 6. (문제 1 해결) '마지막' 아이템은 섹션 끝(endTime)에서 사라짐
-        } else {
-          timeline.to(textSections[i],
-            { opacity: 0, scale: 0.95, y: -30, duration: transitionDuration },
-            endTime - transitionDuration // e.g., 4.5 - 0.25 = 4.25
-          );
-          timeline.to(images[i],
-            { autoAlpha: 0, duration: transitionDuration },
-            endTime - transitionDuration
-          );
-        }
+            const nextItemStartTime = itemStartTime + itemDuration;
+            
+            timeline.to(textSections[i], { opacity: 0, scale: 0.95, y: -30, duration: transitionDuration }, nextItemStartTime - transitionDuration);
+            timeline.to(displacementFilter, { attr: { scale: 150 }, duration: transitionDuration }, nextItemStartTime - transitionDuration);
+            timeline.to(images[i], { autoAlpha: 0, duration: transitionDuration }, '<');
+            timeline.to(displacementFilter, { attr: { scale: 0 }, duration: 0 }, nextItemStartTime);
+          
+          // 6. (문제 해결) '마지막' 아이템의 'Out' 애니메이션을 '제거'
+          } else {
+            // (아무것도 하지 않음 - 마지막 아이템은 다음 섹션이 덮을 때까지 100vh 내내 보임)
+          }
       });
       // --- ⬆️ GSAP 로직 수정 완료 ⬆️ ---
 

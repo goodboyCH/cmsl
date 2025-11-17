@@ -48,14 +48,14 @@ export function Section3_ResearchAreas({ content }: { content: any }) {
         
         // 5. 'Out' 애니메이션: (마지막 아이템이 *아니라면*)
         if (i < items.length - 1) {
-          timeline.to(textSections[i], { opacity: 0, scale: 0.95, y: -30, duration: transitionDuration }, itemEndTime - transitionDuration);
-          timeline.to(images[i], { opacity: 0, scale: 0.95, duration: transitionDuration }, itemEndTime - transitionDuration);
-        
-        // 6. (문제 1 해결) '마지막' 아이템은 섹션 끝(endTime)에서 사라짐
-        } else {
-          timeline.to(textSections[i], { opacity: 0, scale: 0.95, y: -30, duration: transitionDuration }, endTime - transitionDuration);
-          timeline.to(images[i], { opacity: 0, scale: 0.95, duration: transitionDuration }, endTime - transitionDuration);
-        }
+            const nextItemStartTime = itemStartTime + itemDuration;
+            timeline.to(textSections[i], { opacity: 0, scale: 0.95, y: -30, duration: transitionDuration }, nextItemStartTime - transitionDuration);
+            timeline.to(images[i], { opacity: 0, scale: 0.95, duration: transitionDuration }, nextItemStartTime - transitionDuration);
+          
+          // 6. (문제 해결) '마지막' 아이템의 'Out' 애니메이션을 '제거'
+          } else {
+            // (아무것도 하지 않음)
+          }
         // --- ⬆️ (문제 1 해결) ⬆️ ---
       });
     }, sectionRef.current); 
