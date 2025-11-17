@@ -9,10 +9,10 @@ export function Section3_ResearchAreas({ content }: { content: any }) {
   const sectionRef = useRef<HTMLDivElement>(null);
 
   // --- ⬇️ '새 악보' (1250%) 적용 ⬇️ ---
-  const startTime = 4.5; // 5.5 -> 4.5
-  const endTime = 7.5; // 8.5 -> 7.5
+  const startTime = 4.5; // (0.5 + 4.0)
+  const endTime = 7.5; // (4.5 + 3.0)
   const sectionDuration = endTime - startTime; // 3.0 (300vh)
-  const sectionHeight = `${sectionDuration * 100}vh`; // 1000 -> 100
+  const sectionHeight = `${sectionDuration * 100}vh`; // 300vh
   // --- ⬆️ '새 악보' 적용 ⬆️ ---
 
   const items = content.items || [];
@@ -32,6 +32,8 @@ export function Section3_ResearchAreas({ content }: { content: any }) {
       timeline.fromTo(title, { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.1 }, startTime);
       timeline.to(title, { opacity: 0, y: -20, duration: 0.1 }, endTime - 0.1);
 
+      // --- ⬇️ (문제 1 해결) GSAP 로직 수정 ⬇️ ---
+
       // (아이템 1개당 시간, '전환' 시간 계산은 동일)
       const itemDuration = sectionDuration / items.length; // 1.0 (100vh)
       const transitionDuration = itemDuration * 0.25; // 0.25 (25vh)
@@ -39,19 +41,20 @@ export function Section3_ResearchAreas({ content }: { content: any }) {
       items.forEach((_, i: number) => {
         // ( 'In' 애니메이션은 동일)
         const itemStartTime = startTime + (i * itemDuration);
+        const itemEndTime = itemStartTime + itemDuration;
+
         timeline.fromTo(textSections[i], { opacity: 0, scale: 0.95, y: 30 }, { opacity: 1, scale: 1, y: 0, duration: transitionDuration }, itemStartTime);
         timeline.fromTo(images[i], { opacity: 0, scale: 1.05 }, { opacity: 1, scale: 1, duration: transitionDuration }, itemStartTime);
         
-        // --- ⬇️ (문제 1 해결) ⬇️ ---
         // 5. 'Out' 애니메이션: (마지막 아이템이 *아니라면*)
         if (i < items.length - 1) {
-          const nextItemStartTime = itemStartTime + itemDuration;
-          timeline.to(textSections[i], { opacity: 0, scale: 0.95, y: -30, duration: transitionDuration }, nextItemStartTime - transitionDuration);
-          timeline.to(images[i], { opacity: 0, scale: 0.95, duration: transitionDuration }, nextItemStartTime - transitionDuration);
+          timeline.to(textSections[i], { opacity: 0, scale: 0.95, y: -30, duration: transitionDuration }, itemEndTime - transitionDuration);
+          timeline.to(images[i], { opacity: 0, scale: 0.95, duration: transitionDuration }, itemEndTime - transitionDuration);
         
-        // 6. (문제 1 해결) '마지막' 아이템의 'Out' 애니메이션을 '제거'
+        // 6. (문제 1 해결) '마지막' 아이템은 섹션 끝(endTime)에서 사라짐
         } else {
-          // (아무것도 하지 않음)
+          timeline.to(textSections[i], { opacity: 0, scale: 0.95, y: -30, duration: transitionDuration }, endTime - transitionDuration);
+          timeline.to(images[i], { opacity: 0, scale: 0.95, duration: transitionDuration }, endTime - transitionDuration);
         }
         // --- ⬆️ (문제 1 해결) ⬆️ ---
       });
