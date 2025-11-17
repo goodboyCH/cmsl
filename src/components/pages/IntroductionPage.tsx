@@ -52,28 +52,30 @@ export function IntroductionPage() {
       */}
       <Root start="top top" end="+=1000%" scrub={1}>
         
-        {/* 6. '악보' 순서대로 '배우'(섹션)들을 배치하고 Supabase 데이터 전달 */}
+        {/* 6. 모든 섹션을 '하나의 <div>'로 감싸서 <Root>의 유일한 자식으로 만듭니다. */}
+        <div>
+          {/* 씬 1 (0% ~ 5%) */}
+          <Section1_Intro content={content.mission} />
 
-        {/* 씬 1 (0% ~ 5%) */}
-        <Section1_Intro content={content.mission} />
+          {/* 씬 2 (5% ~ 30%) */}
+          <Section2_CoreCapabilites content={content.capabilities} />
 
-        {/* 씬 2 (5% ~ 30%) */}
-        <Section2_CoreCapabilites content={content.capabilities} />
+          {/* 씬 3 (30% ~ 60%) */}
+          <Section3_ResearchAreas content={content.research} />
 
-        {/* 씬 3 (30% ~ 60%) */}
-        <Section3_ResearchAreas content={content.research} />
+          {/* 씬 4 (60% ~ 70%) */}
+          <Section4_Demo />
 
-        {/* 씬 4 (60% ~ 70%) */}
-        <Section4_Demo />
+          {/* 씬 5 (이벤트) */}
+          <ScrollyEvents />
 
-        {/* 씬 5 (이벤트) - 악보대로 UI가 없는 이벤트 트리거 */}
-        <ScrollyEvents />
-
-        {/* 씬 6 (70% ~ 90%) */}
-        <Section5_Impact content={content.impact} />
-        
-        {/* 씬 7 (90% ~ 100%) */}
-        <Section6_Partner content={content.impact} />
+          {/* 씬 6 (70% ~ 90%) */}
+          <Section5_Impact content={content.impact} />
+          
+          {/* 씬 7 (90% ~ 100%) */}
+          <Section6_Partner content={content.impact} />
+        </div>
+        {/* --- ⬆️ 수정된 부분 ⬆️ --- */}
 
       </Root>
     </div>
