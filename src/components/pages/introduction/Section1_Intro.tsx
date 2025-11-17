@@ -27,19 +27,17 @@ export function Section1_Intro({ content }: { content: any }) {
 
       if (!videoElement || !textElement) return;
 
-      // 7. (오류 1 해결) 비디오 패럴랙스 애니메이션을 '등록'
-      // <Animation tween={{ yPercent: -20 }}> 대신 GSAP 직접 사용
-      timeline.to(
-        videoElement, 
-        { yPercent: -20 }, // 스크롤 동안 y축(%)으로 -20만큼 이동
-        startTime // 0%
+      // 7. 비디오 패럴랙스 애니메이션 수정
+      timeline.fromTo(
+        videoElement,
+        { yPercent: 0 }, // from 상태
+        { // to 상태
+          yPercent: -20, // 5% 지점에 도달할 목표
+          duration: sectionDuration // 5% (0.05) 동안 지속
+        },
+        startTime // 0% 시점에 시작
       );
-      // (참고: 패럴랙스는 섹션 전체 길이(duration)를 가질 필요가 없습니다.
-      // <Root>의 scrub이 이 tween을 0%~100%에 걸쳐 실행하므로,
-      // 5% 지점(duration)에 yPercent: -20에 도달하게 됩니다.)
-
-      // 8. (오류 2 해결) 텍스트 페이드인 애니메이션을 '등록'
-      // <Animation from={...} to={...}> 대신 GSAP 직접 사용
+      
       timeline.fromTo(
         textElement,
         { opacity: 0, y: 30 }, // from 상태

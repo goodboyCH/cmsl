@@ -32,20 +32,20 @@ export function Section4_Demo() {
 
     // 7. 이 가상 객체의 'frame' 속성을 0에서 마지막 프레임까지 애니메이션합니다.
     const imageTween = gsap.to(frameTracker, {
-      frame: demoImages.length - 1, // 0에서 149까지
-      snap: "frame", // 프레임 번호(정수)로 값이 '딱' 떨어지게 함
-      ease: "none", // 스크롤(scrub)이 타이밍을 제어하므로 ease는 없음
-      
-      // 8. 'frame' 값이 업데이트될 때마다(onUpdate) <img>의 src를 강제로 변경
-      onUpdate: () => {
-        if (imgRef.current) {
-          imgRef.current.src = demoImages[frameTracker.frame];
-        }
-      },
-    });
-
-    // 9. 이 '이미지 시퀀스 트윈'을 마스터 타임라인에 '등록'합니다.
-    timeline.add(imageTween, startTime);
+        frame: demoImages.length - 1,
+        snap: "frame",
+        ease: "none",
+        duration: duration, // 1. 'duration' (0.10)을 여기에 추가해야 합니다.
+        
+        onUpdate: () => {
+          if (imgRef.current) {
+            imgRef.current.src = demoImages[frameTracker.frame];
+          }
+        },
+      });
+  
+      // 2. add는 2개의 인자(tween, startTime)만 받습니다.
+      timeline.add(imageTween, startTime);
     
   }, [timeline, duration, startTime]); // <-- 의존성 배열
 
