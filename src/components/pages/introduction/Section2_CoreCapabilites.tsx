@@ -11,9 +11,9 @@ export function Section2_CoreCapabilites({ content }: { content: any }) {
 
   // --- ⬇️ '새 악보' (2350%) 적용 ⬇️ ---
   const startTime = 0.5; 
-  const endTime = 8.5; // (0.5 + 8.0)
-  const sectionDuration = endTime - startTime; // 8.0 (800vh)
-  const sectionHeight = `${sectionDuration * 100}vh`; // "800vh"
+  const endTime = 9.5; // (0.5 + 9.0)
+  const sectionDuration = endTime - startTime; // 9.0 (900vh)
+  const sectionHeight = `${sectionDuration * 100}vh`; // "900vh"
   // --- ⬆️ '새 악보' 적용 ⬆️ ---
 
   const items = content.items || [];
@@ -36,42 +36,31 @@ export function Section2_CoreCapabilites({ content }: { content: any }) {
       // --- ⬆️ (문제 1 해결) ⬆️ ---
 
       // 1. 아이템 1개당 스크롤 시간 (e.g., 8.0 / 4개 = 2.0 (200vh))
-      const itemDuration = sectionDuration / items.length;
-      // 2. '전환'에 사용할 스크롤 시간 (e.g., 2.0의 15% = 0.3 (30vh))
-      const transitionDuration = itemDuration * 0.15; // 0.25 -> 0.3 (더 부드럽게)
+      const itemDuration = 2.0;
+      // 2. '전환'에 사용할 스크롤 시간 (0.3 = 30vh)
+      const transitionDuration = 0.3;
 
       items.forEach((_, i: number) => {
         // 3. 이 아이템이 시작되는 '절대 시점' (0.5, 2.5, 4.5, 6.5)
         const itemStartTime = startTime + (i * itemDuration);
 
-        // 4. 'In' 애니메이션: '전환 시간'(0.3) 동안 실행
-        timeline.fromTo(textSections[i], 
-          { opacity: 0, scale: 0.95, y: 30 }, 
-          { opacity: 1, scale: 1, y: 0, duration: transitionDuration },
-          itemStartTime // e.g., 0.5
-        );
-        timeline.fromTo(images[i], 
-          { autoAlpha: 0 },
-          { autoAlpha: 1, duration: transitionDuration },
-          itemStartTime
-        );
+        // 4. 'In' 애니메이션 (동일)
+        timeline.fromTo(textSections[i], { opacity: 0, scale: 0.95, y: 30 }, { opacity: 1, scale: 1, y: 0, duration: transitionDuration }, itemStartTime);
+        timeline.fromTo(images[i], { autoAlpha: 0 }, { autoAlpha: 1, duration: transitionDuration }, itemStartTime);
         
-        // --- ⬇️ (문제 2 해결) ⬇️ ---
         // 5. 'Out' 애니메이션: (마지막 아이템이 *아니라면*)
         if (i < items.length - 1) {
           const nextItemStartTime = itemStartTime + itemDuration;
           
-          timeline.to(textSections[i], 
-            { opacity: 0, scale: 0.95, y: -30, duration: transitionDuration },
-            nextItemStartTime - transitionDuration // e.g., 2.5 - 0.3 = 2.2
-          );
+          timeline.to(textSections[i], { opacity: 0, scale: 0.95, y: -30, duration: transitionDuration }, nextItemStartTime - transitionDuration);
           timeline.to(displacementFilter, { attr: { scale: 150 }, duration: transitionDuration }, nextItemStartTime - transitionDuration);
           timeline.to(images[i], { autoAlpha: 0, duration: transitionDuration }, '<');
           timeline.to(displacementFilter, { attr: { scale: 0 }, duration: 0 }, nextItemStartTime);
         
         // 6. (문제 2 해결) '마지막' 아이템의 'Out' 애니메이션을 '제거'
+        //    (마지막 아이템은 (9.5 - 6.5) = 3.0 (300vh) 넉넉하게 보임)
         } else {
-          // (아무것도 하지 않음 - 마지막 아이템은 6.5 ~ 8.5 (200vh) 내내 보임)
+          // (아무것도 하지 않음)
         }
         // --- ⬆️ (문제 2 해결) ⬆️ ---
       });

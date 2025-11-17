@@ -48,28 +48,32 @@ export function IntroductionPage() {
     <div className="bg-background">
       {/* --- ⬇️ 수정된 부분 ⬇️ --- */}
       {/* 1. '악보' 길이를 2350% -> 2450% (2450vh)로 수정 */}
-      <Root start="top top" end="+=2450%" scrub={1}>
+      <Root start="top top" end="+=2800%" scrub={1}>
         <div>
-          {/* 2. '악보' 시간에 맞춰 '배우'들을 배치 (S4, S5, S6 시간 변경) */}
+          {/* 2. '악보' 시간에 맞춰 '배우'들을 배치 */}
           
           {/* 씬 1 (0.0 ~ 0.5) [50vh] */}
           <Section1_Intro content={content.mission} />
-          {/* 씬 2 (0.5 ~ 8.5) [800vh] */}
+
+          {/* 씬 2 (0.5 ~ 9.5) [900vh] (아이템 3*200vh + 마지막 1*300vh) */}
           <Section2_CoreCapabilites content={content.capabilities} />
-          {/* 씬 3 (8.5 ~ 14.5) [600vh] */}
+
+          {/* 씬 3 (9.5 ~ 16.5) [700vh] (아이템 2*200vh + 마지막 1*300vh) */}
           <Section3_ResearchAreas content={content.research} />
 
-          {/* 씬 4 (14.5 ~ 17.5) [300vh] (200vh -> 300vh로 변경) */}
+          {/* 씬 4 (16.5 ~ 18.5) [200vh] */}
           <Section4_Demo />
 
           {/* 씬 5 (이벤트) - 이벤트 시점도 수정 */}
           <ScrollyEvents />
 
-          {/* 씬 6 (17.5 ~ 23.5) [600vh] (16.5 -> 17.5로 변경) */}
+          {/* 씬 6 (18.5 ~ 25.5) [700vh] (아이템 2*200vh + 마지막 1*300vh) */}
           <Section5_Impact content={content.impact} />
           
-          {/* 씬 7 (23.5 ~ 24.5) [100vh] (22.5 -> 23.5로 변경) */}
+          {/* 씬 7 (25.5 ~ 26.5) [100vh] */}
           <Section6_Partner content={content.impact} />
+          
+          {/* (참고: 총 26.5 (2650vh) 사용, 2800vh는 넉넉한 버퍼) */}
         </div>
       </Root>
       {/* --- ⬆️ 수정된 부분 ⬆️ --- */}

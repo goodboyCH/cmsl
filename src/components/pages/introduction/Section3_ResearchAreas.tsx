@@ -9,10 +9,10 @@ export function Section3_ResearchAreas({ content }: { content: any }) {
   const sectionRef = useRef<HTMLDivElement>(null);
 
   // --- ⬇️ '새 악보' (2350%) 적용 ⬇️ ---
-  const startTime = 8.5; // (0.5 + 8.0)
-  const endTime = 14.5; // (8.5 + 6.0)
-  const sectionDuration = endTime - startTime; // 6.0 (600vh)
-  const sectionHeight = `${sectionDuration * 100}vh`; // "600vh"
+  const startTime = 9.5; 
+  const endTime = 16.5; // (9.5 + 7.0)
+  const sectionDuration = endTime - startTime; // 7.0 (700vh)
+  const sectionHeight = `${sectionDuration * 100}vh`; // "700vh"
   // --- ⬆️ '새 악보' 적용 ⬆️ ---
 
   const items = content.items || [];
@@ -31,9 +31,9 @@ export function Section3_ResearchAreas({ content }: { content: any }) {
       timeline.fromTo(title, { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.1 }, startTime + 0.1);
       timeline.to(title, { opacity: 0, y: -20, duration: 0.1 }, endTime - 0.2);
 
-      // (문제 2 해결) 
-      const itemDuration = sectionDuration / items.length; // 2.0 (200vh)
-      const transitionDuration = itemDuration * 0.15; // 0.3 (30vh)
+      // (문제 2 해결)
+      const itemDuration = 2.0; // 200vh
+      const transitionDuration = 0.3; // 30vh
 
       items.forEach((_, i: number) => {
         const itemStartTime = startTime + (i * itemDuration);
@@ -48,7 +48,7 @@ export function Section3_ResearchAreas({ content }: { content: any }) {
           timeline.to(textSections[i], { opacity: 0, scale: 0.95, y: -30, duration: transitionDuration }, nextItemStartTime - transitionDuration);
           timeline.to(images[i], { opacity: 0, scale: 0.95, duration: transitionDuration }, nextItemStartTime - transitionDuration);
         } else {
-          // (마지막 아이템 Out 제거)
+          // (마지막 아이템 Out 제거, 300vh 동안 보임)
         }
       });
     }, sectionRef.current); 
