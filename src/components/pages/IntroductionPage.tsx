@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect, useMemo, useLayoutEffect } from 'react';
 import { motion, useScroll, useTransform, MotionValue } from 'framer-motion';
-// ScrollingFocusSection은 더 이상 사용하지 않습니다.
+// 1. ScrollingFocusSection은 사용하지 않습니다.
 import { Cpu, Atom, TestTube2, BrainCircuit, Car, Film, HeartPulse, Magnet, Building, Users } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient'; 
 import merge from 'lodash/merge'; 
@@ -15,15 +15,12 @@ const iconMap: Record<string, React.ElementType> = {
   Cpu, Atom, TestTube2, BrainCircuit, Car, Film, HeartPulse, Magnet, Building, Users,
   "FlaskConical": TestTube2 
 };
-
 interface ScrollyTextProps {
   item: any;
   className: string; 
 }
-
 function ScrollyText({ item, className }: ScrollyTextProps) {
   const IconComponent = iconMap[item.icon] || Atom; 
-
   return (
     <div 
       className={`min-h-screen w-full flex flex-col items-center justify-center text-center p-8 text-white absolute inset-0 ${className}`}
@@ -106,22 +103,33 @@ export function IntroductionPage() {
     if (loading || allItems.length === 0) return;
 
     const ctx = gsap.context(() => {
-      // (오류 수정) 'unknown[]' 대신 'HTMLElement[]' 타입을 명시
       const textSections = gsap.utils.toArray<HTMLElement>('.scrolly-text-item');
 
-      // 각 트리거(sectionRefs)에 텍스트 페이드 애니메이션 바인딩
-      sectionRefs.forEach((sectionRef, i) => {
-        if (!textSections[i]) return;
+      // 1. 첫 번째 텍스트는 즉시 보이게 함
+      gsap.set(textSections[0], { opacity: 1 });
 
+      // 2. 두 번째 섹션부터 트리거를 설정
+      sectionRefs.forEach((sectionRef, i) => {
+        // 첫 번째 섹션(i=0)은 이미 보이므로,
+        // 두 번째 섹션 트리거(i=1)가 첫 번째 텍스트를 숨기고 두 번째 텍스트를 보여주도록 함
+        if (i === 0) return; 
+
+        const prevText = textSections[i - 1];
+        const currentText = textSections[i];
+        
+        if (!prevText || !currentText) return;
+
+        // 3. 새 섹션이 화면 중앙에 오기 "직전"에 텍스트 교체 시작
         gsap.timeline({
           scrollTrigger: {
-            trigger: sectionRef.current, // 스크롤 영역 div
-            start: 'top 50%', // 스크롤 div가 화면 50%에 닿으면
-            end: 'bottom 50%', // 스크롤 div가 화면 50%를 떠나면
-            toggleActions: 'play reverse play reverse', // 진입/이탈 시 페이드 인/아웃
+            trigger: sectionRef.current, // 트리거: 비어있는 h-screen div
+            start: 'top 60%', // 트리거의 상단이 화면의 60% 지점에 닿을 때
+            end: 'top 40%',   // 트리거의 상단이 화면의 40% 지점에 닿을 때
+            scrub: true,      // 스크롤 연동
           }
         })
-        .to(textSections[i], { opacity: 1, duration: 0.5 }); // 해당 텍스트만 보이게
+        .to(prevText, { opacity: 0, duration: 1 }) // 이전 텍스트 숨김
+        .to(currentText, { opacity: 1, duration: 1 }, '<'); // 현재 텍스트 표시
       });
     }, mainContentRef); // mainContentRef 안에서 실행
 
