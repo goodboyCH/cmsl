@@ -48,7 +48,7 @@ export function IntroductionPage() {
     <div className="bg-background">
       {/* --- ⬇️ 수정된 부분 ⬇️ --- */}
       {/* 1. '악보' 길이를 1250% (1250vh)로 수정 */}
-      <Root start="top top" end="+=1250%" scrub={1}>
+      <Root start="top top" end="+=2350%" scrub={1}>
         <div>
           {/* 2. '악보' 시간에 맞춰 '배우'들을 배치 (Padding 없음) */}
           
