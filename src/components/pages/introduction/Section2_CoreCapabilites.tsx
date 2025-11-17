@@ -40,30 +40,34 @@ export function Section2_CoreCapabilites({ content }: { content: any }) {
       timeline.set(textSections[0], { opacity: 1, scale: 1, y: 0 }, startTime); // 5% 시점에 바로 등장
       timeline.set(images[0], { autoAlpha: 1 }, startTime);
 
-      items.forEach((_, i: number) => {
-        if (i === 0) return; // 0번은 이미 처리됨
+      const itemDuration = sectionDuration / items.length;
 
-        // 8. 각 아이템의 '절대' 시작 시점을 계산
-        const itemStartTime = startTime + (i * (sectionDuration / items.length));
+      items.forEach((_, i: number) => {
+        if (i === 0) return; 
+
+        // 2. 각 아이템의 '절대' 시작 시점
+        const itemStartTime = startTime + (i * itemDuration);
         
-        // 9. 텍스트 전환 애니메이션 (로컬 타임라인)
+        // --- ⬇️ 수정된 부분 ⬇️ ---
+        // 3. 텍스트 전환 (로컬 타임라인) - duration을 '초'가 아닌 '진행도'로
         const textTL = gsap.timeline();
         textTL
-          .to(textSections[i - 1], { opacity: 0, scale: 0.95, y: -30, duration: 0.4 })
+          .to(textSections[i - 1], { opacity: 0, scale: 0.95, y: -30, duration: itemDuration * 0.4 })
           .fromTo(textSections[i], { opacity: 0, scale: 0.95, y: 30 }, 
-                { opacity: 1, scale: 1, y: 0, duration: 0.4 }, 0);
+                { opacity: 1, scale: 1, y: 0, duration: itemDuration * 0.4 }, 0);
         
-        // 10. 이미지 모핑 애니메이션 (로컬 타임라인)
+        // 4. 이미지 모핑 (로컬 타임라인) - duration을 '초'가 아닌 '진행도'로
         const morphTL = gsap.timeline();
         morphTL
-          .to(displacementFilter, { attr: { scale: 150 }, duration: 0.5 })
+          .to(displacementFilter, { attr: { scale: 150 }, duration: itemDuration * 0.5 })
           .to(images[i - 1], { autoAlpha: 0 }, '<')
           .to(images[i], { autoAlpha: 1 }, '<')
-          .to(displacementFilter, { attr: { scale: 0 }, duration: 0.5 });
+          .to(displacementFilter, { attr: { scale: 0 }, duration: itemDuration * 0.5 });
           
-        // 11. 로컬 타임라인을 마스터 타임라인의 '절대 시점'에 등록
-        timeline.add(textTL, itemStartTime - 0.2); // 0.4초 애니메이션의 절반
-        timeline.add(morphTL, itemStartTime - 0.5); // 1.0초 애니메이션의 절반
+        // 5. 마스터 타임라인에 '절대 시점'으로 등록 (초 빼기 제거)
+        // (아이템 시작 시점에 정확히 애니메이션 시작)
+        timeline.add(textTL, itemStartTime);
+        timeline.add(morphTL, itemStartTime); // 1.0초 애니메이션의 절반
       });
     }, sectionRef.current); // <-- 'Scope' 적용
 

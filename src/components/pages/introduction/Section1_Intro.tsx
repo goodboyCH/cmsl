@@ -21,23 +21,28 @@ export function Section1_Intro({ content }: { content: any }) {
       const textElement = sectionRef.current?.querySelector('.section1-text');
       if (!videoElement || !textElement) return;
 
-      // 비디오 패럴랙스
+      // 1. (수정) 비디오 패럴랙스는 0%~5% 동안 계속 실행
       timeline.fromTo(
         videoElement,
         { yPercent: 0 },
-        { yPercent: -20, duration: sectionDuration },
-        startTime
+        { yPercent: -20, duration: sectionDuration }, // 5% 동안
+        startTime // 0%
       );
-      // 텍스트 페이드인
-      timeline.fromTo(
+      
+      // 2. (수정) 텍스트를 '즉시' 보이게 합니다 (스크롤 0% 시점).
+      //    (CSS나 framer-motion으로 '페이지 로드' 애니메이션을 넣어도 됩니다)
+      gsap.set(textElement, { opacity: 1, y: 0 });
+
+      // 3. (신규) 텍스트가 5% 지점에서 '사라지도록' 애니메이션을 등록합니다.
+      timeline.to(
         textElement,
-        { opacity: 0, y: 30 },
-        { opacity: 1, y: 0, duration: sectionDuration - 0.01 },
-        0.01
+        { opacity: 0, y: -30, duration: 0.01 }, // 1% 길이(0.01) 동안 빠르게 사라짐
+        endTime - 0.01 // 4% 시점에 시작해서 5%에 완료
       );
+
     }, sectionRef.current);
     return () => ctx.revert();
-  }, [timeline, sectionDuration, startTime]);
+  }, [timeline, sectionDuration, startTime, endTime]); // endTime 추가
 
   return (
     // 1. 'sticky'를 제거하고, '악보'에서 계산된 '높이(height)'를 할당
