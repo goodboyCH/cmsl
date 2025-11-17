@@ -6,7 +6,7 @@ import React, { useLayoutEffect, useRef } from 'react';
 const IMAGE_COUNT = 200;
 const demoImages = Array.from(
   { length: IMAGE_COUNT },
-  (_, i) => `/images/demo-sequence/${(i + 1).toString().padStart(4, '0')}.png`
+  (_, i) => `/images/demo-sequence/${(i + 1).toString().padStart(4, '0')}.webp`
 );
 
 export function Section4_Demo() {
