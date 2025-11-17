@@ -16,6 +16,9 @@ export function Section2_CoreCapabilites({ content }: { content: any }) {
   const startTime = 0.05; // 5%
   const endTime = 0.30; // 30%
   const sectionDuration = endTime - startTime; // 25% (0.25)
+  
+  // '악보' 25% = 1000%의 25% = 250%. 즉, 250vh의 '높이'를 할당합니다.
+  const sectionHeight = `${sectionDuration * 1000}vh`; // "250vh"
   const items = content.items || [];
   const imageList = items.map((item: any) => item.imageUrl);
 
@@ -69,24 +72,25 @@ export function Section2_CoreCapabilites({ content }: { content: any }) {
 
   return (
     // 12. 핀(pin) 효과: '악보' 5%~30% 동안 화면에 고정
-    <div ref={sectionRef} className="h-screen sticky top-0">
-      {/* 섹션 제목 (Supabase 데이터 사용) */}
-      <h2 className="absolute top-16 left-1/2 -translate-x-1/2 text-3xl font-bold text-primary z-20">
-        {content.title}
-      </h2>
+    <div ref={sectionRef} className="relative" style={{ height: sectionHeight }}>
+      
+      {/* 2. '소품'(Visuals)들만 'sticky'를 사용해 화면에 고정시킵니다. */}
+      <div className="sticky top-0 h-screen">
+        <h2 className="absolute top-16 left-1/2 -translate-x-1/2 text-3xl font-bold text-primary z-20">
+          {content.title}
+        </h2>
+        
+        <SvgImageMorph imageUrls={imageList} imageClassName="core-cap-image" />
 
-      {/* '소품' 렌더링: '배우'가 찾을 수 있도록 클래스 이름 전달 */}
-      <SvgImageMorph imageUrls={imageList} imageClassName="core-cap-image" />
-
-      {/* '소품' 렌더링: 텍스트 UI */}
-      <div className="absolute inset-0 z-10">
-        {items.map((item: any, index: number) => (
-          <ScrollyText_UI
-            key={index}
-            item={item}
-            className={`core-cap-text`} // GSAP이 선택할 공통 클래스
-          />
-        ))}
+        <div className="absolute inset-0 z-10">
+          {items.map((item: any, index: number) => (
+            <ScrollyText_UI
+              key={index}
+              item={item}
+              className={`core-cap-text`}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
