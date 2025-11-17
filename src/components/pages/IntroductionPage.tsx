@@ -47,41 +47,30 @@ export function IntroductionPage() {
   return (
     <div className="bg-background">
       {/* --- ⬇️ 수정된 부분 ⬇️ --- */}
-      {/* 1. '악보'에 Padding(총 25%)이 추가되었으므로 end 값을 1250%로 늘립니다. */}
-      <Root start="top top" end="+=1500%" scrub={1}>
+      {/* 1. '악보' 길이를 1250% (1250vh)로 수정 */}
+      <Root start="top top" end="+=1250%" scrub={1}>
         <div>
-          {/* 2. '악보' 시간에 맞춰 '배우'들을 배치합니다. */}
-          {/* (각 컴포넌트의 startTime, endTime도 수정됩니다) */}
+          {/* 2. '악보' 시간에 맞춰 '배우'들을 배치 (Padding 없음) */}
           
-          {/* 씬 1 (0% ~ 5%) */}
+          {/* 씬 1 (0.0 ~ 0.5) [50vh] */}
           <Section1_Intro content={content.mission} />
 
-          {/* (Padding: 5% ~ 10%) */}
-
-          {/* 씬 2 (10% ~ 35%) */}
+          {/* 씬 2 (0.5 ~ 4.5) [400vh] (아이템 4개 * 100vh) */}
           <Section2_CoreCapabilites content={content.capabilities} />
 
-          {/* (Padding: 35% ~ 40%) */}
-
-          {/* 씬 3 (40% ~ 70%) */}
+          {/* 씬 3 (4.5 ~ 7.5) [300vh] (아이템 3개 * 100vh) */}
           <Section3_ResearchAreas content={content.research} />
 
-          {/* (Padding: 70% ~ 75%) */}
-
-          {/* 씬 4 (75% ~ 85%) */}
+          {/* 씬 4 (7.5 ~ 8.5) [100vh] */}
           <Section4_Demo />
 
           {/* 씬 5 (이벤트) - 이벤트 시점도 수정 */}
           <ScrollyEvents />
 
-          {/* (Padding: 85% ~ 90%) */}
-
-          {/* 씬 6 (90% ~ 110%) */}
+          {/* 씬 6 (8.5 ~ 11.5) [300vh] (아이템 3개 * 100vh) */}
           <Section5_Impact content={content.impact} />
           
-          {/* (Padding: 110% ~ 115%) */}
-
-          {/* 씬 7 (115% ~ 125%) */}
+          {/* 씬 7 (11.5 ~ 12.5) [100vh] */}
           <Section6_Partner content={content.impact} />
         </div>
       </Root>

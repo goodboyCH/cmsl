@@ -7,9 +7,9 @@ export function Section5_Impact({ content }: { content: any }) {
   const { timeline } = useScrollytelling();
   const sectionRef = useRef<HTMLDivElement>(null);
 
-  // --- ⬇️ '새 악보' (1500%) 적용 ⬇️ ---
-  const startTime = 10.5; // 1.80 -> 10.5
-  const endTime = 13.5; // 2.40 -> 13.5
+  // --- ⬇️ '새 악보' (1250%) 적용 ⬇️ ---
+  const startTime = 8.5; // 10.5 -> 8.5
+  const endTime = 11.5; // 13.5 -> 11.5
   const sectionDuration = endTime - startTime; // 3.0 (300vh)
   const sectionHeight = `${sectionDuration * 100}vh`; // 1000 -> 100
   // --- ⬆️ '새 악보' 적용 ⬆️ ---
@@ -20,6 +20,7 @@ export function Section5_Impact({ content }: { content: any }) {
     if (!timeline || !sectionRef.current || items.length === 0) return;
     
     const ctx = gsap.context(() => {
+      // (title, impactCards ... 변수 선언은 동일)
       const title = sectionRef.current?.querySelector('h2');
       const impactCards = gsap.utils.toArray<HTMLElement>('.impact-card', sectionRef.current);
       if (!title || impactCards.length === 0) return;
@@ -28,48 +29,32 @@ export function Section5_Impact({ content }: { content: any }) {
       timeline.fromTo(title, { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.1 }, startTime);
       timeline.to(title, { opacity: 0, y: -20, duration: 0.1 }, endTime - 0.1);
 
-      // --- ⬇️ (문제 1, 2) GSAP 로직 전면 수정 ⬇️ ---
-
-      // 1. 아이템 1개당 스크롤 시간 (e.g., 3.0 / 3개 = 1.0 (100vh))
-      const itemDuration = sectionDuration / items.length;
-      // 2. '텀'을 위한 애니메이션 시간 (e.g., 1.0의 70% = 0.7 (70vh))
-      const animationDuration = itemDuration * 0.7; 
+      // (아이템 1개당 시간, '애니메이션' 시간 계산은 동일)
+      const itemDuration = sectionDuration / items.length; // 1.0 (100vh)
+      const animationDuration = itemDuration * 0.7; // 0.7 (70vh)
 
       items.forEach((_, i: number) => {
         const card = impactCards[i];
-        
-        // 3. 이 카드가 애니메이션을 시작할 '절대 시점' (10.5, 11.5, 12.5)
         const cardStartTime = startTime + (i * itemDuration);
 
-        // 4. "1번 내용 (텀) 2번 내용 (텀)" 구현
-        timeline.fromTo(
-          card,
-          { opacity: 0, y: 100 }, // from
-          { 
-            opacity: 1, 
-            y: 0, 
-            duration: animationDuration, // 0.7 (70vh) 동안만 애니메이션
-            ease: 'power2.out'
-          },
-          cardStartTime // e.g., 10.5
-        );
+        // ('In' 애니메이션은 동일)
+        timeline.fromTo(card, { opacity: 0, y: 100 }, { opacity: 1, y: 0, duration: animationDuration, ease: 'power2.out' }, cardStartTime);
         
-        // (마지막 카드가 아니면 '텀' 이후에 사라지는 'Out' 애니메이션 추가)
+        // --- ⬇️ (문제 1 해결) ⬇️ ---
+        // 5. 'Out' 애니메이션: (마지막 아이템이 *아니라면*)
         if (i < items.length - 1) {
-          timeline.to(
-            card,
-            {
-              opacity: 0,
-              y: -100,
-              duration: animationDuration * 0.5, // 0.35 (35vh) 동안 사라짐
-              ease: 'power2.in'
-            },
-            cardStartTime + itemDuration - (animationDuration * 0.5) // e.g., 11.5 - 0.35 = 11.15
-          );
+          // (이전 코드에서 이 'Out' 로직이 빠져있었습니다)
+          const nextItemStartTime = cardStartTime + itemDuration;
+          const outStartTime = nextItemStartTime - (animationDuration * 0.5); // 다음 시작 0.35초 전
+          
+          timeline.to(card, { opacity: 0, y: -100, duration: animationDuration * 0.5, ease: 'power2.in' }, outStartTime);
+        
+        // 6. (문제 1 해결) '마지막' 아이템의 'Out' 애니메이션을 '제거'
+        } else {
+          // (아무것도 하지 않음)
         }
+        // --- ⬆️ (문제 1 해결) ⬆️ ---
       });
-      // --- ⬆️ GSAP 로직 수정 완료 ⬆️ ---
-
     }, sectionRef.current); 
     return () => ctx.revert();
   }, [timeline, items, startTime, sectionDuration, endTime]);
