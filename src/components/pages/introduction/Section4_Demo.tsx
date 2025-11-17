@@ -3,7 +3,7 @@ import { useScrollytelling } from '@bsmnt/scrollytelling';
 import { gsap } from 'gsap';
 import React, { useLayoutEffect, useRef } from 'react';
 
-const VIDEO_SRC = "/videos/demo-sequence1.webm";
+const VIDEO_SRC = "/videos/demo-sequence1.mp4";
 const VIDEO_DURATION_SECONDS = 5;
 
 export function Section4_Demo() {
