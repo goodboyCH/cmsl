@@ -118,14 +118,15 @@ export function IntroductionPage() {
         </motion.div>
       </section>
 
-      {/* 3. <Scrollytelling.Root> -> <Root>로 변경 */}
+      {/* --- ⬇️ 수정된 부분 시작 ⬇️ --- */}
       <Root
         start="top top"
         end={`+=${allItems.length * 100}%`}
         scrub={1}
       >
-        {/* <-- 1. ScrollyTextAnimator에 mainContentRef를 prop으로 전달 --> */}
+        {/* 1. ScrollyTextAnimator에 mainContentRef를 prop으로 전달 */}
         <ScrollyTextAnimator allItems={allItems} mainContentRef={mainContentRef} />
+
         <div ref={mainContentRef} className="relative">
           {/* 스티키 배경 래퍼 (z-0) */}
           <div className="absolute top-0 left-0 w-full h-screen z-0" style={{ position: 'sticky' }}>
@@ -138,18 +139,17 @@ export function IntroductionPage() {
             {/* 스티키 텍스트 컨테이너 (z-10) */}
             <div className="absolute top-0 left-0 w-full h-screen z-10">
               {allItems.map((item, index) => (
-                // 8. <Animation> 컴포넌트 제거!
-                //    ScrollyText 컴포넌트만 렌더링
                 <ScrollyText
                   key={`text-${index}`}
                   item={item}
-                  className={`scrolly-text-item text-item-${index}`} // GSAP이 선택할 클래스
+                  className={`scrolly-text-item text-item-${index}`}
                 />
               ))}
             </div>
           </div>
         </div>
-      </Root> {/* <-- Root 종료 */}
+      </Root>
+      {/* --- ⬆️ 수정된 부분 종료 ⬆️ --- */}
 
       {/* (파트너 로고 섹션은 변경 없음) */}
       <section className="container pb-20 md:pb-32 text-center space-y-8 bg-background relative z-10">
@@ -178,30 +178,30 @@ export function IntroductionPage() {
   );
 }
 
-// <-- 2. ScrollyTextAnimator의 props 타입과 시그니처 수정 -->
+{/* --- ⬇️ 수정된 ScrollyTextAnimator 함수 ⬇️ --- */}
 function ScrollyTextAnimator({ allItems, mainContentRef }: { 
   allItems: any[], 
-  mainContentRef: React.RefObject<HTMLDivElement> 
+  mainContentRef: React.RefObject<HTMLDivElement> // 2. props 타입 수정
 }) {
   const { timeline } = useScrollytelling();
 
   useLayoutEffect(() => {
-    // <-- 3. mainContentRef.current가 준비될 때까지 기다리는 가드 추가 -->
+    // 3. mainContentRef.current가 준비될 때까지 기다림
     if (!timeline || allItems.length === 0 || !mainContentRef.current) return;
 
-    // <-- 4. mainContentRef.current를 'scope'로 지정하여 텍스트 요소 검색 -->
+    // 4. mainContentRef.current를 'scope'로 지정하여 텍스트 요소 검색
     const textSections = gsap.utils.toArray<HTMLElement>('.scrolly-text-item', mainContentRef.current);
 
-    // <-- 5. (안전장치) 요소를 찾지 못하면 경고만 띄우고 종료 -->
+    // 5. (안전장치) 요소를 찾지 못하면 경고만 띄우고 종료
     if (textSections.length === 0) {
       console.warn("ScrollyTextAnimator: '.scrolly-text-item'을 찾을 수 없습니다.");
       return;
     }
 
     // (이후 로직은 동일)
-    gsap.set(textSections[0], { opacity: 1 });
+    gsap.set(textSections[0], { opacity: 1 }); // 첫 번째 텍스트 보이기
 
-    // <-- 6. gsap.context의 scope도 mainContentRef.current로 지정 (권장) -->
+    // 6. gsap.context의 scope도 mainContentRef.current로 지정
     const ctx = gsap.context(() => {
       allItems.forEach((_, i) => {
         if (i === 0) return;
@@ -221,13 +221,13 @@ function ScrollyTextAnimator({ allItems, mainContentRef }: {
             0
           );
 
-        timeline.add(tl, itemStartTime - 0.2);
+        timeline.add(tl, itemStartTime - 0.2); // 0.2초 = 0.4초(duration)의 절반
       });
-    }, mainContentRef.current); // <-- 6. scope 지정
+    }, mainContentRef.current); // <-- scope 지정
 
     return () => ctx.revert();
     
-  }, [allItems, timeline, mainContentRef]); // <-- 7. 의존성 배열에 mainContentRef 추가
+  }, [allItems, timeline, mainContentRef]); // 7. 의존성 배열에 mainContentRef 추가
 
-  return null;
+  return null; // UI를 렌더링하지 않음
 }
