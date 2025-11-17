@@ -1,30 +1,25 @@
-import React, { useRef, useState, useEffect, useMemo, useLayoutEffect } from 'react';
-import { motion, useScroll, useTransform, MotionValue } from 'framer-motion';
-// 1. ScrollingFocusSection은 사용하지 않습니다.
+import React, { useRef, useState, useEffect, useMemo, useLayoutEffect } from 'react'; // 1. useLayoutEffect 추가
+import { motion, useScroll, useTransform } from 'framer-motion';
+// 2. Root와 useScrollytelling 임포트
+import { Root, useScrollytelling } from '@bsmnt/scrollytelling';
+import { gsap } from 'gsap'; // 3. gsap 임포트
 import { Cpu, Atom, TestTube2, BrainCircuit, Car, Film, HeartPulse, Magnet, Building, Users } from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient'; 
-import merge from 'lodash/merge'; 
-import { SvgImageMorph } from '../SvgImageMorph'; 
-import { gsap } from 'gsap'; 
-import { ScrollTrigger } from 'gsap/ScrollTrigger'; 
-
-gsap.registerPlugin(ScrollTrigger);
+import { supabase } from '@/lib/supabaseClient';
+import merge from 'lodash/merge';
+import { SvgImageMorph } from '../SvgImageMorph';
 
 // (ScrollyText 컴포넌트는 변경 없음)
 const iconMap: Record<string, React.ElementType> = {
   Cpu, Atom, TestTube2, BrainCircuit, Car, Film, HeartPulse, Magnet, Building, Users,
-  "FlaskConical": TestTube2 
+  "FlaskConical": TestTube2
 };
-interface ScrollyTextProps {
-  item: any;
-  className: string; 
-}
+interface ScrollyTextProps { item: any; className: string; }
 function ScrollyText({ item, className }: ScrollyTextProps) {
-  const IconComponent = iconMap[item.icon] || Atom; 
+  const IconComponent = iconMap[item.icon] || Atom;
   return (
-    <div 
+    <div
       className={`min-h-screen w-full flex flex-col items-center justify-center text-center p-8 text-white absolute inset-0 ${className}`}
-      style={{ opacity: 0 }} 
+      style={{ opacity: 0 }} // 4. GSAP이 제어하도록 opacity: 0 추가
     >
       <IconComponent className="h-12 w-12 text-primary" />
       <h2 className="text-3xl md:text-5xl font-bold text-shadow-lg mt-4">{item.title}</h2>
@@ -47,7 +42,7 @@ export function IntroductionPage() {
   const [content, setContent] = useState<any>(pageContentDefault);
   const [loading, setLoading] = useState(true);
 
-  // (useEffect는 변경 없음)
+  // (useEffect fetchContent는 변경 없음)
   useEffect(() => {
     const fetchContent = async () => {
       setLoading(true);
@@ -68,14 +63,9 @@ export function IntroductionPage() {
     };
     fetchContent();
   }, []);
-  
+
   const mainContentRef = useRef<HTMLDivElement>(null);
-  
-  // (각 스크롤 섹션에 대한 Ref 생성은 변경 없음)
-  const capabilitiesRef = useRef<HTMLDivElement>(null);
-  const researchRef = useRef<HTMLDivElement>(null);
-  const impactRef = useRef<HTMLDivElement>(null);
-  
+
   // (imageTransitionUrls useMemo 로직은 변경 없음)
   const { allItems, allImages } = useMemo(() => {
     const capabilitiesItems = (content.capabilities?.items || []).filter((item: any) => item.imageUrl);
@@ -91,51 +81,6 @@ export function IntroductionPage() {
     return { allItems: items, allImages: images };
 
   }, [content.capabilities?.items, content.research?.items, content.impact?.items]);
-  
-  // (sectionRefs useMemo 로직은 변경 없음)
-  const sectionRefs = useMemo(() => 
-    Array(allItems.length).fill(0).map(() => React.createRef<HTMLDivElement>()), 
-    [allItems.length]
-  );
-  
-  // --- ⬇️ (핵심 수정) GSAP 텍스트 페이드 로직 ⬇️ ---
-  useLayoutEffect(() => {
-    if (loading || allItems.length === 0) return;
-
-    const ctx = gsap.context(() => {
-      const textSections = gsap.utils.toArray<HTMLElement>('.scrolly-text-item');
-
-      // 1. 첫 번째 텍스트는 즉시 보이게 함
-      gsap.set(textSections[0], { opacity: 1 });
-
-      // 2. 두 번째 섹션부터 트리거를 설정
-      sectionRefs.forEach((sectionRef, i) => {
-        // 첫 번째 섹션(i=0)은 이미 보이므로,
-        // 두 번째 섹션 트리거(i=1)가 첫 번째 텍스트를 숨기고 두 번째 텍스트를 보여주도록 함
-        if (i === 0) return; 
-
-        const prevText = textSections[i - 1];
-        const currentText = textSections[i];
-        
-        if (!prevText || !currentText) return;
-
-        // 3. 새 섹션이 화면 중앙에 오기 "직전"에 텍스트 교체 시작
-        gsap.timeline({
-          scrollTrigger: {
-            trigger: sectionRef.current, // 트리거: 비어있는 h-screen div
-            start: 'top 60%', // 트리거의 상단이 화면의 60% 지점에 닿을 때
-            end: 'top 40%',   // 트리거의 상단이 화면의 40% 지점에 닿을 때
-            scrub: true,      // 스크롤 연동
-          }
-        })
-        .to(prevText, { opacity: 0, duration: 1 }) // 이전 텍스트 숨김
-        .to(currentText, { opacity: 1, duration: 1 }, '<'); // 현재 텍스트 표시
-      });
-    }, mainContentRef); // mainContentRef 안에서 실행
-
-    return () => ctx.revert();
-  }, [loading, allItems, sectionRefs]);
-  // --- ⬆️ 수정 완료 ⬆️ ---
 
   // (Hero 비디오 스케일 훅은 그대로 둡니다)
   const { scrollYProgress: missionProgress } = useScroll({ offset: ['start start', 'end start'] });
@@ -148,12 +93,12 @@ export function IntroductionPage() {
       </div>
     );
   }
-  
+
   return (
     <div className="bg-background text-foreground overflow-x-hidden">
       {/* (Hero 섹션 변경 없음) */}
       <section className="h-screen w-screen flex items-center justify-center relative text-white text-center p-4">
-        <motion.div
+         <motion.div
           className="absolute inset-0 bg-black z-0 overflow-hidden"
           style={{ scale: missionBgScale }}
         >
@@ -174,67 +119,107 @@ export function IntroductionPage() {
         </motion.div>
       </section>
 
-      {/* --- ⬇️ (핵심) 메인 콘텐츠 래퍼 ⬇️ --- */}
-      <div ref={mainContentRef} className="relative"> 
-        
-        {/* 스티키 배경 래퍼 (z-0) */}
-        <div className="absolute top-0 left-0 w-full h-screen z-0" style={{ position: 'sticky' }}>
-          <SvgImageMorph 
-            imageUrls={allImages} 
-            sectionRefs={sectionRefs} // GSAP이 사용할 ref 전달
-          />
-          
-          {/* 스티키 텍스트 컨테이너 (z-10) */}
-          <div className="absolute top-0 left-0 w-full h-screen z-10">
-            {allItems.map((item, index) => (
-              <ScrollyText
-                key={`text-${index}`}
-                item={item}
-                className={`scrolly-text-item text-item-${index}`} // GSAP이 선택할 클래스
-              />
-            ))}
+      {/* 3. <Scrollytelling.Root> -> <Root>로 변경 */}
+      <Root
+        start="top top"
+        end={`+=${allItems.length * 100}%`}
+        scrub={1}
+      >
+        <div ref={mainContentRef} className="relative">
+          {/* 스티키 배경 래퍼 (z-0) */}
+          <div className="absolute top-0 left-0 w-full h-screen z-0" style={{ position: 'sticky' }}>
+            
+            <SvgImageMorph
+              imageUrls={allImages}
+              allItems={allItems}
+            />
+
+            {/* 스티키 텍스트 컨테이너 (z-10) */}
+            <div className="absolute top-0 left-0 w-full h-screen z-10">
+              {allItems.map((item, index) => (
+                // 8. <Animation> 컴포넌트 제거!
+                //    ScrollyText 컴포넌트만 렌더링
+                <ScrollyText
+                  key={`text-${index}`}
+                  item={item}
+                  className={`scrolly-text-item text-item-${index}`} // GSAP이 선택할 클래스
+                />
+              ))}
+            </div>
           </div>
         </div>
-        
-        {/* 스크롤 영역 (z-20) */}
-        <div className="relative z-20">
-          
-          {/* (핵심) GSAP 트리거 역할을 할 빈 div들 */}
-          {/* 이 div들이 실제 스크롤 영역을 만듭니다. */}
-          {allItems.map((item, index) => (
-            <div 
-              key={`trigger-${index}`}
-              ref={sectionRefs[index]} 
-              className="h-screen" // 각 섹션이 화면 높이만큼의 스크롤을 차지
-            />
-          ))}
-          
-          {/* 파트너 로고 섹션 (z-10 유지) */}
-          <section className="container pb-20 md:pb-32 text-center space-y-8 bg-background relative z-10">
-            <h3 className='text-xl md:text-2xl font-bold text-muted-foreground'>Key Partners</h3>
-            <motion.div 
-              className="flex justify-center items-center gap-8 md:gap-12 flex-wrap"
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ staggerChildren: 0.3 }}
+      </Root> {/* <-- Root 종료 */}
+
+      {/* (파트너 로고 섹션은 변경 없음) */}
+      <section className="container pb-20 md:pb-32 text-center space-y-8 bg-background relative z-10">
+        <h3 className='text-xl md:text-2xl font-bold text-muted-foreground'>Key Partners</h3>
+        <motion.div
+          className="flex justify-center items-center gap-8 md:gap-12 flex-wrap"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ staggerChildren: 0.3 }}
+        >
+          {(content?.impact?.logos || []).map((logo: any, index: number) => (
+            <motion.div
+              key={index}
+              variants={{
+                hidden: { opacity: 0, scale: 0.5 },
+                visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: 'easeOut' } }
+              }}
             >
-              {(content?.impact?.logos || []).map((logo: any, index: number) => (
-                <motion.div
-                  key={index}
-                  variants={{
-                    hidden: { opacity: 0, scale: 0.5 },
-                    visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: 'easeOut' } }
-                  }}
-                >
-                  <img src={logo.url} alt={logo.name} className="h-10 md:h-16 opacity-70 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-300" />
-                </motion.div>
-              ))}
+              <img src={logo.url} alt={logo.name} className="h-10 md:h-16 opacity-70 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-300" />
             </motion.div>
-          </section>
-        </div>
-      </div>
-      {/* --- ⬆️ 수정 완료 ⬆️ --- */}
+          ))}
+        </motion.div>
+      </section>
     </div>
   );
+}
+
+function ScrollyTextAnimator({ allItems }: { allItems: any[] }) {
+  // 10. <Root>의 메인 타임라인을 가져옴
+  const { timeline } = useScrollytelling();
+
+  useLayoutEffect(() => {
+    if (!timeline || allItems.length === 0) return;
+
+    // 11. 첫 번째 텍스트는 즉시 보이게 함 (타임라인 시작과 동시에)
+    const textSections = gsap.utils.toArray<HTMLElement>('.scrolly-text-item');
+    gsap.set(textSections[0], { opacity: 1 }); // (혹은 timeline.set(...) 사용)
+
+    // 12. 메인 타임라인에 텍스트 전환 애니메이션 '등록'
+    const ctx = gsap.context(() => {
+      allItems.forEach((_, i) => {
+        if (i === 0) return; // 0번은 이미 처리됨
+
+        const prevText = textSections[i - 1];
+        const currentText = textSections[i];
+        if (!prevText || !currentText) return;
+        
+        // 이 아이템(텍스트)이 시작되는 시점 (0.0 ~ 1.0)
+        const itemStartTime = (1 / allItems.length) * i;
+        const itemDuration = (1 / allItems.length);
+
+        // 페이드아웃/인 로컬 타임라인
+        const tl = gsap.timeline();
+        tl
+          .to(prevText, { opacity: 0, scale: 0.95, y: -30, ease: 'power2.in', duration: 0.4 })
+          .fromTo(currentText, 
+            { opacity: 0, scale: 0.95, y: 30 },
+            { opacity: 1, scale: 1, y: 0, ease: 'power2.out', duration: 0.4 }, 
+            0 // 로컬 타임라인 0초에 동시 시작
+          );
+
+        // 13. (가장 중요) 이 로컬 타임라인(tl)을 메인 타임라인(timeline)에 추가
+        //     전환 시점(itemStartTime) 0.2초 '전'에 시작 (애니메이션 길이 0.4초의 절반)
+        timeline.add(tl, itemStartTime - 0.2);
+      });
+    });
+
+    return () => ctx.revert();
+    
+  }, [allItems, timeline]); // timeline을 의존성 배열에 추가
+
+  return null; // 이 컴포넌트는 UI를 렌더링하지 않음
 }

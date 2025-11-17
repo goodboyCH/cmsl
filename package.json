@@ -12,6 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@bsmnt/scrollytelling": "^0.3.3",
     "@emailjs/browser": "^4.4.1",
     "@hookform/resolvers": "^3.9.0",
     "@kitware/vtk.js": "^34.14.0",
