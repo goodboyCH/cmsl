@@ -9,10 +9,10 @@ export function Section2_CoreCapabilites({ content }: { content: any }) {
   const { timeline } = useScrollytelling();
   const sectionRef = useRef<HTMLDivElement>(null); 
 
-  const startTime = 0.05;
-  const endTime = 0.30;
-  const sectionDuration = endTime - startTime;
-  const sectionHeight = `${sectionDuration * 1000}vh`;
+  const startTime = 0.10; // 5% -> 10%
+  const endTime = 0.35; // 30% -> 35%
+  const sectionDuration = endTime - startTime; // 25% (동일)
+  const sectionHeight = `${sectionDuration * 1000}vh`; // "250vh" (동일)
 
   const items = content.items || [];
   const imageList = items.map((item: any) => item.imageUrl);

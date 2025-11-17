@@ -8,10 +8,9 @@ export function Section6_Partner({ content }: { content: any }) {
   const sectionRef = useRef<HTMLDivElement>(null);
 
   // '악보' 시점
-  const startTime = 0.90; // 90%
-  const duration = 0.10; // 10% (90% ~ 100%)
-  // '악보' 10% = 1000%의 10% = 100vh '높이'
-  const sectionHeight = `${duration * 1000}vh`; // "100vh"
+  const startTime = 1.15; // 90% -> 115%
+  const duration = 0.10; // 10% (동일)
+  const sectionHeight = `${duration * 1000}vh`; // "100vh" (동일)
 
   const logos = content.logos || [];
 

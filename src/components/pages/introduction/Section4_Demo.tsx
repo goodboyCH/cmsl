@@ -15,10 +15,9 @@ export function Section4_Demo() {
   const imgRef = useRef<HTMLImageElement>(null);
 
   // '악보' 시점
-  const startTime = 0.60; // 60%
-  const duration = 0.10; // 10% (60% ~ 70%)
-  // '악보' 10% = 1000%의 10% = 100vh '높이'
-  const sectionHeight = `${duration * 1000}vh`; // "100vh"
+  const startTime = 0.75; // 60% -> 75%
+  const duration = 0.10; // 10% (동일)
+  const sectionHeight = `${duration * 1000}vh`; // "100vh" (동일)
 
   useLayoutEffect(() => {
     // 2. sectionRef.current로 가드

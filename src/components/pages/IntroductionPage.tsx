@@ -46,38 +46,46 @@ export function IntroductionPage() {
   // 4. '악보' 렌더링
   return (
     <div className="bg-background">
-      {/* 5. '악보' 전체를 연주할 마스터 <Root> 무대 */}
-      {/* 악보가 100%로 끝나므로, 1000% (화면 10개 분량) 스크롤을 확보합니다.
-        이렇게 하면 '악보'의 10% = 타임라인의 0.1 (10%)이 되어 계산이 편합니다.
-      */}
-      <Root start="top top" end="+=1000%" scrub={1}>
-        
-        {/* 6. 모든 섹션을 '하나의 <div>'로 감싸서 <Root>의 유일한 자식으로 만듭니다. */}
+      {/* --- ⬇️ 수정된 부분 ⬇️ --- */}
+      {/* 1. '악보'에 Padding(총 25%)이 추가되었으므로 end 값을 1250%로 늘립니다. */}
+      <Root start="top top" end="+=1250%" scrub={1}>
         <div>
+          {/* 2. '악보' 시간에 맞춰 '배우'들을 배치합니다. */}
+          {/* (각 컴포넌트의 startTime, endTime도 수정됩니다) */}
+          
           {/* 씬 1 (0% ~ 5%) */}
           <Section1_Intro content={content.mission} />
 
-          {/* 씬 2 (5% ~ 30%) */}
+          {/* (Padding: 5% ~ 10%) */}
+
+          {/* 씬 2 (10% ~ 35%) */}
           <Section2_CoreCapabilites content={content.capabilities} />
 
-          {/* 씬 3 (30% ~ 60%) */}
+          {/* (Padding: 35% ~ 40%) */}
+
+          {/* 씬 3 (40% ~ 70%) */}
           <Section3_ResearchAreas content={content.research} />
 
-          {/* 씬 4 (60% ~ 70%) */}
+          {/* (Padding: 70% ~ 75%) */}
+
+          {/* 씬 4 (75% ~ 85%) */}
           <Section4_Demo />
 
-          {/* 씬 5 (이벤트) */}
+          {/* 씬 5 (이벤트) - 이벤트 시점도 수정 */}
           <ScrollyEvents />
 
-          {/* 씬 6 (70% ~ 90%) */}
+          {/* (Padding: 85% ~ 90%) */}
+
+          {/* 씬 6 (90% ~ 110%) */}
           <Section5_Impact content={content.impact} />
           
-          {/* 씬 7 (90% ~ 100%) */}
+          {/* (Padding: 110% ~ 115%) */}
+
+          {/* 씬 7 (115% ~ 125%) */}
           <Section6_Partner content={content.impact} />
         </div>
-        {/* --- ⬆️ 수정된 부분 ⬆️ --- */}
-
       </Root>
+      {/* --- ⬆️ 수정된 부분 ⬆️ --- */}
     </div>
   );
 }
