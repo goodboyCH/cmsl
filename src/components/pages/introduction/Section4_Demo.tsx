@@ -3,10 +3,10 @@ import { useScrollytelling } from '@bsmnt/scrollytelling';
 import { gsap } from 'gsap';
 import React, { useLayoutEffect, useRef } from 'react';
 
-const IMAGE_COUNT = 118;
+const IMAGE_COUNT = 200;
 const demoImages = Array.from(
   { length: IMAGE_COUNT },
-  (_, i) => `/images/demo-sequence/${(i + 1).toString().padStart(4, '0')}.jpg`
+  (_, i) => `/images/demo-sequence/${(i + 1).toString().padStart(4, '0')}.png`
 );
 
 export function Section4_Demo() {
@@ -34,20 +34,23 @@ export function Section4_Demo() {
         timeline.to(caption, { opacity: 0, y: 20, duration: 0.1 }, endTime - 0.3);
       }
       // --- ⬆️ (문제 1) 캡션/제목 애니메이션 추가 ⬆️ ---
+      const animationDuration = 3.0; 
 
       const frameTracker = { frame: 0 };
       const imageTween = gsap.to(frameTracker, {
         frame: demoImages.length - 1,
         snap: "frame",
         ease: "none",
-        duration: sectionDuration, // 3. 0.10이 아닌 '2.0' (200vh) 전체를 사용
+        duration: animationDuration, // 2. sectionDuration -> animationDuration
         onUpdate: () => {
           if (imgRef.current) {
             imgRef.current.src = demoImages[frameTracker.frame];
           }
         },
       });
-      timeline.add(imageTween, startTime); // 4. 14.5 시점에 시작
+      
+
+      timeline.add(imageTween, startTime); 
       
     }, sectionRef.current);
     
