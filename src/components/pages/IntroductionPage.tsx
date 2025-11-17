@@ -181,27 +181,26 @@ export function IntroductionPage() {
 {/* --- ⬇️ 수정된 ScrollyTextAnimator 함수 ⬇️ --- */}
 function ScrollyTextAnimator({ allItems, mainContentRef }: { 
   allItems: any[], 
-  mainContentRef: React.RefObject<HTMLDivElement> // 2. props 타입 수정
+  mainContentRef: React.RefObject<HTMLDivElement>
 }) {
   const { timeline } = useScrollytelling();
 
-  useLayoutEffect(() => {
-    // 3. mainContentRef.current가 준비될 때까지 기다림
+  // 1. 'useLayoutEffect'를 'useEffect'로 변경합니다.
+  // 이것이 SSR Hydration 오류를 해결하는 핵심입니다.
+  useEffect(() => {
+    
+    // (이하 로직은 동일)
     if (!timeline || allItems.length === 0 || !mainContentRef.current) return;
 
-    // 4. mainContentRef.current를 'scope'로 지정하여 텍스트 요소 검색
     const textSections = gsap.utils.toArray<HTMLElement>('.scrolly-text-item', mainContentRef.current);
 
-    // 5. (안전장치) 요소를 찾지 못하면 경고만 띄우고 종료
     if (textSections.length === 0) {
       console.warn("ScrollyTextAnimator: '.scrolly-text-item'을 찾을 수 없습니다.");
       return;
     }
 
-    // (이후 로직은 동일)
-    gsap.set(textSections[0], { opacity: 1 }); // 첫 번째 텍스트 보이기
+    gsap.set(textSections[0], { opacity: 1 });
 
-    // 6. gsap.context의 scope도 mainContentRef.current로 지정
     const ctx = gsap.context(() => {
       allItems.forEach((_, i) => {
         if (i === 0) return;
@@ -221,13 +220,13 @@ function ScrollyTextAnimator({ allItems, mainContentRef }: {
             0
           );
 
-        timeline.add(tl, itemStartTime - 0.2); // 0.2초 = 0.4초(duration)의 절반
+        timeline.add(tl, itemStartTime - 0.2);
       });
-    }, mainContentRef.current); // <-- scope 지정
+    }, mainContentRef.current);
 
     return () => ctx.revert();
     
-  }, [allItems, timeline, mainContentRef]); // 7. 의존성 배열에 mainContentRef 추가
+  }, [allItems, timeline, mainContentRef]); // 의존성 배열은 동일
 
-  return null; // UI를 렌더링하지 않음
+  return null;
 }
