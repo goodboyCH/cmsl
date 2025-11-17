@@ -86,9 +86,33 @@ export function Section3_ResearchAreas({ content }: { content: any }) {
   }, [timeline, items, startTime, sectionDuration, endTime]);
 
   return (
-    // (JSX는 변경 없음)
+    // (JSX는 변경 없음, 'Sectoin2'에서 복사해옴)
     <div ref={sectionRef} className="relative" style={{ height: sectionHeight }}>
-      {/* ... */}
+      <div className="sticky top-0 h-screen">
+        <h2 className="absolute top-16 left-1/2 -translate-x-1/2 text-3xl font-bold text-primary z-20 opacity-0">
+          {content.title}
+        </h2>
+        <div className="absolute inset-0 z-0">
+          {imageList.map((url, index) => (
+            <img
+              key={url}
+              src={url}
+              alt={items[index]?.title || 'Research Image'}
+              className="research-image w-full h-full object-cover absolute inset-0"
+              style={{ opacity: 0 }}
+            />
+          ))}
+        </div>
+        <div className="absolute inset-0 z-10">
+          {items.map((item: any, index: number) => (
+            <ScrollyText_UI
+              key={index}
+              item={item}
+              className={`research-text`}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

@@ -77,7 +77,23 @@ export function Section5_Impact({ content }: { content: any }) {
   return (
     // (JSX는 변경 없음)
     <div ref={sectionRef} className="relative" style={{ height: sectionHeight }}>
-      {/* ... */}
+      <div className="sticky top-0 h-screen flex flex-col justify-center items-center p-8">
+        <h2 className="absolute top-16 text-3xl font-bold text-primary z-20 opacity-0">
+          {content.title || "Our Impact"}
+        </h2>
+        <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl">
+          {items.map((item: any, index: number) => (
+            <div
+              key={index}
+              className="impact-card bg-card p-6 rounded-lg shadow-lg border border-border opacity-0"
+            >
+              <img src={item.imageUrl} alt={item.title} className="w-full h-40 object-cover rounded-md mb-4" />
+              <h3 className="text-xl font-bold text-primary mb-2">{item.title}</h3>
+              <p className="text-muted-foreground">{item.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
