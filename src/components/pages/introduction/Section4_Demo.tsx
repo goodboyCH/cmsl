@@ -3,7 +3,7 @@ import { useScrollytelling } from '@bsmnt/scrollytelling';
 import { gsap } from 'gsap';
 import React, { useLayoutEffect, useRef } from 'react';
 
-const IMAGE_COUNT = 150;
+const IMAGE_COUNT = 118;
 const demoImages = Array.from(
   { length: IMAGE_COUNT },
   (_, i) => `/images/demo-sequence/${(i + 1).toString().padStart(4, '0')}.jpg`
@@ -14,7 +14,7 @@ export function Section4_Demo() {
   const sectionRef = useRef<HTMLDivElement>(null); // 1. sectionRef로 변경
   const imgRef = useRef<HTMLImageElement>(null);
 
-  // '악보' 시점
+  // '악보' 시점s
   const startTime = 0.75; // 60% -> 75%
   const duration = 0.10; // 10% (동일)
   const sectionHeight = `${duration * 1000}vh`; // "100vh" (동일)
