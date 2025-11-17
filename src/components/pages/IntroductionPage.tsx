@@ -50,7 +50,7 @@ export function IntroductionPage() {
       {/* 악보가 100%로 끝나므로, 1000% (화면 10개 분량) 스크롤을 확보합니다.
         이렇게 하면 '악보'의 10% = 타임라인의 0.1 (10%)이 되어 계산이 편합니다.
       */}
-      <Root start="top top" end="+=1000%" scrub={1}>
+      <Root start="top top" end="+=5000%" scrub={1}>
         
         {/* 6. 모든 섹션을 '하나의 <div>'로 감싸서 <Root>의 유일한 자식으로 만듭니다. */}
         <div>
