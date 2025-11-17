@@ -8,9 +8,9 @@ export function Section6_Partner({ content }: { content: any }) {
   const sectionRef = useRef<HTMLDivElement>(null);
 
   // '악보' 시점
-  const startTime = 1.15; // 90% -> 115%
-  const duration = 0.10; // 10% (동일)
-  const sectionHeight = `${duration * 1000}vh`; // "100vh" (동일)
+  const startTime = 23.5; // 22.5 -> 23.5
+  const duration = 1.0; // 1.0 (100vh) (동일)
+  const sectionHeight = `${duration * 100}vh`; // "100vh"
 
   const logos = content.logos || [];
 

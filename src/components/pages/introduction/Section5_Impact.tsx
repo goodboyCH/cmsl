@@ -8,9 +8,9 @@ export function Section5_Impact({ content }: { content: any }) {
   const sectionRef = useRef<HTMLDivElement>(null);
 
   // --- ⬇️ '새 악보' (2350%) 적용 ⬇️ ---
-  const startTime = 16.5; // (14.5 + 2.0)
-  const endTime = 22.5; // (16.5 + 6.0)
-  const sectionDuration = endTime - startTime; // 6.0 (600vh)
+  const startTime = 17.5; // 16.5 -> 17.5
+  const endTime = 23.5; // 22.5 -> 23.5
+  const sectionDuration = endTime - startTime; // 6.0 (600vh) (동일)
   const sectionHeight = `${sectionDuration * 100}vh`; // "600vh"
   // --- ⬆️ '새 악보' 적용 ⬆️ ---
 
