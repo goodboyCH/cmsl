@@ -3,16 +3,13 @@ import { useScrollytelling } from '@bsmnt/scrollytelling';
 import { gsap } from 'gsap';
 import React, { useLayoutEffect, useRef } from 'react';
 
-const IMAGE_COUNT = 200;
-const demoImages = Array.from(
-  { length: IMAGE_COUNT },
-  (_, i) => `/images/demo-sequence/${(i + 1).toString().padStart(4, '0')}.webp`
-);
+const VIDEO_SRC = "/videos/demo-sequence.mp4";
+const VIDEO_DURATION_SECONDS = 11;
 
 export function Section4_Demo() {
   const { timeline } = useScrollytelling();
   const sectionRef = useRef<HTMLDivElement>(null);
-  const imgRef = useRef<HTMLImageElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   // --- ⬇️ '새 악보' (2350%) 적용 ⬇️ ---
   const startTime = 16.5; // (시작은 16.5 동일)
@@ -23,7 +20,7 @@ export function Section4_Demo() {
 
   useLayoutEffect(() => {
     // 2. sectionRef.current로 가드
-    if (!timeline || !imgRef.current || !sectionRef.current) return;
+    if (!timeline || !videoRef.current || !sectionRef.current) return;
 
     const ctx = gsap.context(() => {
       // --- ⬇️ (문제 1) 캡션/제목 애니메이션 추가 ⬇️ ---
@@ -34,23 +31,21 @@ export function Section4_Demo() {
         timeline.to(caption, { opacity: 0, y: 20, duration: 0.1 }, endTime - 0.3);
       }
       // --- ⬆️ (문제 1) 캡션/제목 애니메이션 추가 ⬆️ ---
-      const animationDuration = 3.0; 
+      const videoTracker = { time: 0 };
 
-      const frameTracker = { frame: 0 };
-      const imageTween = gsap.to(frameTracker, {
-        frame: demoImages.length - 1,
-        snap: "frame",
+      // 5. 'frame' 대신 'videoTracker.time'을 0초에서 'VIDEO_DURATION_SECONDS'초까지 애니메이션
+      const videoTween = gsap.to(videoTracker, {
+        time: VIDEO_DURATION_SECONDS,
         ease: "none",
-        duration: animationDuration, // 2. sectionDuration -> animationDuration
+        duration: 3.0, // '고정' 시간을 위해 sectionDuration(3.0)보다 짧게 설정
         onUpdate: () => {
-          if (imgRef.current) {
-            imgRef.current.src = demoImages[frameTracker.frame];
+          // 6. videoTracker.time이 바뀔 때마다 <video>의 currentTime을 강제로 변경
+          if (videoRef.current) {
+            videoRef.current.currentTime = videoTracker.time;
           }
         },
       });
-      
-
-      timeline.add(imageTween, startTime); 
+      timeline.add(videoTween, startTime); // 16.5 시점에 시작 
       
     }, sectionRef.current);
     
@@ -63,11 +58,15 @@ export function Section4_Demo() {
     <div ref={sectionRef} className="relative" style={{ height: sectionHeight }}>
       {/* 6. '소품'(Visuals)들만 'sticky'를 사용해 화면에 고정 */}
       <div className="sticky top-0 h-screen">
-        <img 
-          ref={imgRef}
-          src={demoImages[0]}
+      <video
+          ref={videoRef}
+          src={VIDEO_SRC}
           className="w-full h-full object-contain"
+          playsInline // 모바일 자동재생 정책
+          muted // 모바일 자동재생 정책
+          preload="auto" // 미리 로드
         />
+        
         {/* 7. 캡션에 GSAP이 제어할 클래스와 opacity-0 추가 */}
         <div className="demo-caption opacity-0 absolute bottom-20 left-1/2 -translate-x-1/2 z-10">
           <p className="text-white text-lg text-shadow-lg bg-black/30 p-2 rounded-md">
