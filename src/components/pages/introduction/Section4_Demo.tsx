@@ -3,8 +3,8 @@ import { useScrollytelling } from '@bsmnt/scrollytelling';
 import { gsap } from 'gsap';
 import React, { useLayoutEffect, useRef } from 'react';
 
-const VIDEO_SRC = "/videos/demo-sequence.mp4";
-const VIDEO_DURATION_SECONDS = 11;
+const VIDEO_SRC = "/videos/demo-sequence.webm";
+const VIDEO_DURATION_SECONDS = 5;
 
 export function Section4_Demo() {
   const { timeline } = useScrollytelling();
@@ -66,7 +66,7 @@ export function Section4_Demo() {
           muted // 모바일 자동재생 정책
           preload="auto" // 미리 로드
         />
-        
+
         {/* 7. 캡션에 GSAP이 제어할 클래스와 opacity-0 추가 */}
         <div className="demo-caption opacity-0 absolute bottom-20 left-1/2 -translate-x-1/2 z-10">
           <p className="text-white text-lg text-shadow-lg bg-black/30 p-2 rounded-md">
