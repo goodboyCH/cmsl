@@ -1,135 +1,89 @@
 "use client";
+import { useScrollytelling } from '@bsmnt/scrollytelling';
+import { gsap } from 'gsap';
+import React, { useLayoutEffect, useRef } from 'react';
+import { SvgImageMorph } from '../../SvgImageMorph';
+import { ScrollyText_UI } from '../../ui/ScrollyText_UI';
 
-import React from 'react';
-import { Root, Pin, Animation } from '@bsmnt/scrollytelling';
+export function Section2_CoreCapabilites({ content }: { content: any }) {
+  const { timeline } = useScrollytelling();
+  const sectionRef = useRef<HTMLDivElement>(null); 
 
-// content 데이터 타입 정의 (필요시 수정)
-interface SectionProps {
-  content: {
-    title?: string;
-    items: Array<{
-      title: string;
-      desc?: string;    // 기존 데이터 필드명에 맞춰 조정 (description vs desc)
-      description?: string;
-      imageUrl?: string;
-      // ... 기타 필드
-    }>;
-  };
-}
+  // --- ⬇️ '새 악보' (2350%) 적용 ⬇️ ---
+  const startTime = 0.5; 
+  const endTime = 6.5; // (0.5 + 9.0)
+  const sectionDuration = endTime - startTime; // 9.0 (600vh)
+  const sectionHeight = `${sectionDuration * 100}vh`; // "600vh"
+  // --- ⬆️ '새 악보' 적용 ⬆️ ---
 
-export function Section2_CoreCapabilites({ content }: SectionProps) {
-  // 데이터 안전장치
   const items = content.items || [];
-  const TOTAL_CARDS = items.length;
-  
-  // 스크롤 길이 설정 (카드 개수에 따라 유동적으로 조절 가능)
-  // 예: 카드당 100vh 정도의 스크롤 영역 배정
-  const PIN_HEIGHT = `${TOTAL_CARDS * 100}vh`;
+  const imageList = items.map((item: any) => item.imageUrl);
 
-  if (TOTAL_CARDS === 0) return null;
+  useLayoutEffect(() => {
+    if (!timeline || !sectionRef.current || items.length === 0) return;
+
+    const ctx = gsap.context(() => {
+      const title = sectionRef.current?.querySelector('h2');
+      const textSections = gsap.utils.toArray<HTMLElement>('.core-cap-text', sectionRef.current);
+      const images = gsap.utils.toArray<SVGImageElement>('.core-cap-image', sectionRef.current);
+      const displacementFilter = sectionRef.current?.querySelector('#displacement-filter feDisplacementMap');
+      if (!title || textSections.length === 0 || images.length === 0 || !displacementFilter) return;
+
+      // --- ⬇️ (문제 1 해결) ⬇️ ---
+      // 제목이 10vh(0.1) 늦게 나타나고 20vh(0.2) 일찍 사라짐
+      timeline.fromTo(title, { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.1 }, startTime + 0.1);
+      timeline.to(title, { opacity: 0, y: -20, duration: 0.1 }, endTime - 0.2);
+      // --- ⬆️ (문제 1 해결) ⬆️ ---
+
+      // 1. 아이템 1개당 스크롤 시간 (e.g., 8.0 / 4개 = 2.0 (200vh))
+      const itemDuration = 1.5;
+      // 2. '전환'에 사용할 스크롤 시간 (0.3 = 30vh)
+      const transitionDuration = 0.3;
+
+      items.forEach((_, i: number) => {
+        // 3. 이 아이템이 시작되는 '절대 시점' (0.5, 2.5, 4.5, 6.5)
+        const itemStartTime = startTime + (i * itemDuration);
+
+        // 4. 'In' 애니메이션 (동일)
+        timeline.fromTo(textSections[i], { opacity: 0, scale: 0.95, y: 30 }, { opacity: 1, scale: 1, y: 0, duration: transitionDuration }, itemStartTime);
+        timeline.fromTo(images[i], { autoAlpha: 0 }, { autoAlpha: 1, duration: transitionDuration }, itemStartTime);
+        
+        // 5. 'Out' 애니메이션: (마지막 아이템이 *아니라면*)
+        if (i < items.length - 1) {
+          const nextItemStartTime = itemStartTime + itemDuration;
+          
+          timeline.to(textSections[i], { opacity: 0, scale: 0.95, y: -30, duration: transitionDuration }, nextItemStartTime - transitionDuration);
+          timeline.to(displacementFilter, { attr: { scale: 150 }, duration: transitionDuration }, nextItemStartTime - transitionDuration);
+          timeline.to(images[i], { autoAlpha: 0, duration: transitionDuration }, '<');
+          timeline.to(displacementFilter, { attr: { scale: 0 }, duration: 0 }, nextItemStartTime);
+        
+        } else {
+          // (아무것도 하지 않음)
+        }
+        // --- ⬆️ (문제 2 해결) ⬆️ ---
+      });
+    }, sectionRef.current); 
+    return () => ctx.revert();
+  }, [timeline, items, startTime, sectionDuration, endTime]);
 
   return (
-    <section className="relative w-full bg-neutral-900 text-white">
-      {/* scrub={true}: 스크롤 위치에 따라 애니메이션 프레임이 동기화됨 
-      */}
-      <Root scrub={true}>
-        <Pin pinSpacerHeight={PIN_HEIGHT} top={0} childHeight={1}>
-          {/* PinContainer: 화면에 고정되는 영역 */}
-          <div className="h-screen w-full flex flex-col justify-center items-center overflow-hidden relative">
-            
-            {/* 섹션 제목 (선택 사항 - 상단 고정) */}
-            {content.title && (
-              <h2 className="absolute top-10 sm:top-20 text-3xl sm:text-4xl font-bold text-white/90 z-50 mix-blend-difference">
-                {content.title}
-              </h2>
-            )}
-
-            {/* CardStack: 모든 카드를 한곳에 겹쳐두는 Grid 컨테이너 */}
-            <div className="grid grid-cols-1 grid-rows-1 place-items-center w-full h-full">
-              {items.map((item, index) => {
-                // --- 타임라인 계산 로직 ---
-                const step = 100 / TOTAL_CARDS;
-                const isFirstCard = index === 0;
-                const isLastCard = index === TOTAL_CARDS - 1;
-
-                // 1. 진입 (Entry): 이전 카드가 보여지는 동안 화면 아래에서 올라옴
-                const startEnter = (index - 1) * step;
-                const endEnter = index * step;
-
-                // 2. 퇴장/축소 (Exit): 다음 카드가 올라오는 동안 뒤로 물러남
-                const startExit = endEnter;
-                const endExit = (index + 1) * step;
-
-                const tweens = [];
-
-                // 진입 애니메이션 설정 (첫 카드는 이미 중앙에 있으므로 제외)
-                if (!isFirstCard) {
-                  tweens.push({
-                    start: startEnter,
-                    end: endEnter,
-                    from: { y: '120vh', opacity: 1, rotateX: -10 }, // 아래에서 시작
-                    to: { y: '0vh', opacity: 1, rotateX: 0, ease: 'power3.out' }, // 중앙 안착
-                  });
-                }
-
-                // 축소 애니메이션 설정 (마지막 카드는 가려질 필요 없으므로 제외)
-                if (!isLastCard) {
-                  tweens.push({
-                    start: startExit,
-                    end: endExit,
-                    from: { scale: 1, filter: 'brightness(100%) blur(0px)' },
-                    to: { scale: 0.92, filter: 'brightness(60%) blur(2px)', ease: 'linear' }, // 뒤로 빠지면서 어두워짐
-                  });
-                }
-
-                return (
-                  <Animation key={index} tween={tweens}>
-                    {/* Card 스타일링 
-                      - grid-area: 1/1/2/2 -> 모든 카드를 같은 셀에 겹침
-                      - z-index: 순서대로 위로 쌓임
-                    */}
-                    <div
-                      className="relative flex flex-col justify-end w-[85vw] max-w-[400px] h-[60vh] max-h-[550px] rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden border border-white/10"
-                      style={{
-                        gridArea: '1 / 1 / 2 / 2',
-                        zIndex: index + 1,
-                        backgroundColor: '#1e1e1e', // 이미지 없을 경우 기본 배경
-                        willChange: 'transform, opacity',
-                      }}
-                    >
-                      {/* 배경 이미지 (있을 경우) */}
-                      {item.imageUrl && (
-                        <div 
-                          className="absolute inset-0 z-0 transition-transform duration-700 hover:scale-105"
-                          style={{
-                            backgroundImage: `url(${item.imageUrl})`,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center',
-                          }}
-                        />
-                      )}
-                      
-                      {/* 그라데이션 오버레이 (텍스트 가독성용) */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-0" />
-
-                      {/* 텍스트 콘텐츠 */}
-                      <div className="relative z-10 translate-y-0 transition-transform">
-                        <div className="w-10 h-1 bg-primary mb-4 rounded-full" /> {/* 장식용 바 */}
-                        <h3 className="text-2xl sm:text-3xl font-bold mb-3 text-white">
-                          {item.title}
-                        </h3>
-                        <p className="text-sm sm:text-base text-gray-300 leading-relaxed line-clamp-4">
-                          {item.description || item.desc}
-                        </p>
-                      </div>
-                    </div>
-                  </Animation>
-                );
-              })}
-            </div>
-          </div>
-        </Pin>
-      </Root>
-    </section>
+    // (JSX는 변경 없음)
+    <div ref={sectionRef} className="relative" style={{ height: sectionHeight }}>
+      <div className="sticky top-0 h-screen">
+        <h2 className="absolute top-32 left-1/2 -translate-x-1/2 text-3xl font-bold text-primary z-20 opacity-0">
+          {content.title}
+        </h2>
+        <SvgImageMorph imageUrls={imageList} imageClassName="core-cap-image" />
+        <div className="absolute inset-0 z-10">
+          {items.map((item: any, index: number) => (
+            <ScrollyText_UI
+              key={index}
+              item={item}
+              className={`core-cap-text`}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
