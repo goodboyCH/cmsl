@@ -12,8 +12,8 @@ export function Section4_Demo() {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // --- ⬇️ '새 악보' (2350%) 적용 ⬇️ ---
-  const startTime = 16.5; // (시작은 16.5 동일)
-  const endTime = 20.5; // 18.5 -> 19.5
+  const startTime = 12.5; // (시작은 16.5 동일)
+  const endTime = 16.5; // 18.5 -> 19.5
   const sectionDuration = endTime - startTime; // 2.0 -> 3.0 (300vh)
   const sectionHeight = `${sectionDuration * 100}vh`; // "300vh"
   // --- ⬆️ '새 악보' 적용 ⬆️ ---

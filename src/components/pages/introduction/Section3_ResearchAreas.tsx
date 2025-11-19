@@ -9,8 +9,8 @@ export function Section3_ResearchAreas({ content }: { content: any }) {
   const sectionRef = useRef<HTMLDivElement>(null);
 
   // --- ⬇️ '새 악보' (2350%) 적용 ⬇️ ---
-  const startTime = 9.5; 
-  const endTime = 16.5; // (9.5 + 7.0)
+  const startTime = 6.5; 
+  const endTime = 12.5; // (9.5 + 7.0)
   const sectionDuration = endTime - startTime; // 7.0 (700vh)
   const sectionHeight = `${sectionDuration * 100}vh`; // "700vh"
   // --- ⬆️ '새 악보' 적용 ⬆️ ---

@@ -11,9 +11,9 @@ export function Section2_CoreCapabilites({ content }: { content: any }) {
 
   // --- ⬇️ '새 악보' (2350%) 적용 ⬇️ ---
   const startTime = 0.5; 
-  const endTime = 9.5; // (0.5 + 9.0)
-  const sectionDuration = endTime - startTime; // 9.0 (900vh)
-  const sectionHeight = `${sectionDuration * 100}vh`; // "900vh"
+  const endTime = 6.5; // (0.5 + 9.0)
+  const sectionDuration = endTime - startTime; // 9.0 (600vh)
+  const sectionHeight = `${sectionDuration * 100}vh`; // "600vh"
   // --- ⬆️ '새 악보' 적용 ⬆️ ---
 
   const items = content.items || [];
@@ -36,7 +36,7 @@ export function Section2_CoreCapabilites({ content }: { content: any }) {
       // --- ⬆️ (문제 1 해결) ⬆️ ---
 
       // 1. 아이템 1개당 스크롤 시간 (e.g., 8.0 / 4개 = 2.0 (200vh))
-      const itemDuration = 2.0;
+      const itemDuration = 1.5;
       // 2. '전환'에 사용할 스크롤 시간 (0.3 = 30vh)
       const transitionDuration = 0.3;
 
@@ -57,8 +57,6 @@ export function Section2_CoreCapabilites({ content }: { content: any }) {
           timeline.to(images[i], { autoAlpha: 0, duration: transitionDuration }, '<');
           timeline.to(displacementFilter, { attr: { scale: 0 }, duration: 0 }, nextItemStartTime);
         
-        // 6. (문제 2 해결) '마지막' 아이템의 'Out' 애니메이션을 '제거'
-        //    (마지막 아이템은 (9.5 - 6.5) = 3.0 (300vh) 넉넉하게 보임)
         } else {
           // (아무것도 하지 않음)
         }

@@ -8,8 +8,8 @@ export function Section6_Partner({ content }: { content: any }) {
   const sectionRef = useRef<HTMLDivElement>(null);
 
   // '악보' 시점
-  const startTime = 27.5; // 25.5 -> 26.5
-  const duration = 1.0; // 1.0 (100vh) (동일)
+  const startTime = 20.5; // 25.5 -> 26.5
+  const duration = 0.5; // 1.0 (100vh) (동일)
   const sectionHeight = `${duration * 100}vh`; // "100vh"
 
   const logos = content.logos || [];
