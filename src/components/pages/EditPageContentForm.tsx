@@ -36,18 +36,39 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
       const { data } = await supabase.from('pages').select('content').eq('page_key', pageKey).single();
       
       if (data?.content) {
-        // 'projects'의 tags를 string으로 미리 변환
         const processedContent = { ...data.content };
+        
+        // projects 태그 처리
         if (processedContent.projects) {
           processedContent.projects = processedContent.projects.map((proj: any) => ({
             ...proj,
-            tags: (proj.tags || []).join('\n') // DB의 string[]을 폼의 string으로 변환
+            tags: (proj.tags || []).join('\n')
           }));
         }
+
+        // --- 데이터 호환성 처리 ---
+        // gallery_images에 type이 없으면 'image'로 기본 설정
+        if (processedContent.gallery_images) {
+          processedContent.gallery_images = processedContent.gallery_images.map((item: any) => ({
+            ...item,
+            type: item.type || 'image'
+          }));
+        } else {
+          processedContent.gallery_images = [];
+        }
+
+        // representative_media가 없으면 main_image_url을 기반으로 초기화
+        if (!processedContent.representative_media) {
+           processedContent.representative_media = { 
+             url: processedContent.main_image_url || '', 
+             type: 'image', 
+             alt: '' 
+           };
+        }
+
         setContent(processedContent);
         
         if (pageKey === 'professor') {
-          // (교수님 폼 데이터 로드 로직은 동일)
           setTextBlocks({
             education: (data.content.education || []).map((item: any) => `${item.period} | ${item.description}`).join('\n'),
             experience: (data.content.experience || []).map((item: any) => `${item.period} | ${item.description}`).join('\n'),
@@ -63,7 +84,6 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
     fetchContent();
   }, [pageKey]);
 
-  // (배열 관리 헬퍼 함수들은 변경 없음)
   const handleArrayItemChange = (arrayName: string, index: number, field: string, value: string) => {
     if (!content) return;
     const updatedItems = [...(content[arrayName] || [])];
@@ -83,11 +103,22 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
     setContent(prev => (prev ? { ...prev, [arrayName]: updatedItems } : { [arrayName]: updatedItems }));
   };
 
-  // (다른 핸들러들은 변경 없음)
   const handleContentChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setContent(prev => (prev ? { ...prev, [name]: value } : { [name]: value }));
   };
+
+  // --- Representative Media 핸들러 ---
+  const handleRepresentativeChange = (field: string, value: string) => {
+    setContent(prev => ({
+      ...prev,
+      representative_media: {
+        ...prev?.representative_media,
+        [field]: value
+      }
+    }));
+  };
+
   const handleContactChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setContent(prev => (prev ? { ...prev, contact: { ...prev.contact, [name]: value } } : {}));
@@ -102,7 +133,6 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
     }
   };
 
-  // (handleSubmit은 변경 없음, 'projects' 태그 변환 로직 포함)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -111,7 +141,6 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
       let finalContent = { ...content };
 
       if (pageKey === 'professor') {
-        // (교수님 폼 저장 로직은 동일)
         finalContent.education = textBlocks.education.split('\n').filter(line => line.includes('|')).map(line => ({ period: line.split('|')[0].trim(), description: line.split('|')[1].trim() }));
         finalContent.experience = textBlocks.experience.split('\n').filter(line => line.includes('|')).map(line => ({ period: line.split('|')[0].trim(), description: line.split('|')[1].trim() }));
         finalContent.awards_and_honors = textBlocks.awards_and_honors.split('\n').filter(line => line.includes('|')).map(line => ({ period: line.split('|')[0].trim(), description: line.split('|')[1].trim() }));
@@ -138,6 +167,11 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
         }));
       }
 
+      // main_image_url 동기화 (하위 호환성 유지)
+      if (finalContent.representative_media?.url) {
+          finalContent.main_image_url = finalContent.representative_media.url;
+      }
+
       const { error } = await supabase.from('pages').update({ content: finalContent }).eq('page_key', pageKey);
       if (error) throw error;
       setMessage('페이지 콘텐츠가 성공적으로 저장되었습니다.');
@@ -148,7 +182,6 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
       setLoading(false);
     }
   };
-
 
   if (loading) return <p className="text-center p-8">Loading page content...</p>;
 
@@ -163,7 +196,6 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
           
           {pageKey === 'professor' ? (
             <>
-              {/* --- 교수님 폼 (변경 없음) --- */}
               <div className="space-y-2"><Label>Name</Label><Input name="name" value={content?.name || ''} onChange={handleContentChange} /></div>
               <div className="space-y-2"><Label>Title (e.g., Professor)</Label><Input name="title" value={content?.title || ''} onChange={handleContentChange} /></div>
               <div className="space-y-2"><Label>Department</Label><Input name="department" value={content?.department || ''} onChange={handleContentChange} /></div>
@@ -189,26 +221,69 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
             // --- 리서치 페이지 폼 ---
             <Accordion type="multiple" defaultValue={['item-1']} className="w-full">
               <AccordionItem value="item-1">
-                <AccordionTrigger>페이지 소개 (상단)</AccordionTrigger>
+                <AccordionTrigger>페이지 소개 및 대표 미디어</AccordionTrigger>
                 <AccordionContent className="space-y-4 pt-2">
                   <div className="space-y-2"><Label>Main Title (h1)</Label><Input name="title" value={content?.title || ''} onChange={handleContentChange} /></div>
                   <div className="space-y-2"><Label>Subtitle (p)</Label><Input name="subtitle" value={content?.subtitle || ''} onChange={handleContentChange} /></div>
                   <div className="space-y-2"><Label>Main Paragraph 1</Label><Textarea name="main_paragraph_1" value={content?.main_paragraph_1 || ''} onChange={handleContentChange} rows={5} /></div>
                   <div className="space-y-2"><Label>Main Paragraph 2</Label><Textarea name="main_paragraph_2" value={content?.main_paragraph_2 || ''} onChange={handleContentChange} rows={5} /></div>
                   
-                  {/* --- ⬇️ (요청 2) 단일 이미지 입력을 갤러리 관리로 변경 ⬇️ --- */}
-                  <div className="space-y-3 pt-2">
-                    <Label className="font-semibold">Image Gallery (상단 이미지 캐러셀)</Label>
-                    {(content?.gallery_images || []).map((image: any, index: number) => (
+                  {/* --- Representative Figure/Video 입력 --- */}
+                  <div className="p-4 border rounded-md space-y-3 bg-muted/20">
+                    <Label className="font-bold text-primary">Representative Figure (Top Section)</Label>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="col-span-2 space-y-2">
+                        <Label>Media URL</Label>
+                        <Input 
+                          value={content?.representative_media?.url || ''} 
+                          onChange={(e) => handleRepresentativeChange('url', e.target.value)} 
+                          placeholder="https://... (Image or Video URL)" 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Type</Label>
+                        <Select 
+                          value={content?.representative_media?.type || 'image'} 
+                          onValueChange={(val) => handleRepresentativeChange('type', val)}
+                        >
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="image">Image</SelectItem>
+                            <SelectItem value="video">Video</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="space-y-2"><Label>Alt Text</Label><Input value={content?.representative_media?.alt || ''} onChange={(e) => handleRepresentativeChange('alt', e.target.value)} /></div>
+                  </div>
+
+                  {/* --- Media Gallery (Carousel) 입력 --- */}
+                  <div className="space-y-3 pt-4">
+                    <Label className="font-semibold">Media Gallery (Bottom Carousel)</Label>
+                    {(content?.gallery_images || []).map((item: any, index: number) => (
                       <div key={index} className="p-4 border rounded-md space-y-3 relative">
                         <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeItemFromArray('gallery_images', index)}><Trash2 className="h-4 w-4"/></Button>
-                        <div className="space-y-2"><Label>Image URL</Label><Input value={image.url || ''} onChange={(e) => handleArrayItemChange('gallery_images', index, 'url', e.target.value)} placeholder="https://..." /></div>
-                        <div className="space-y-2"><Label>Alt Text (Optional)</Label><Input value={image.alt || ''} onChange={(e) => handleArrayItemChange('gallery_images', index, 'alt', e.target.value)} placeholder="Image description (for accessibility)" /></div>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="col-span-2 space-y-2">
+                            <Label>Media URL</Label>
+                            <Input value={item.url || ''} onChange={(e) => handleArrayItemChange('gallery_images', index, 'url', e.target.value)} placeholder="https://..." />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Type</Label>
+                            <Select value={item.type || 'image'} onValueChange={(val) => handleArrayItemChange('gallery_images', index, 'type', val)}>
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="image">Image</SelectItem>
+                                <SelectItem value="video">Video</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <div className="space-y-2"><Label>Description (Alt Text)</Label><Input value={item.alt || ''} onChange={(e) => handleArrayItemChange('gallery_images', index, 'alt', e.target.value)} /></div>
                       </div>
                     ))}
-                    <Button type="button" variant="outline" size="sm" onClick={() => addItemToArray('gallery_images', { url: '', alt: '' })}>Add Image to Gallery</Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => addItemToArray('gallery_images', { url: '', type: 'image', alt: '' })}>Add Media Item</Button>
                   </div>
-                  {/* --- ⬆️ 변경 완료 ⬆️ --- */}
                   
                 </AccordionContent>
               </AccordionItem>
@@ -216,42 +291,36 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
               <AccordionItem value="item-2">
                 <AccordionTrigger>프로젝트 카드 (하단)</AccordionTrigger>
                 <AccordionContent className="space-y-4 pt-2">
-                  {/* --- (프로젝트 카드 폼은 변경 없음) --- */}
-                  <div className="space-y-2"><Label>Projects Section Title</Label><Input name="projects_title" value={content?.projects_title || ''} onChange={handleContentChange} /></div>
-                  <div className="space-y-2"><Label>Projects Section Subtitle</Label><Input name="projects_subtitle" value={content?.projects_subtitle || ''} onChange={handleContentChange} /></div>
-                  
-                  {(content?.projects || []).map((project: any, index: number) => (
-                    <div key={index} className="p-4 border rounded-md space-y-3 relative">
-                      <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeItemFromArray('projects', index)}><Trash2 className="h-4 w-4"/></Button>
-                      <div className="space-y-2"><Label>Project Title</Label><Input value={project.title} onChange={(e) => handleArrayItemChange('projects', index, 'title', e.target.value)} /></div>
-                      <div className="space-y-2"><Label>Description</Label><Textarea value={project.description} onChange={(e) => handleArrayItemChange('projects', index, 'description', e.target.value)} rows={3} /></div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2"><Label>담당자</Label><Input value={project.person_in_charge} onChange={(e) => handleArrayItemChange('projects', index, 'person_in_charge', e.target.value)} /></div>
-                        <div className="space-y-2"><Label>로고 URL</Label><Input value={project.logo_url} onChange={(e) => handleArrayItemChange('projects', index, 'logo_url', e.target.value)} /></div>
-                        <div className="space-y-2"><Label>Status</Label>
-                          <Select value={project.status} onValueChange={(val) => handleArrayItemChange('projects', index, 'status', val)}>
-                            <SelectTrigger><SelectValue/></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Active">Active</SelectItem>
-                              <SelectItem value="Completed">Completed</SelectItem>
-                            </SelectContent>
-                          </Select>
+                   <div className="space-y-2"><Label>Projects Section Title</Label><Input name="projects_title" value={content?.projects_title || ''} onChange={handleContentChange} /></div>
+                   <div className="space-y-2"><Label>Projects Section Subtitle</Label><Input name="projects_subtitle" value={content?.projects_subtitle || ''} onChange={handleContentChange} /></div>
+                   
+                   {(content?.projects || []).map((project: any, index: number) => (
+                      <div key={index} className="p-4 border rounded-md space-y-3 relative">
+                        <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeItemFromArray('projects', index)}><Trash2 className="h-4 w-4"/></Button>
+                        <div className="space-y-2"><Label>Project Title</Label><Input value={project.title} onChange={(e) => handleArrayItemChange('projects', index, 'title', e.target.value)} /></div>
+                        <div className="space-y-2"><Label>Description</Label><Textarea value={project.description} onChange={(e) => handleArrayItemChange('projects', index, 'description', e.target.value)} rows={3} /></div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2"><Label>담당자</Label><Input value={project.person_in_charge} onChange={(e) => handleArrayItemChange('projects', index, 'person_in_charge', e.target.value)} /></div>
+                          <div className="space-y-2"><Label>로고 URL</Label><Input value={project.logo_url} onChange={(e) => handleArrayItemChange('projects', index, 'logo_url', e.target.value)} /></div>
+                          <div className="space-y-2"><Label>Status</Label>
+                            <Select value={project.status} onValueChange={(val) => handleArrayItemChange('projects', index, 'status', val)}>
+                              <SelectTrigger><SelectValue/></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Active">Active</SelectItem>
+                                <SelectItem value="Completed">Completed</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Tags (한 줄에 하나씩)</Label>
+                          <Textarea value={project.tags || ''} onChange={(e) => handleArrayItemChange('projects', index, 'tags', e.target.value)} rows={3} />
                         </div>
                       </div>
-                      
-                      <div className="space-y-2">
-                        <Label>Tags (한 줄에 하나씩)</Label>
-                        <Textarea 
-                          value={project.tags || ''} 
-                          onChange={(e) => handleArrayItemChange('projects', index, 'tags', e.target.value)} 
-                          rows={3} 
-                        />
-                      </div>
-                    </div>
-                  ))}
-                  <Button type="button" variant="outline" size="sm" onClick={() => addItemToArray('projects', {
-                    title: '', description: '', person_in_charge: '', logo_url: '', status: 'Active', tags: ''
-                  })}>Add Project Card</Button>
+                   ))}
+                   <Button type="button" variant="outline" size="sm" onClick={() => addItemToArray('projects', {
+                      title: '', description: '', person_in_charge: '', logo_url: '', status: 'Active', tags: ''
+                   })}>Add Project Card</Button>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

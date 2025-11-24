@@ -2,27 +2,28 @@ import React, { useState, useEffect } from 'react';
 import { ScrollAnimation } from '../ScrollAnimation';
 import { ProjectCard } from '../ProjectCard';
 import { supabase } from '@/lib/supabaseClient';
-import merge from 'lodash/merge'; // 1. merge 임포트
-import { ImageCarousel } from '../ImageCarousel'; // 2. 캐러셀 컴포넌트 import
+import merge from 'lodash/merge'; 
+import { ImageCarousel } from '../ImageCarousel'; 
 
-// --- ⬇️ 3. interface 수정 ⬇️ ---
 interface PageContent {
   title: string;
   subtitle: string;
   main_paragraph_1: string;
   main_paragraph_2: string;
-  // main_image_url: string; // ⬅️ 삭제
-  gallery_images: { url: string, alt?: string }[]; // ⬅️ 추가
+  // 대표 미디어 (이미지/영상)
+  representative_media: { url: string, type: 'image' | 'video', alt?: string };
+  // 갤러리 (이미지/영상)
+  gallery_images: { url: string, type: 'image' | 'video', alt?: string }[];
   projects_title: string;
   projects_subtitle: string;
   projects: any[];
 }
 
-// 4. 기본값 객체 생성
 const defaultContent: Partial<PageContent> = {
   title: "Biodegradable Alloys Research",
   subtitle: "Default subtitle if not loaded.",
-  gallery_images: [], // ⬅️ 수정
+  representative_media: { url: '', type: 'image' },
+  gallery_images: [], 
   projects_title: "Current Projects",
   projects_subtitle: "Our ongoing research projects.",
   projects: []
@@ -44,12 +45,11 @@ export function BiodegradableAlloysPage() {
         .single();
 
       if (data?.content) {
-        // 5. DB 데이터와 기본값을 병합하여 content가 항상 완전하도록 보장
         const mergedContent = merge({}, defaultContent, data.content);
         setContent(mergedContent as PageContent);
       } else {
         console.error('Failed to fetch page content:', error);
-        setContent(defaultContent as PageContent); // 에러 시 기본값 사용
+        setContent(defaultContent as PageContent);
       }
       
       setLoading(false);
@@ -72,13 +72,42 @@ export function BiodegradableAlloysPage() {
               <p>{content.main_paragraph_2}</p>
             </div>
           </div>
-          {/* --- ⬇️ 6. <img>를 <ImageCarousel>로 교체 ⬇️ --- */}
-          <div className="w-full order-1 md:order-2">
-            <ImageCarousel images={content.gallery_images || []} />
+          
+          {/* --- Representative Figure/Video Section --- */}
+          <div className="w-full order-1 md:order-2 rounded-lg overflow-hidden elegant-shadow aspect-video bg-black flex items-center justify-center">
+            {content.representative_media?.url ? (
+              content.representative_media.type === 'video' ? (
+                <video 
+                  src={content.representative_media.url}
+                  className="w-full h-full object-contain"
+                  autoPlay loop muted playsInline
+                />
+              ) : (
+                <img 
+                  src={content.representative_media.url} 
+                  alt={content.representative_media.alt || "Representative Research Figure"} 
+                  className="w-full h-full object-cover"
+                />
+              )
+            ) : (
+              <div className="text-muted-foreground flex flex-col items-center">
+                 <p>No Media Set</p>
+              </div>
+            )}
           </div>
-          {/* --- ⬆️ 교체 완료 ⬆️ --- */}
+          
         </section>
       </ScrollAnimation>
+
+      {/* --- Media Gallery Carousel Section --- */}
+      {content.gallery_images && content.gallery_images.length > 0 && (
+        <ScrollAnimation delay={100}>
+          <section className="space-y-6">
+            <h3 className="text-2xl font-bold text-primary text-center">Research Gallery</h3>
+            <ImageCarousel items={content.gallery_images} />
+          </section>
+        </ScrollAnimation>
+      )}
 
       <ScrollAnimation delay={200}>
         <section className="space-y-8 md:space-y-10">
