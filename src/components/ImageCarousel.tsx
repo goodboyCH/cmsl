@@ -1,5 +1,4 @@
 import React from 'react';
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Carousel,
   CarouselContent,
@@ -10,36 +9,39 @@ import {
 
 interface MediaItem {
   url: string;
-  type?: 'image' | 'video'; // 타입 추가 (기존 데이터 호환을 위해 optional)
+  type?: 'image' | 'video';
   alt?: string;
 }
 
 interface ImageCarouselProps {
-  items: MediaItem[]; // 'images' -> 'items'로 변경하여 범용성 표현
+  items: MediaItem[];
 }
 
 export function ImageCarousel({ items }: ImageCarouselProps) {
   if (!items || items.length === 0) {
     return (
-      <div className="rounded-lg overflow-hidden elegant-shadow aspect-video w-full flex items-center justify-center bg-muted">
-        <p className="text-muted-foreground">No media available</p>
+      <div className="rounded-lg overflow-hidden elegant-shadow aspect-video w-full flex items-center justify-center bg-gray-50">
+        <p className="text-muted-foreground text-sm">No media available</p>
       </div>
     );
   }
 
   return (
-    <Carousel className="w-full elegant-shadow rounded-lg overflow-hidden">
+    <Carousel className="w-full elegant-shadow rounded-lg overflow-hidden bg-white border">
       <CarouselContent>
         {items.map((item, index) => (
           <CarouselItem key={index}>
-            <div className="aspect-video bg-black/5 relative flex items-center justify-center">
+            {/* --- ⬇️ 4. 배경색을 흰색(bg-white)으로 설정 ⬇️ --- */}
+            <div className="aspect-video bg-white relative flex items-center justify-center">
               {item.type === 'video' ? (
+                /* --- ⬇️ 3. 동영상 자동/반복 재생 설정 ⬇️ --- */
                 <video
                   src={item.url}
-                  className="w-full h-full object-contain"
-                  controls // 재생 컨트롤 표시
+                  className="w-full h-full object-contain" // 비율 유지 (object-contain)
+                  autoPlay 
+                  loop 
+                  muted 
                   playsInline
-                  preload="metadata"
                 />
               ) : (
                 <img
@@ -53,12 +55,8 @@ export function ImageCarousel({ items }: ImageCarouselProps) {
         ))}
       </CarouselContent>
       
-      <CarouselPrevious 
-        className="left-4 bg-background/50 hover:bg-background/75 opacity-80 hover:opacity-100 transition-opacity" 
-      />
-      <CarouselNext 
-        className="right-4 bg-background/50 hover:bg-background/75 opacity-80 hover:opacity-100 transition-opacity" 
-      />
+      <CarouselPrevious className="left-2 bg-white/80 hover:bg-white shadow-sm opacity-0 group-hover:opacity-100 transition-opacity" />
+      <CarouselNext className="right-2 bg-white/80 hover:bg-white shadow-sm opacity-0 group-hover:opacity-100 transition-opacity" />
     </Carousel>
   );
 }

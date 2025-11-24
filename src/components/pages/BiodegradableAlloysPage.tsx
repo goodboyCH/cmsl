@@ -10,9 +10,7 @@ interface PageContent {
   subtitle: string;
   main_paragraph_1: string;
   main_paragraph_2: string;
-  // 대표 미디어 (이미지/영상)
   representative_media: { url: string, type: 'image' | 'video', alt?: string };
-  // 갤러리 (이미지/영상)
   gallery_images: { url: string, type: 'image' | 'video', alt?: string }[];
   projects_title: string;
   projects_subtitle: string;
@@ -57,65 +55,79 @@ export function BiodegradableAlloysPage() {
     fetchPageData();
   }, []);
 
-  if (loading) return <div className="text-center p-20">Loading Page Content...</div>;
-  if (!content) return <div className="text-center p-20">Failed to load page content.</div>;
+  if (loading) return <div className="text-center p-20">Loading...</div>;
+  if (!content) return <div className="text-center p-20">Failed to load content.</div>;
 
   return (
-    <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-16 py-8 md:py-12 space-y-16 md:space-y-20">
+    <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-16 py-12 space-y-20">
+      
+      {/* --- ⬇️ 1. 레이아웃 변경: Grid (좌: 텍스트, 우: 미디어 스택) ⬇️ --- */}
       <ScrollAnimation>
-        <section className="flex flex-col md:grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-          <div className="space-y-4 md:space-y-6 order-2 md:order-1">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary leading-tight">{content.title}</h1>
-            <p className="text-lg sm:text-xl text-muted-foreground">{content.subtitle}</p>
-            <div className="text-base text-foreground/80 space-y-4 leading-relaxed">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+          
+          {/* 좌측: 텍스트 영역 */}
+          <div className="space-y-8 order-2 lg:order-1"> 
+            <div>
+              <h1 className="text-4xl lg:text-5xl font-bold text-primary leading-tight mb-4">{content.title}</h1>
+              <p className="text-xl text-muted-foreground font-medium border-l-4 border-primary pl-4">{content.subtitle}</p>
+            </div>
+            
+            <div className="text-base lg:text-lg text-foreground/80 space-y-6 leading-relaxed text-justify">
               <p>{content.main_paragraph_1}</p>
               <p>{content.main_paragraph_2}</p>
             </div>
           </div>
           
-          {/* --- Representative Figure/Video Section --- */}
-          <div className="w-full order-1 md:order-2 rounded-lg overflow-hidden elegant-shadow aspect-video bg-black flex items-center justify-center">
-            {content.representative_media?.url ? (
-              content.representative_media.type === 'video' ? (
-                <video 
-                  src={content.representative_media.url}
-                  className="w-full h-full object-contain"
-                  autoPlay loop muted playsInline
-                />
+          {/* 우측: 미디어 스택 (대표 피겨 + 캐러셀) */}
+          <div className="space-y-8 order-1 lg:order-2 lg:sticky lg:top-24">
+            
+            {/* 1) Representative Media */}
+            <div className="rounded-xl overflow-hidden elegant-shadow aspect-video bg-white border flex items-center justify-center">
+              {content.representative_media?.url ? (
+                content.representative_media.type === 'video' ? (
+                  <video 
+                    src={content.representative_media.url}
+                    className="w-full h-full object-contain bg-white"
+                    autoPlay loop muted playsInline
+                  />
+                ) : (
+                  <img 
+                    src={content.representative_media.url} 
+                    alt="Representative Figure" 
+                    className="w-full h-full object-cover"
+                  />
+                )
               ) : (
-                <img 
-                  src={content.representative_media.url} 
-                  alt={content.representative_media.alt || "Representative Research Figure"} 
-                  className="w-full h-full object-cover"
-                />
-              )
-            ) : (
-              <div className="text-muted-foreground flex flex-col items-center">
-                 <p>No Media Set</p>
+                <div className="text-muted-foreground text-sm">No Representative Media</div>
+              )}
+            </div>
+
+            {/* 2) Media Gallery Carousel */}
+            {content.gallery_images && content.gallery_images.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider ml-1">Gallery</h4>
+                <ImageCarousel items={content.gallery_images} />
               </div>
             )}
+
+          </div>
+        </div>
+      </ScrollAnimation>
+      {/* --- ⬆️ 레이아웃 수정 완료 ⬆️ --- */}
+
+
+      <div className="w-full h-px bg-border" />
+
+      {/* Projects Section */}
+      <ScrollAnimation delay={200}>
+        <section className="space-y-10">
+          <div className="flex flex-col items-start gap-2">
+            <h2 className="text-3xl font-bold text-primary">{content.projects_title}</h2>
+            <p className="text-lg text-muted-foreground">{content.projects_subtitle}</p>
           </div>
           
-        </section>
-      </ScrollAnimation>
-
-      {/* --- Media Gallery Carousel Section --- */}
-      {content.gallery_images && content.gallery_images.length > 0 && (
-        <ScrollAnimation delay={100}>
-          <section className="space-y-6">
-            <h3 className="text-2xl font-bold text-primary text-center">Research Gallery</h3>
-            <ImageCarousel items={content.gallery_images} />
-          </section>
-        </ScrollAnimation>
-      )}
-
-      <ScrollAnimation delay={200}>
-        <section className="space-y-8 md:space-y-10">
-          <div className="text-center">
-            <h2 className="text-2xl sm:text-3xl font-bold text-primary">{content.projects_title}</h2>
-            <p className="text-base sm:text-lg text-muted-foreground mt-2">{content.projects_subtitle}</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
+          {/* Projects Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {(content.projects || []).map((project, index) => (
               <ProjectCard 
                 key={index}
