@@ -27,17 +27,15 @@ export function ImageCarousel({ items }: ImageCarouselProps) {
   }
 
   return (
-    <Carousel className="w-full elegant-shadow rounded-lg overflow-hidden bg-white border">
+    <Carousel className="w-full elegant-shadow rounded-lg overflow-hidden bg-white border relative group">
       <CarouselContent>
         {items.map((item, index) => (
           <CarouselItem key={index}>
-            {/* --- ⬇️ 4. 배경색을 흰색(bg-white)으로 설정 ⬇️ --- */}
             <div className="aspect-video bg-white relative flex items-center justify-center">
               {item.type === 'video' ? (
-                /* --- ⬇️ 3. 동영상 자동/반복 재생 설정 ⬇️ --- */
                 <video
                   src={item.url}
-                  className="w-full h-full object-contain" // 비율 유지 (object-contain)
+                  className="w-full h-full object-contain"
                   autoPlay 
                   loop 
                   muted 
@@ -55,8 +53,14 @@ export function ImageCarousel({ items }: ImageCarouselProps) {
         ))}
       </CarouselContent>
       
-      <CarouselPrevious className="left-2 bg-white/80 hover:bg-white shadow-sm opacity-0 group-hover:opacity-100 transition-opacity" />
-      <CarouselNext className="right-2 bg-white/80 hover:bg-white shadow-sm opacity-0 group-hover:opacity-100 transition-opacity" />
+      {/* --- ⬇️ 화살표 스타일 강화 (테두리, 배경, 그림자 추가) ⬇️ --- */}
+      <CarouselPrevious 
+        className="left-4 h-10 w-10 border border-border/50 bg-background/80 hover:bg-background shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200" 
+      />
+      <CarouselNext 
+        className="right-4 h-10 w-10 border border-border/50 bg-background/80 hover:bg-background shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200" 
+      />
+      {/* --- ⬆️ 수정 완료 ⬆️ --- */}
     </Carousel>
   );
 }
