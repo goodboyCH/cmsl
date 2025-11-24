@@ -68,7 +68,7 @@ export function ResearchHighlightsSlider({ highlights }: SliderProps) { // 3. pr
               <div className="grid md:grid-cols-5 gap-0 items-center">
                 <div className="relative h-64 md:h-96 overflow-hidden md:col-span-2">
                   {currentHighlight.image && (
-                    <img src={currentHighlight.image} alt={currentHighlight.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 rounded-lg"/>
+                    <img src={currentHighlight.image} alt={currentHighlight.title} className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105 rounded-lg"/>
                   )}
                 </div>
                 <div className="p-8 flex flex-col justify-center space-y-4 md:col-span-3">

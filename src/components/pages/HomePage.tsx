@@ -50,8 +50,8 @@ export function HomePage({ onPageChange }: HomePageProps) {
         .slice(0, 4);
       setAchievements(combinedAchievements);
 
-      const { data: news } = await supabase.from('notices').select('id, created_at, title, content').eq('is_pinned', false).order('created_at', { ascending: false }).limit(2);
-      const { data: gallery } = await supabase.from('gallery').select('id, created_at, title, thumbnail_url, content').order('created_at', { ascending: false }).limit(2);
+      const { data: news } = await supabase.from('notices').select('id, created_at, title, content').eq('is_pinned', false).order('created_at', { ascending: false }).limit(3); // 3개로 늘림
+      const { data: gallery } = await supabase.from('gallery').select('id, created_at, title, thumbnail_url, content').order('created_at', { ascending: false }).limit(3); // 3개로 늘림
       const combinedNews = [...(news || []).map(n => ({...n, type: 'Notices & News'})), ...(gallery || []).map(g => ({...g, type: 'Gallery'}))]
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setLatestNews(combinedNews);
