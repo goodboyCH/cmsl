@@ -228,7 +228,7 @@ export function HomePage({ onPageChange }: HomePageProps) {
 
                   {/* --- ⬇️ 모바일에서 큰 항목과의 간격을 위해 mb-8 추가 ⬇️ --- */}
                   <div className="flex flex-col h-full space-y-4 lg:col-span-11 lg:col-start-14 mt-8 lg:mt-0">
-                    {latestNews.slice(1, 4).map(item => (
+                    {latestNews.slice(1, 4).map(item => ( // ✅ 이미 3개 항목을 추출 중입니다.
                       <div key={`${item.id}-${item.type}`} className="flex-1 cursor-pointer group flex flex-col" onClick={() => onPageChange(item.type === 'Notices & News' ? `/board/news/${item.id}` : `/board/gallery/${item.id}`)}>
                         <div className="flex items-start gap-4 flex-grow">
                           <div className="flex-grow">
