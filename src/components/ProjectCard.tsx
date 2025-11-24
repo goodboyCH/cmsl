@@ -52,7 +52,7 @@ export function ProjectCard({
 
       <CardContent className="flex-grow pb-4">
         {/* --- ⬇️ 2. 설명 텍스트 사이즈 축소 (text-sm -> text-xs) ⬇️ --- */}
-        <p className="text-xs text-muted-foreground leading-relaxed line-clamp-4">
+        <p className="text-sm text-muted-foreground leading-relaxed line-clamp-4">
           {description}
         </p>
         

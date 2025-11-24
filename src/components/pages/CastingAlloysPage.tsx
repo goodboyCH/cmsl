@@ -34,7 +34,7 @@ export function CastingAlloysPage() {
   useEffect(() => {
     const fetchPageData = async () => {
       setLoading(true);
-      const pageKey = 'research-casting'; // 각 페이지에 맞게 키 변경 (research-films, research-biodegradable)
+      const pageKey = 'research-casting';
       
       const { data, error } = await supabase
         .from('pages')
@@ -61,12 +61,12 @@ export function CastingAlloysPage() {
   return (
     <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-16 py-12 space-y-20">
       
-      {/* --- ⬇️ 1. 레이아웃 변경: Grid (좌: 텍스트, 우: 미디어 스택) ⬇️ --- */}
+      {/* --- ⬇️ 1. 레이아웃 변경: 12분할 Grid 사용 (텍스트 5 : 미디어 7) ⬇️ --- */}
       <ScrollAnimation>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
           
-          {/* 좌측: 텍스트 영역 (sticky로 고정하여 스크롤 시 따라오게 할 수도 있음) */}
-          <div className="space-y-8 order-2 lg:order-1"> 
+          {/* 좌측: 텍스트 영역 (5/12 차지) */}
+          <div className="space-y-8 order-2 lg:order-1 lg:col-span-5"> 
             <div>
               <h1 className="text-4xl lg:text-5xl font-bold text-primary leading-tight mb-4">{content.title}</h1>
               <p className="text-xl text-muted-foreground font-medium border-l-4 border-primary pl-4">{content.subtitle}</p>
@@ -78,17 +78,17 @@ export function CastingAlloysPage() {
             </div>
           </div>
           
-          {/* 우측: 미디어 스택 (대표 피겨 + 캐러셀) */}
-          <div className="space-y-8 order-1 lg:order-2 lg:sticky lg:top-24">
+          {/* 우측: 미디어 스택 (7/12 차지 - 이미지 확대 효과) */}
+          {/* sticky 제거하여 문단 라인에 고정됨 */}
+          <div className="space-y-8 order-1 lg:order-2 lg:col-span-7">
             
             {/* 1) Representative Media */}
             <div className="rounded-xl overflow-hidden elegant-shadow aspect-video bg-white border flex items-center justify-center">
               {content.representative_media?.url ? (
                 content.representative_media.type === 'video' ? (
-                  /* --- ⬇️ 3. 자동 재생 설정 ⬇️ --- */
                   <video 
                     src={content.representative_media.url}
-                    className="w-full h-full object-contain bg-white" // 4. 배경 흰색
+                    className="w-full h-full object-contain bg-white"
                     autoPlay loop muted playsInline
                   />
                 ) : (

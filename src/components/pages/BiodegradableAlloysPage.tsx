@@ -34,7 +34,7 @@ export function BiodegradableAlloysPage() {
   useEffect(() => {
     const fetchPageData = async () => {
       setLoading(true);
-      const pageKey = 'research-biodegradable'; // 페이지 키
+      const pageKey = 'research-biodegradable';
       
       const { data, error } = await supabase
         .from('pages')
@@ -61,12 +61,11 @@ export function BiodegradableAlloysPage() {
   return (
     <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-16 py-12 space-y-20">
       
-      {/* --- ⬇️ 1. 레이아웃 변경: Grid (좌: 텍스트, 우: 미디어 스택) ⬇️ --- */}
       <ScrollAnimation>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
           
-          {/* 좌측: 텍스트 영역 */}
-          <div className="space-y-8 order-2 lg:order-1"> 
+          {/* 좌측: 텍스트 (5/12) */}
+          <div className="space-y-8 order-2 lg:order-1 lg:col-span-5"> 
             <div>
               <h1 className="text-4xl lg:text-5xl font-bold text-primary leading-tight mb-4">{content.title}</h1>
               <p className="text-xl text-muted-foreground font-medium border-l-4 border-primary pl-4">{content.subtitle}</p>
@@ -78,10 +77,9 @@ export function BiodegradableAlloysPage() {
             </div>
           </div>
           
-          {/* 우측: 미디어 스택 (대표 피겨 + 캐러셀) */}
-          <div className="space-y-8 order-1 lg:order-2 lg:sticky lg:top-24">
+          {/* 우측: 미디어 (7/12) - Sticky 제거 */}
+          <div className="space-y-8 order-1 lg:order-2 lg:col-span-7">
             
-            {/* 1) Representative Media */}
             <div className="rounded-xl overflow-hidden elegant-shadow aspect-video bg-white border flex items-center justify-center">
               {content.representative_media?.url ? (
                 content.representative_media.type === 'video' ? (
@@ -102,7 +100,6 @@ export function BiodegradableAlloysPage() {
               )}
             </div>
 
-            {/* 2) Media Gallery Carousel */}
             {content.gallery_images && content.gallery_images.length > 0 && (
               <div className="space-y-3">
                 <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider ml-1">Gallery</h4>
@@ -113,12 +110,9 @@ export function BiodegradableAlloysPage() {
           </div>
         </div>
       </ScrollAnimation>
-      {/* --- ⬆️ 레이아웃 수정 완료 ⬆️ --- */}
-
 
       <div className="w-full h-px bg-border" />
 
-      {/* Projects Section */}
       <ScrollAnimation delay={200}>
         <section className="space-y-10">
           <div className="flex flex-col items-start gap-2">
@@ -126,7 +120,6 @@ export function BiodegradableAlloysPage() {
             <p className="text-lg text-muted-foreground">{content.projects_subtitle}</p>
           </div>
           
-          {/* Projects Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {(content.projects || []).map((project, index) => (
               <ProjectCard 
