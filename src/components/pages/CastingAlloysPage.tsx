@@ -59,63 +59,66 @@ export function CastingAlloysPage() {
   if (!content) return <div className="text-center p-20">Failed to load content.</div>;
 
   return (
-    <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-16 py-12 space-y-20">
+    <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-16 py-12 space-y-16">
       
-      {/* --- ⬇️ 1. 레이아웃 변경: 12분할 Grid 사용 (텍스트 5 : 미디어 7) ⬇️ --- */}
       <ScrollAnimation>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-          
-          {/* 좌측: 텍스트 영역 (5/12 차지) */}
-          <div className="space-y-8 order-2 lg:order-1 lg:col-span-5"> 
-            <div>
-              <h1 className="text-4xl lg:text-5xl font-bold text-primary leading-tight mb-4">{content.title}</h1>
-              <p className="text-xl text-muted-foreground font-medium border-l-4 border-primary pl-4">{content.subtitle}</p>
-            </div>
+        <div className="space-y-10">
+          {/* --- ⬇️ (수정 1) 제목과 부제목을 Grid 밖으로 분리 --- */}
+          {/* 이렇게 하면 아래 Grid의 시작점이 본문과 이미지 모두 동일해집니다. */}
+          <div className="max-w-4xl">
+            <h1 className="text-4xl lg:text-5xl font-bold text-primary leading-tight mb-4">
+              {content.title}
+            </h1>
+            <p className="text-xl text-muted-foreground font-medium border-l-4 border-primary pl-4">
+              {content.subtitle}
+            </p>
+          </div>
+
+          {/* --- ⬇️ (수정 2) 본문 vs 미디어 Grid (비율 6:6으로 조정) --- */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
             
-            <div className="text-base lg:text-lg text-foreground/80 space-y-6 leading-relaxed text-justify">
+            {/* 좌측: 본문 텍스트 (6/12 차지 - 절반) */}
+            <div className="lg:col-span-6 space-y-6 text-base lg:text-lg text-foreground/80 leading-relaxed text-justify">
               <p>{content.main_paragraph_1}</p>
               <p>{content.main_paragraph_2}</p>
             </div>
-          </div>
-          
-          {/* 우측: 미디어 스택 (7/12 차지 - 이미지 확대 효과) */}
-          {/* sticky 제거하여 문단 라인에 고정됨 */}
-          <div className="space-y-8 order-1 lg:order-2 lg:col-span-7">
             
-            {/* 1) Representative Media */}
-            <div className="rounded-xl overflow-hidden elegant-shadow aspect-video bg-white border flex items-center justify-center">
-              {content.representative_media?.url ? (
-                content.representative_media.type === 'video' ? (
-                  <video 
-                    src={content.representative_media.url}
-                    className="w-full h-full object-contain bg-white"
-                    autoPlay loop muted playsInline
-                  />
+            {/* 우측: 미디어 스택 (6/12 차지 - 절반) */}
+            <div className="lg:col-span-6 space-y-8">
+              
+              {/* Representative Media (문단 1 시작 라인과 높이가 맞음) */}
+              <div className="rounded-xl overflow-hidden elegant-shadow aspect-video bg-white border flex items-center justify-center">
+                {content.representative_media?.url ? (
+                  content.representative_media.type === 'video' ? (
+                    <video 
+                      src={content.representative_media.url}
+                      className="w-full h-full object-contain bg-white"
+                      autoPlay loop muted playsInline
+                    />
+                  ) : (
+                    <img 
+                      src={content.representative_media.url} 
+                      alt="Representative Figure" 
+                      className="w-full h-full object-cover"
+                    />
+                  )
                 ) : (
-                  <img 
-                    src={content.representative_media.url} 
-                    alt="Representative Figure" 
-                    className="w-full h-full object-cover"
-                  />
-                )
-              ) : (
-                <div className="text-muted-foreground text-sm">No Representative Media</div>
-              )}
-            </div>
-
-            {/* 2) Media Gallery Carousel */}
-            {content.gallery_images && content.gallery_images.length > 0 && (
-              <div className="space-y-3">
-                <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider ml-1">Gallery</h4>
-                <ImageCarousel items={content.gallery_images} />
+                  <div className="text-muted-foreground text-sm">No Representative Media</div>
+                )}
               </div>
-            )}
 
+              {/* Media Gallery Carousel */}
+              {content.gallery_images && content.gallery_images.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider ml-1">Gallery</h4>
+                  <ImageCarousel items={content.gallery_images} />
+                </div>
+              )}
+
+            </div>
           </div>
         </div>
       </ScrollAnimation>
-      {/* --- ⬆️ 레이아웃 수정 완료 ⬆️ --- */}
-
 
       <div className="w-full h-px bg-border" />
 
@@ -127,7 +130,6 @@ export function CastingAlloysPage() {
             <p className="text-lg text-muted-foreground">{content.projects_subtitle}</p>
           </div>
           
-          {/* Projects Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {(content.projects || []).map((project, index) => (
               <ProjectCard 
