@@ -63,7 +63,6 @@ export function ThinFilmsPage() {
       
       <ScrollAnimation>
         <div className="space-y-10">
-          {/* Title Section Outside Grid */}
           <div className="max-w-4xl">
             <h1 className="text-4xl lg:text-5xl font-bold text-primary leading-tight mb-4">
               {content.title}
@@ -73,35 +72,40 @@ export function ThinFilmsPage() {
             </p>
           </div>
 
-          {/* Content Grid (6:6 Ratio) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
             
-            {/* Text Column */}
             <div className="lg:col-span-6 space-y-6 text-base lg:text-lg text-foreground/80 leading-relaxed text-justify">
               <p>{content.main_paragraph_1}</p>
               <p>{content.main_paragraph_2}</p>
             </div>
             
-            {/* Media Column (Aligned with Text Start) */}
             <div className="lg:col-span-6 space-y-8">
               
-              <div className="rounded-xl overflow-hidden elegant-shadow aspect-video bg-white border flex items-center justify-center">
-                {content.representative_media?.url ? (
-                  content.representative_media.type === 'video' ? (
-                    <video 
-                      src={content.representative_media.url}
-                      className="w-full h-full object-contain bg-white"
-                      autoPlay loop muted playsInline
-                    />
+              <div>
+                <div className="rounded-xl overflow-hidden elegant-shadow aspect-video bg-white border flex items-center justify-center">
+                  {content.representative_media?.url ? (
+                    content.representative_media.type === 'video' ? (
+                      <video 
+                        src={content.representative_media.url}
+                        className="w-full h-full object-contain bg-white"
+                        autoPlay loop muted playsInline
+                      />
+                    ) : (
+                      <img 
+                        src={content.representative_media.url} 
+                        alt="Representative Figure" 
+                        className="w-full h-full object-contain"
+                      />
+                    )
                   ) : (
-                    <img 
-                      src={content.representative_media.url} 
-                      alt="Representative Figure" 
-                      className="w-full h-full object-cover"
-                    />
-                  )
-                ) : (
-                  <div className="text-muted-foreground text-sm">No Representative Media</div>
+                    <div className="text-muted-foreground text-sm">No Representative Media</div>
+                  )}
+                </div>
+                {/* --- ⬇️ 캡션 추가 ⬇️ --- */}
+                {content.representative_media?.alt && (
+                  <p className="mt-2 text-sm text-muted-foreground text-center italic">
+                    {content.representative_media.alt}
+                  </p>
                 )}
               </div>
 

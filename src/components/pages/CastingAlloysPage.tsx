@@ -63,8 +63,7 @@ export function CastingAlloysPage() {
       
       <ScrollAnimation>
         <div className="space-y-10">
-          {/* --- ⬇️ (수정 1) 제목과 부제목을 Grid 밖으로 분리 --- */}
-          {/* 이렇게 하면 아래 Grid의 시작점이 본문과 이미지 모두 동일해집니다. */}
+          {/* Title Section */}
           <div className="max-w-4xl">
             <h1 className="text-4xl lg:text-5xl font-bold text-primary leading-tight mb-4">
               {content.title}
@@ -74,37 +73,46 @@ export function CastingAlloysPage() {
             </p>
           </div>
 
-          {/* --- ⬇️ (수정 2) 본문 vs 미디어 Grid (비율 6:6으로 조정) --- */}
+          {/* Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
             
-            {/* 좌측: 본문 텍스트 (6/12 차지 - 절반) */}
+            {/* Text Column */}
             <div className="lg:col-span-6 space-y-6 text-base lg:text-lg text-foreground/80 leading-relaxed text-justify">
               <p>{content.main_paragraph_1}</p>
               <p>{content.main_paragraph_2}</p>
             </div>
             
-            {/* 우측: 미디어 스택 (6/12 차지 - 절반) */}
+            {/* Media Column */}
             <div className="lg:col-span-6 space-y-8">
               
-              {/* Representative Media (문단 1 시작 라인과 높이가 맞음) */}
-              <div className="rounded-xl overflow-hidden elegant-shadow aspect-video bg-white border flex items-center justify-center">
-                {content.representative_media?.url ? (
-                  content.representative_media.type === 'video' ? (
-                    <video 
-                      src={content.representative_media.url}
-                      className="w-full h-full object-contain bg-white"
-                      autoPlay loop muted playsInline
-                    />
+              {/* Representative Media */}
+              <div>
+                <div className="rounded-xl overflow-hidden elegant-shadow aspect-video bg-white border flex items-center justify-center">
+                  {content.representative_media?.url ? (
+                    content.representative_media.type === 'video' ? (
+                      <video 
+                        src={content.representative_media.url}
+                        className="w-full h-full object-contain bg-white"
+                        autoPlay loop muted playsInline
+                      />
+                    ) : (
+                      <img 
+                        src={content.representative_media.url} 
+                        alt="Representative Figure" 
+                        className="w-full h-full object-contain"
+                      />
+                    )
                   ) : (
-                    <img 
-                      src={content.representative_media.url} 
-                      alt="Representative Figure" 
-                      className="w-full h-full object-cover"
-                    />
-                  )
-                ) : (
-                  <div className="text-muted-foreground text-sm">No Representative Media</div>
+                    <div className="text-muted-foreground text-sm">No Representative Media</div>
+                  )}
+                </div>
+                {/* --- ⬇️ 캡션 추가 ⬇️ --- */}
+                {content.representative_media?.alt && (
+                  <p className="mt-2 text-sm text-muted-foreground text-center italic">
+                    {content.representative_media.alt}
+                  </p>
                 )}
+                {/* --- ⬆️ 추가 완료 ⬆️ --- */}
               </div>
 
               {/* Media Gallery Carousel */}

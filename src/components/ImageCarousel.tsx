@@ -27,40 +27,52 @@ export function ImageCarousel({ items }: ImageCarouselProps) {
   }
 
   return (
-    <Carousel className="w-full elegant-shadow rounded-lg overflow-hidden bg-white border relative group">
+    <Carousel className="w-full elegant-shadow rounded-lg bg-white border relative group">
       <CarouselContent>
         {items.map((item, index) => (
           <CarouselItem key={index}>
-            <div className="aspect-video bg-white relative flex items-center justify-center">
-              {item.type === 'video' ? (
-                <video
-                  src={item.url}
-                  className="w-full h-full object-contain"
-                  autoPlay 
-                  loop 
-                  muted 
-                  playsInline
-                />
-              ) : (
-                <img
-                  src={item.url}
-                  alt={item.alt || `Slide ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
+            <div className="flex flex-col">
+              {/* 미디어 영역 */}
+              <div className="aspect-video bg-white relative flex items-center justify-center overflow-hidden rounded-t-lg">
+                {item.type === 'video' ? (
+                  <video
+                    src={item.url}
+                    className="w-full h-full object-contain"
+                    autoPlay 
+                    loop 
+                    muted 
+                    playsInline
+                  />
+                ) : (
+                  <img
+                    src={item.url}
+                    alt={item.alt || `Slide ${index + 1}`}
+                    className="w-full h-full object-contain"
+                  />
+                )}
+              </div>
+              
+              {/* --- ⬇️ 캡션(Alt Text) 영역 추가 ⬇️ --- */}
+              {item.alt && (
+                <div className="p-3 bg-gray-50/50 border-t text-center">
+                  <p className="text-sm text-muted-foreground font-medium">
+                    {item.alt}
+                  </p>
+                </div>
               )}
+              {/* --- ⬆️ 추가 완료 ⬆️ --- */}
             </div>
           </CarouselItem>
         ))}
       </CarouselContent>
       
-      {/* --- ⬇️ 화살표 스타일 강화 (테두리, 배경, 그림자 추가) ⬇️ --- */}
+      {/* 화살표 스타일 */}
       <CarouselPrevious 
         className="left-4 h-10 w-10 border border-border/50 bg-background/80 hover:bg-background shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200" 
       />
       <CarouselNext 
         className="right-4 h-10 w-10 border border-border/50 bg-background/80 hover:bg-background shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200" 
       />
-      {/* --- ⬆️ 수정 완료 ⬆️ --- */}
     </Carousel>
   );
 }
