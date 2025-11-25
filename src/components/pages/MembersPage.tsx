@@ -89,7 +89,7 @@ export function MembersPage() {
 
         <ScrollAnimation delay={100}>
           {/* --- ⬇️ 통계 카드 그리드를 반응형으로 수정 ⬇️ --- */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
             {Object.entries(groupedMembers).map(([position, membersList]) => membersList.length > 0 && (
               <Card 
                 key={position} 
