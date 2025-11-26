@@ -4,16 +4,18 @@ import { ProjectCard } from '../ProjectCard';
 import { supabase } from '@/lib/supabaseClient';
 import merge from 'lodash/merge'; 
 import { ImageCarousel } from '../ImageCarousel'; 
+import { useLanguage } from '@/components/LanguageProvider'; // 1. Import
 
+// 2. Interface 수정
 interface PageContent {
-  title: string;
-  subtitle: string;
-  main_paragraph_1: string;
-  main_paragraph_2: string;
+  title: string; title_ko?: string;
+  subtitle: string; subtitle_ko?: string;
+  main_paragraph_1: string; main_paragraph_1_ko?: string;
+  main_paragraph_2: string; main_paragraph_2_ko?: string;
   representative_media: { url: string, type: 'image' | 'video', alt?: string };
   gallery_images: { url: string, type: 'image' | 'video', alt?: string }[];
-  projects_title: string;
-  projects_subtitle: string;
+  projects_title: string; projects_title_ko?: string;
+  projects_subtitle: string; projects_subtitle_ko?: string;
   projects: any[];
 }
 
@@ -28,13 +30,23 @@ const defaultContent: Partial<PageContent> = {
 };
 
 export function BiodegradableAlloysPage() {
+  const { language } = useLanguage(); // 3. useLanguage
   const [content, setContent] = useState<PageContent | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // 4. getContent 헬퍼
+  const getContent = (data: any, field: string) => {
+    if (!data) return '';
+    if (language === 'ko' && data[`${field}_ko`]) {
+      return data[`${field}_ko`];
+    }
+    return data[field] || '';
+  };
 
   useEffect(() => {
     const fetchPageData = async () => {
       setLoading(true);
-      const pageKey = 'research-biodegradable';
+      const pageKey = 'research-biodegradable'; // ✨ Key 확인
       
       const { data, error } = await supabase
         .from('pages')
@@ -64,23 +76,23 @@ export function BiodegradableAlloysPage() {
       <ScrollAnimation>
         <div className="space-y-10">
           <div className="max-w-4xl">
+            {/* 5. 타이틀 적용 */}
             <h1 className="text-4xl lg:text-5xl font-bold text-primary leading-tight mb-4">
-              {content.title}
+              {getContent(content, 'title')}
             </h1>
             <p className="text-xl text-muted-foreground font-medium border-l-4 border-primary pl-4">
-              {content.subtitle}
+              {getContent(content, 'subtitle')}
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-            
+            {/* 5. 본문 적용 */}
             <div className="lg:col-span-6 space-y-6 text-base lg:text-lg text-foreground/80 leading-relaxed text-justify">
-              <p>{content.main_paragraph_1}</p>
-              <p>{content.main_paragraph_2}</p>
+              <p>{getContent(content, 'main_paragraph_1')}</p>
+              <p>{getContent(content, 'main_paragraph_2')}</p>
             </div>
             
             <div className="lg:col-span-6 space-y-8">
-              
               <div>
                 <div className="rounded-xl overflow-hidden elegant-shadow aspect-video bg-white border flex items-center justify-center">
                   {content.representative_media?.url ? (
@@ -101,7 +113,6 @@ export function BiodegradableAlloysPage() {
                     <div className="text-muted-foreground text-sm">No Representative Media</div>
                   )}
                 </div>
-                {/* --- ⬇️ 캡션 추가 ⬇️ --- */}
                 {content.representative_media?.alt && (
                   <p className="mt-2 text-sm text-muted-foreground text-center italic">
                     {content.representative_media.alt}
@@ -115,7 +126,6 @@ export function BiodegradableAlloysPage() {
                   <ImageCarousel items={content.gallery_images} />
                 </div>
               )}
-
             </div>
           </div>
         </div>
@@ -126,16 +136,18 @@ export function BiodegradableAlloysPage() {
       <ScrollAnimation delay={200}>
         <section className="space-y-10">
           <div className="flex flex-col items-start gap-2">
-            <h2 className="text-3xl font-bold text-primary">{content.projects_title}</h2>
-            <p className="text-lg text-muted-foreground">{content.projects_subtitle}</p>
+            {/* 5. 섹션 제목 적용 */}
+            <h2 className="text-3xl font-bold text-primary">{getContent(content, 'projects_title')}</h2>
+            <p className="text-lg text-muted-foreground">{getContent(content, 'projects_subtitle')}</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {(content.projects || []).map((project, index) => (
               <ProjectCard 
                 key={index}
-                title={project.title}
-                description={project.description}
+                // 6. 프로젝트 내용 적용
+                title={getContent(project, 'title')}
+                description={getContent(project, 'description')}
                 tags={project.tags || []}
                 status={project.status as 'Active' | 'Completed'}
                 logo_url={project.logo_url}
