@@ -1,75 +1,122 @@
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+
+type Language = 'en' | 'ko';
 
 interface LanguageContextType {
+  language: Language;
+  toggleLanguage: () => void;
   t: (key: string) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-// 영어와 한국어를 적절히 배치한 고정 텍스트
-const translations = {
-  // Navigation - 영어 유지
-  'nav.home': 'Home',
-  'nav.introduction': 'Introduction',
-  'nav.people': 'People',
-  'nav.research': 'Research',
-  'nav.publications': 'Publications',
-  'nav.projects': 'Projects',
-  'nav.board': 'Board',
-  'nav.contact': 'Contact',
-  
-  // People sub-navigation
-  'nav.professor': 'Professor',
-  'nav.members': 'Members',
-  'nav.alumni': 'Alumni',
-  // Home - 영어/한국어 혼용
-  'home.hero.title': 'Materials Science\n×\nComputational Thermodynamics',
-  'home.hero.subtitle': 'CMSL은 미세조직의 물리를 기반으로 예측 가능한 재료 시스템을 설계하여\n다양한 산업 분야의 혁신에 기여합니다.',
-  'home.hero.capabilities': 'Core Capabilities: Phase-Field (Multi-phase Multi-physics), CALPHAD, Data/Code Open, AI-based Optimization',
-  'home.hero.join': '협업 및 인턴 모집중 | Collaboration & Internship Recruitment',
-  
-  // Mission
-  'mission.title': 'Mission',
-  'mission.text': '미세조직의 물리로부터 예측가능한 재료설계를 구현한다',
-  
-  // About
-  'about.title': 'About CMSL',
-  'about.text': 'CMSL은 Phase-Field Modeling + AI로 Al/Fe 응고, NdFeB 스트립캐스팅, 고Si강 응고, FE/AFE 박막, Mg-Zn 합금부식, Eutectic 성장, 전위맵핑을 연구합니다.',
-  
-  // Research Areas
-  'research.casting.title': '주조 합금 — Phase-Field 기반 응고 미세조직',
-  'research.films.title': '다결정 박막 및 강유전체',
-  'research.alloys.title': '생분해성 Mg-Zn 합금 및 전기화학 전위 맵핑',
-  
-  // Recent Achievements
-  'achievements.title': 'Recent Research Achievements',
-  'achievements.subtitle': '최근 연구 성과 및 주요 성취',
-  
-  // People
-  'people.professor': 'Professor',
-  'people.postdoc': 'Postdoctoral Researcher',
-  'people.phd': 'Graduate Student (PhD)',
-  'people.ms': 'Graduate Student (MS)',
-  'people.undergrad': 'Undergraduate Student',
-  'people.admin': 'Administrative Staff',
-  'people.alumni': 'Alumni',
-  
-  // Contact
-  'contact.form.title': 'Contact Us',
-  'contact.form.name': 'Name',
-  'contact.form.email': 'Email',
-  'contact.form.subject': 'Subject',
-  'contact.form.message': 'Message',
-  'contact.form.send': 'Send Message',
+// 📝 번역 사전 (우선순위 높은 항목 위주)
+const translations: Record<Language, Record<string, string>> = {
+  en: {
+    // Navigation
+    'nav.home': 'Home',
+    'nav.introduction': 'Introduction',
+    'nav.people': 'People',
+    'nav.professor': 'Professor',
+    'nav.members': 'Members',
+    'nav.alumni': 'Alumni',
+    'nav.research': 'Research',
+    'nav.publications': 'Publications',
+    'nav.board': 'Board',
+    'nav.news': 'Notices & News',
+    'nav.gallery': 'Gallery',
+    'nav.contact': 'Contact',
+    'nav.simulation': 'PFM Calculation',
+
+    // Home Page (Hero Section)
+    'home.hero.title': 'Materials Science\n×\nComputational Thermodynamics',
+    'home.hero.subtitle': 'We design predictable material systems based on microstructural physics,\ncontributing to innovation across various industries.',
+    'home.hero.capabilities': 'Core Capabilities: Phase-Field (Multi-phase Multi-physics), CALPHAD, Data/Code Open, AI-based Optimization',
+    'home.hero.join': 'Collaboration & Internship Recruitment',
+    'home.btn.learn_more': 'Learn More',
+
+    // Research Page Titles (정적 페이지용)
+    'research.casting': 'High-Performance Casting Alloys',
+    'research.films': 'Ferroelectric Thin Films',
+    'research.biodegradable': 'Biodegradable Mg-Zn Alloys',
+
+    // Contact Page
+    'contact.title': 'Contact Us',
+    'contact.desc': 'We welcome research collaborations and student inquiries.',
+    'contact.form.name': 'Name',
+    'contact.form.email': 'Email',
+    'contact.form.subject': 'Subject',
+    'contact.form.message': 'Message',
+    'contact.form.send': 'Send Message',
+    
+    // Common
+    'common.loading': 'Loading...',
+    'common.read_more': 'Read More',
+  },
+  ko: {
+    // Navigation
+    'nav.home': '홈',
+    'nav.introduction': '연구실 소개',
+    'nav.people': '구성원',
+    'nav.professor': '지도교수',
+    'nav.members': '연구원',
+    'nav.alumni': '졸업생',
+    'nav.research': '연구분야',
+    'nav.publications': '논문성과',
+    'nav.board': '게시판',
+    'nav.news': '공지사항',
+    'nav.gallery': '갤러리',
+    'nav.contact': '문의하기',
+    'nav.simulation': 'PFM 시뮬레이션',
+
+    // Home Page
+    'home.hero.title': '재료과학\n×\n계산열역학',
+    'home.hero.subtitle': 'CMSL은 미세조직의 물리를 기반으로 예측 가능한 재료 시스템을 설계하여\n다양한 산업 분야의 혁신에 기여합니다.',
+    'home.hero.capabilities': '핵심 역량: Phase-Field (다상 멀티피직스), CALPHAD, 데이터/코드 오픈소스, AI 기반 최적화',
+    'home.hero.join': '공동 연구 및 인턴 연구원 모집 중',
+    'home.btn.learn_more': '자세히 보기',
+
+    // Research Page Titles
+    'research.casting': '고성능 주조 합금 설계',
+    'research.films': '강유전체 박막 연구',
+    'research.biodegradable': '생분해성 Mg-Zn 합금',
+
+    // Contact Page
+    'contact.title': '문의하기',
+    'contact.desc': '연구 협력 및 대학원 진학 문의를 환영합니다.',
+    'contact.form.name': '이름',
+    'contact.form.email': '이메일',
+    'contact.form.subject': '제목',
+    'contact.form.message': '내용',
+    'contact.form.send': '메시지 보내기',
+
+    // Common
+    'common.loading': '로딩 중...',
+    'common.read_more': '더 보기',
+  }
 };
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
+  // 1. 로컬 스토리지에서 언어 설정 불러오기 (기본값: en)
+  const [language, setLanguage] = useState<Language>(() => {
+    const saved = localStorage.getItem('app-language');
+    return (saved === 'en' || saved === 'ko') ? saved : 'en';
+  });
+
+  // 2. 언어 변경 함수
+  const toggleLanguage = () => {
+    const newLang = language === 'en' ? 'ko' : 'en';
+    setLanguage(newLang);
+    localStorage.setItem('app-language', newLang);
+  };
+
+  // 3. 번역 함수
   const t = (key: string): string => {
-    return translations[key as keyof typeof translations] || key;
+    return translations[language][key] || key;
   };
 
   return (
-    <LanguageContext.Provider value={{ t }}>
+    <LanguageContext.Provider value={{ language, toggleLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );
