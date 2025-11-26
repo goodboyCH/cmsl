@@ -17,18 +17,19 @@ interface Alumni {
   thesis: string | null;
   current_position: string | null;
   achievements: string[] | null;
-  graduation_year: string; // 변경된 컬럼명 적용
+  graduation_year: string;
 }
 
-export default function AlumniPage() {
+// [수정됨] export default -> export function으로 변경
+export function AlumniPage() {
   // 데이터 불러오기
   const { data: alumni, isLoading, error } = useQuery({
-    queryKey: ['alumni-public'], // 캐시 키 분리
+    queryKey: ['alumni-public'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('alumni')
         .select('*')
-        .order('graduation_year', { ascending: false }); // 최신 졸업생 순
+        .order('graduation_year', { ascending: false });
       
       if (error) throw error;
       return data as Alumni[];
