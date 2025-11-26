@@ -7,30 +7,28 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 
-// 1. Props 인터페이스 정의 (이 부분이 오류 해결의 핵심입니다)
 interface EditAlumniPageProps {
-  alumniId?: number; // ID가 있으면 수정 모드, 없으면 추가 모드
-  onBack: () => void; // 뒤로 가기 함수
+  alumniId?: number;
+  onBack: () => void;
 }
 
 export function EditAlumniPage({ alumniId, onBack }: EditAlumniPageProps) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   
-  // 폼 상태 관리
   const [formData, setFormData] = useState({
     name: '',
     degree: '',
     graduation_year: '',
     thesis: '',
     current_position: '',
-    achievements: '' // DB에는 배열(string[])이지만 입력 편의상 문자열로 처리 후 변환
+    achievements: ''
   });
 
-  // 2. 수정 모드일 경우 데이터 불러오기
+  // 데이터 불러오기 로직 (MembersPage 스타일과 일치)
   useEffect(() => {
     const fetchAlumni = async () => {
-      if (!alumniId) return; // 추가 모드면 스킵
+      if (!alumniId) return;
 
       setLoading(true);
       const { data, error } = await supabase
@@ -40,7 +38,7 @@ export function EditAlumniPage({ alumniId, onBack }: EditAlumniPageProps) {
         .single();
 
       if (error) {
-        console.error(error);
+        console.error("Error fetching alumni detail:", error);
         toast({ variant: "destructive", title: "Error", description: "Failed to load alumni data." });
       } else if (data) {
         setFormData({
@@ -49,7 +47,7 @@ export function EditAlumniPage({ alumniId, onBack }: EditAlumniPageProps) {
           graduation_year: data.graduation_year || '',
           thesis: data.thesis || '',
           current_position: data.current_position || '',
-          achievements: (data.achievements || []).join('\n') // 배열 -> 줄바꿈 문자열 변환
+          achievements: (data.achievements || []).join('\n')
         });
       }
       setLoading(false);
@@ -58,18 +56,15 @@ export function EditAlumniPage({ alumniId, onBack }: EditAlumniPageProps) {
     fetchAlumni();
   }, [alumniId, toast]);
 
-  // 입력 핸들러
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // 3. 저장 핸들러 (추가 및 수정 로직)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    // 업로드할 데이터 준비
     const payload = {
       name: formData.name,
       degree: formData.degree,
@@ -78,20 +73,18 @@ export function EditAlumniPage({ alumniId, onBack }: EditAlumniPageProps) {
       current_position: formData.current_position || null,
       achievements: formData.achievements 
         ? formData.achievements.split('\n').filter(line => line.trim() !== '') 
-        : [] // 줄바꿈으로 분리하여 배열로 저장
+        : []
     };
 
     try {
       let error;
       if (alumniId) {
-        // 수정 (Update)
         const { error: updateError } = await supabase
           .from('alumni')
           .update(payload)
           .eq('id', alumniId);
         error = updateError;
       } else {
-        // 추가 (Insert)
         const { error: insertError } = await supabase
           .from('alumni')
           .insert([payload]);
@@ -101,9 +94,9 @@ export function EditAlumniPage({ alumniId, onBack }: EditAlumniPageProps) {
       if (error) throw error;
 
       toast({ title: "Success", description: "Alumni record saved successfully." });
-      onBack(); // 목록으로 돌아가기
+      onBack();
     } catch (err: any) {
-      console.error(err);
+      console.error("Error saving alumni:", err);
       toast({ 
         variant: "destructive", 
         title: "Error", 
