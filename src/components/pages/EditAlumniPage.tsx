@@ -18,13 +18,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { ArrowLeft } from 'lucide-react';
 
+// 폼 스키마 정의 (graduation_year 필수)
 const formSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   degree: z.string().min(1, 'Degree is required'),
   thesis: z.string().optional(),
   current_position: z.string().optional(),
   achievements: z.string().optional(),
-  graduation_year: z.string().min(1, 'Graduation Year is required'), // year_range -> graduation_year
+  graduation_year: z.string().min(1, 'Graduation Year is required'),
 });
 
 export default function EditAlumniPage() {
@@ -44,6 +45,7 @@ export default function EditAlumniPage() {
     },
   });
 
+  // 데이터 수정 시 기존 정보 불러오기
   useEffect(() => {
     if (id) {
       const fetchAlumni = async () => {
@@ -70,7 +72,7 @@ export default function EditAlumniPage() {
             thesis: data.thesis || '',
             current_position: data.current_position || '',
             achievements: data.achievements ? data.achievements.join('\n') : '',
-            graduation_year: data.graduation_year || '', // DB 컬럼 매핑
+            graduation_year: data.graduation_year || '', // DB 컬럼 연결
           });
         }
       };
@@ -81,13 +83,14 @@ export default function EditAlumniPage() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      // 저장할 데이터 객체 생성
       const alumniData = {
         name: values.name,
         degree: values.degree,
         thesis: values.thesis || null,
         current_position: values.current_position || null,
         achievements: values.achievements ? values.achievements.split('\n').filter(Boolean) : [],
-        graduation_year: values.graduation_year, // 매핑 확인
+        graduation_year: values.graduation_year,
       };
 
       const { error } = id
@@ -139,7 +142,7 @@ export default function EditAlumniPage() {
               <FormItem>
                 <FormLabel>Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g. John Doe" {...field} />
+                  <Input placeholder="e.g. Kim Kyung-soo" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -183,7 +186,7 @@ export default function EditAlumniPage() {
               <FormItem>
                 <FormLabel>Current Position</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g. Senior Researcher at Google" {...field} />
+                  <Input placeholder="e.g. Senior Researcher at Hyundai Steel" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

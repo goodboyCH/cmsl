@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
+// DB 스키마와 일치하는 타입 정의
 interface Alumni {
   id: number;
   name: string;
@@ -31,7 +32,8 @@ interface Alumni {
   thesis: string | null;
   current_position: string | null;
   achievements: string[] | null;
-  graduation_year: string; // year_range -> graduation_year 변경
+  graduation_year: string; // 기존 year_range 대신 사용
+  created_at: string;
 }
 
 export default function AlumniPage() {
@@ -39,10 +41,11 @@ export default function AlumniPage() {
   const { toast } = useToast();
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
+  // 데이터 불러오기
   const { data: alumni, isLoading, error, refetch } = useQuery({
     queryKey: ['alumni'],
     queryFn: async () => {
-      // DB 컬럼 graduation_year 기준으로 정렬
+      // graduation_year 컬럼 기준으로 내림차순 정렬
       const { data, error } = await supabase
         .from('alumni')
         .select('*')
@@ -53,6 +56,7 @@ export default function AlumniPage() {
     },
   });
 
+  // 삭제 로직
   const handleDelete = async () => {
     if (!deleteId) return;
 
@@ -77,7 +81,7 @@ export default function AlumniPage() {
     setDeleteId(null);
   };
 
-  // 클라이언트 사이드 정렬 (연도 -> 이름)
+  // 클라이언트 측 2차 정렬 (연도 같으면 이름순)
   const sortedAlumni = [...(alumni || [])].sort((a, b) => {
     const yearA = parseInt(a.graduation_year || '0');
     const yearB = parseInt(b.graduation_year || '0');
