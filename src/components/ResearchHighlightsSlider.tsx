@@ -3,6 +3,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+// 1. 언어 상태를 가져오기 위해 import
+import { useLanguage } from './LanguageProvider';
 
 interface ResearchHighlight {
   title: string;
@@ -10,19 +12,18 @@ interface ResearchHighlight {
   journal: string;
   year: string;
   description: string;
+  description_ko?: string; // 2. 한국어 설명 필드 추가 (Optional)
   category: string;
   image?: string;
   doi: string;
 }
 
-// 1. props 인터페이스를 추가합니다.
 interface SliderProps {
   highlights: ResearchHighlight[];
 }
 
-// 2. 하드코딩된 highlights 배열을 삭제합니다.
-
-export function ResearchHighlightsSlider({ highlights }: SliderProps) { // 3. props로 highlights를 받습니다.
+export function ResearchHighlightsSlider({ highlights }: SliderProps) {
+  const { language } = useLanguage(); // 3. 현재 언어 상태 가져오기
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -41,7 +42,7 @@ export function ResearchHighlightsSlider({ highlights }: SliderProps) { // 3. pr
       slideTo((currentIndex + 1) % highlights.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, [isAutoPlaying, currentIndex]);
+  }, [isAutoPlaying, currentIndex, highlights.length]); // highlights.length 의존성 추가
 
   const goToPrevious = () => { slideTo((currentIndex - 1 + highlights.length) % highlights.length); setIsAutoPlaying(false); };
   const goToNext = () => { slideTo((currentIndex + 1) % highlights.length); setIsAutoPlaying(false); };
@@ -58,10 +59,17 @@ export function ResearchHighlightsSlider({ highlights }: SliderProps) { // 3. pr
   
   const currentHighlight = highlights[currentIndex];
 
+  // 4. 언어에 따른 설명 선택 로직
+  const getDescription = () => {
+    if (language === 'ko' && currentHighlight.description_ko) {
+      return currentHighlight.description_ko;
+    }
+    return currentHighlight.description;
+  };
+
   return (
     <div className="relative">
       <div onClick={handleCardClick} className="cursor-pointer group">
-        {/* ⬇️ 테두리 박스 스타일 복원 ⬇️ */}
         <Card className="bg-white/10 backdrop-blur-sm border-white/20 text-white overflow-hidden transition-shadow duration-300 group-hover:shadow-lg">
           <CardContent className="p-0">
             <div className={`transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
@@ -75,7 +83,11 @@ export function ResearchHighlightsSlider({ highlights }: SliderProps) { // 3. pr
                   <div className="space-y-3">
                     <Badge variant="secondary" className="w-fit bg-white/20 text-white border-white/30">{currentHighlight.category}</Badge>
                     <h3 className="text-2xl font-bold leading-tight">{currentHighlight.title}</h3>
-                    <p className="text-white/90 leading-relaxed">{currentHighlight.description}</p>
+                    
+                    {/* 5. 선택된 설명 렌더링 */}
+                    <p className="text-white/90 leading-relaxed">
+                      {getDescription()}
+                    </p>
                   </div>
                   <div className="space-y-2 pt-4 border-t border-white/20">
                     <p className="text-sm text-white/80"><span className="font-medium">Authors:</span> {currentHighlight.authors}</p>

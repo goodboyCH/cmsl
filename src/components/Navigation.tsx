@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useLanguage } from '@/components/LanguageProvider'; // 경로 주의
+import { useLanguage } from './LanguageProvider';
 import { ChevronDown, Globe } from 'lucide-react';
-import { Button } from '@/components/ui/button'; // 버튼 컴포넌트 import
+import { Button } from '@/components/ui/button';
 
 interface NavigationProps {
   currentPage: string;
@@ -9,43 +9,44 @@ interface NavigationProps {
 }
 
 export function Navigation({ currentPage, onPageChange }: NavigationProps) {
-  const { t, language, toggleLanguage } = useLanguage(); // toggleLanguage 추가
+  // 1. t 함수는 제거하고, 언어 상태와 토글 함수만 가져옵니다.
+  const { language, toggleLanguage } = useLanguage();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 라벨을 동적으로 가져오도록 수정
+  // 2. 메뉴명을 영어로 고정합니다. (번역 제거)
   const navItems = [
-    { key: 'home', path: '/', label: t('nav.home') },
-    { key: 'introduction', path: '/introduction', label: t('nav.introduction') },
+    { key: 'home', path: '/', label: 'Home' },
+    { key: 'introduction', path: '/introduction', label: 'Introduction' },
     { 
       key: 'people', 
-      label: t('nav.people'),
+      label: 'People',
       subItems: [
-        { key: 'professor', path: '/people/professor', label: t('nav.professor') },
-        { key: 'members', path: '/people/members', label: t('nav.members') },
-        { key: 'alumni', path: '/people/alumni', label: t('nav.alumni') }
+        { key: 'professor', path: '/people/professor', label: 'Professor' },
+        { key: 'members', path: '/people/members', label: 'Members' },
+        { key: 'alumni', path: '/people/alumni', label: 'Alumni' }
       ]
     },
     { 
       key: 'research', 
-      label: t('nav.research'),
+      label: 'Research',
       subItems: [
         { key: 'casting', path: '/research/casting', label: 'High-Performance Alloys' },
         { key: 'films', path: '/research/films', label: 'Ferroelectric Films' },
         { key: 'biodegradable', path: '/research/biodegradable', label: 'Biodegradable Alloys' }
       ]
     },
-    { key: 'publications', path: '/publications', label: t('nav.publications') },
+    { key: 'publications', path: '/publications', label: 'Publications' },
     { 
       key: 'board', 
-      label: t('nav.board'),
+      label: 'Board',
       subItems: [
-        { key: 'news', path: '/board/news', label: t('nav.news') },
-        { key: 'gallery', path: '/board/gallery', label: t('nav.gallery') }
+        { key: 'news', path: '/board/news', label: 'Notices & News' },
+        { key: 'gallery', path: '/board/gallery', label: 'Gallery' }
       ]
     },
-    { key: 'contact', path: '/contact', label: t('nav.contact') },
-    { key: 'simulation', path: '/simulation', label: t('nav.simulation') },
+    { key: 'contact', path: '/contact', label: 'Contact' },
+    { key: 'simulation', path: '/simulation', label: 'PFM Calculation', isExternal: false },
   ];
 
   const handleMouseEnter = (key: string) => {
@@ -128,7 +129,7 @@ export function Navigation({ currentPage, onPageChange }: NavigationProps) {
         </div>
       ))}
 
-      {/* 🌍 언어 전환 버튼 추가 */}
+      {/* 3. 언어 전환 버튼은 그대로 유지 */}
       <div className="ml-4 pl-4 border-l h-6 flex items-center">
         <Button 
           variant="ghost" 
