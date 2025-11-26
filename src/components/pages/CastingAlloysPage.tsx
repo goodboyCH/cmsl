@@ -115,7 +115,8 @@ export function CastingAlloysPage() {
                 </div>
                 {content.representative_media?.alt && (
                   <p className="mt-2 text-sm text-muted-foreground text-center italic">
-                    {content.representative_media.alt}
+                    {/* alt 대신 getContent 사용 */}
+                    {getContent(content.representative_media, 'alt')}
                   </p>
                 )}
               </div>
@@ -123,7 +124,12 @@ export function CastingAlloysPage() {
               {content.gallery_images && content.gallery_images.length > 0 && (
                 <div className="space-y-3">
                   <h4 className="text-sm font-bold text-muted-foreground uppercase tracking-wider ml-1">Gallery</h4>
-                  <ImageCarousel items={content.gallery_images} />
+                  <ImageCarousel 
+                    items={content.gallery_images.map(img => ({
+                      ...img,
+                      alt: getContent(img, 'alt') // alt 값을 현재 언어에 맞게 덮어씌워서 전달
+                    }))} 
+                  />
                 </div>
               )}
             </div>

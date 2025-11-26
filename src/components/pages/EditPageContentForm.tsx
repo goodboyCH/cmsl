@@ -272,6 +272,7 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
                   </div>
                   
                   {/* 2. Representative Media (공통) */}
+                  {/* Representative Media Section */}
                   <div className="p-4 border rounded-md space-y-3 bg-muted/20">
                     <Label className="font-bold text-primary text-base">Representative Figure (Top Section)</Label>
                     <div className="grid grid-cols-3 gap-4">
@@ -297,23 +298,63 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
                         </Select>
                       </div>
                     </div>
-                    <div className="space-y-2"><Label>Alt Text</Label><Input value={content?.representative_media?.alt || ''} onChange={(e) => handleRepresentativeChange('alt', e.target.value)} /></div>
+                    
+                    {/* Alt Text with Tabs */}
+                    <div className="space-y-1">
+                      <Label>Description (Alt Text)</Label>
+                      <Tabs defaultValue="en" className="mt-1">
+                        <TabsList className="h-8">
+                          <TabsTrigger value="en" className="text-xs h-7">Alt Text (EN)</TabsTrigger>
+                          <TabsTrigger value="ko" className="text-xs h-7">Alt Text (KO)</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="en">
+                          <Input 
+                            value={content?.representative_media?.alt || ''} 
+                            onChange={(e) => handleRepresentativeChange('alt', e.target.value)} 
+                            placeholder="Description in English" 
+                          />
+                        </TabsContent>
+                        <TabsContent value="ko">
+                          <Input 
+                            value={content?.representative_media?.alt_ko || ''} 
+                            onChange={(e) => handleRepresentativeChange('alt_ko', e.target.value)} 
+                            placeholder="한글 설명 (캡션)" 
+                          />
+                        </TabsContent>
+                      </Tabs>
+                    </div>
                   </div>
 
-                  {/* 3. Media Gallery (공통) */}
+                  {/* Media Gallery Section */}
                   <div className="space-y-3 pt-4">
                     <Label className="font-semibold text-base">Media Gallery (Bottom Carousel)</Label>
                     {(content?.gallery_images || []).map((item: any, index: number) => (
                       <div key={index} className="p-4 border rounded-md space-y-3 relative bg-white/50">
-                        <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeItemFromArray('gallery_images', index)}><Trash2 className="h-4 w-4"/></Button>
+                        <Button 
+                          type="button" 
+                          variant="destructive" 
+                          size="icon" 
+                          className="absolute top-2 right-2 h-7 w-7" 
+                          onClick={() => removeItemFromArray('gallery_images', index)}
+                        >
+                          <Trash2 className="h-4 w-4"/>
+                        </Button>
+                        
                         <div className="grid grid-cols-3 gap-4">
                           <div className="col-span-2 space-y-2">
                             <Label>Media URL</Label>
-                            <Input value={item.url || ''} onChange={(e) => handleArrayItemChange('gallery_images', index, 'url', e.target.value)} placeholder="https://..." />
+                            <Input 
+                              value={item.url || ''} 
+                              onChange={(e) => handleArrayItemChange('gallery_images', index, 'url', e.target.value)} 
+                              placeholder="https://..." 
+                            />
                           </div>
                           <div className="space-y-2">
                             <Label>Type</Label>
-                            <Select value={item.type || 'image'} onValueChange={(val) => handleArrayItemChange('gallery_images', index, 'type', val)}>
+                            <Select 
+                              value={item.type || 'image'} 
+                              onValueChange={(val) => handleArrayItemChange('gallery_images', index, 'type', val)}
+                            >
                               <SelectTrigger><SelectValue /></SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="image">Image</SelectItem>
@@ -322,10 +363,41 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
                             </Select>
                           </div>
                         </div>
-                        <div className="space-y-2"><Label>Description (Alt Text)</Label><Input value={item.alt || ''} onChange={(e) => handleArrayItemChange('gallery_images', index, 'alt', e.target.value)} /></div>
+
+                        {/* Alt Text with Tabs for Gallery Items */}
+                        <div className="space-y-1">
+                          <Label>Description (Alt Text)</Label>
+                          <Tabs defaultValue="en" className="mt-1">
+                            <TabsList className="h-8">
+                              <TabsTrigger value="en" className="text-xs h-7">Alt (EN)</TabsTrigger>
+                              <TabsTrigger value="ko" className="text-xs h-7">Alt (KO)</TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="en">
+                              <Input 
+                                value={item.alt || ''} 
+                                onChange={(e) => handleArrayItemChange('gallery_images', index, 'alt', e.target.value)} 
+                                placeholder="Description" 
+                              />
+                            </TabsContent>
+                            <TabsContent value="ko">
+                              <Input 
+                                value={item.alt_ko || ''} 
+                                onChange={(e) => handleArrayItemChange('gallery_images', index, 'alt_ko', e.target.value)} 
+                                placeholder="설명" 
+                              />
+                            </TabsContent>
+                          </Tabs>
+                        </div>
                       </div>
                     ))}
-                    <Button type="button" variant="outline" size="sm" onClick={() => addItemToArray('gallery_images', { url: '', type: 'image', alt: '' })}>+ Add Media Item</Button>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => addItemToArray('gallery_images', { url: '', type: 'image', alt: '', alt_ko: '' })}
+                    >
+                      + Add Media Item
+                    </Button>
                   </div>
                   
                 </AccordionContent>
