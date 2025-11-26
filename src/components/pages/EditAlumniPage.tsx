@@ -1,187 +1,207 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
-import { Plus, Pencil, Trash2, GraduationCap, Building2, BookOpen } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
-interface Alumni {
-  id: number;
-  name: string;
-  degree: string;
-  thesis: string | null;
-  current_position: string | null;
-  achievements: string[] | null;
-  graduation_year: string; // Supabase 컬럼명 확인
+// 1. Props 인터페이스 정의 (이 부분이 오류 해결의 핵심입니다)
+interface EditAlumniPageProps {
+  alumniId?: number; // ID가 있으면 수정 모드, 없으면 추가 모드
+  onBack: () => void; // 뒤로 가기 함수
 }
 
-export function EditAlumniPage() {
-  const navigate = useNavigate();
+export function EditAlumniPage({ alumniId, onBack }: EditAlumniPageProps) {
   const { toast } = useToast();
-  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+  
+  // 폼 상태 관리
+  const [formData, setFormData] = useState({
+    name: '',
+    degree: '',
+    graduation_year: '',
+    thesis: '',
+    current_position: '',
+    achievements: '' // DB에는 배열(string[])이지만 입력 편의상 문자열로 처리 후 변환
+  });
 
-  // 데이터 불러오기
-  const { data: alumni, isLoading, error, refetch } = useQuery({
-    queryKey: ['alumni-admin'], // admin용 쿼리키
-    queryFn: async () => {
+  // 2. 수정 모드일 경우 데이터 불러오기
+  useEffect(() => {
+    const fetchAlumni = async () => {
+      if (!alumniId) return; // 추가 모드면 스킵
+
+      setLoading(true);
       const { data, error } = await supabase
         .from('alumni')
         .select('*')
-        .order('graduation_year', { ascending: false });
-      
-      if (error) throw error;
-      return data as Alumni[];
-    },
-  });
+        .eq('id', alumniId)
+        .single();
 
-  // 삭제 로직
-  const handleDelete = async () => {
-    if (!deleteId) return;
+      if (error) {
+        console.error(error);
+        toast({ variant: "destructive", title: "Error", description: "Failed to load alumni data." });
+      } else if (data) {
+        setFormData({
+          name: data.name || '',
+          degree: data.degree || '',
+          graduation_year: data.graduation_year || '',
+          thesis: data.thesis || '',
+          current_position: data.current_position || '',
+          achievements: (data.achievements || []).join('\n') // 배열 -> 줄바꿈 문자열 변환
+        });
+      }
+      setLoading(false);
+    };
 
-    const { error } = await supabase
-      .from('alumni')
-      .delete()
-      .eq('id', deleteId);
+    fetchAlumni();
+  }, [alumniId, toast]);
 
-    if (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to delete alumni record.",
-      });
-    } else {
-      toast({
-        title: "Success",
-        description: "Alumni record deleted successfully.",
-      });
-      refetch(); // 목록 새로고침
-    }
-    setDeleteId(null);
+  // 입력 핸들러
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // 정렬 로직
-  const sortedAlumni = [...(alumni || [])].sort((a, b) => {
-    const yearA = parseInt(a.graduation_year || '0');
-    const yearB = parseInt(b.graduation_year || '0');
-    
-    // 연도가 같으면 이름순 정렬
-    if (yearB === yearA) {
-        return (a.name || '').localeCompare(b.name || '');
-    }
-    return yearB - yearA;
-  });
+  // 3. 저장 핸들러 (추가 및 수정 로직)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
 
-  if (isLoading) return <div className="flex justify-center items-center h-64">Loading...</div>;
-  if (error) return <div className="text-center py-20 text-red-500">Error loading alumni data</div>;
+    // 업로드할 데이터 준비
+    const payload = {
+      name: formData.name,
+      degree: formData.degree,
+      graduation_year: formData.graduation_year,
+      thesis: formData.thesis || null,
+      current_position: formData.current_position || null,
+      achievements: formData.achievements 
+        ? formData.achievements.split('\n').filter(line => line.trim() !== '') 
+        : [] // 줄바꿈으로 분리하여 배열로 저장
+    };
+
+    try {
+      let error;
+      if (alumniId) {
+        // 수정 (Update)
+        const { error: updateError } = await supabase
+          .from('alumni')
+          .update(payload)
+          .eq('id', alumniId);
+        error = updateError;
+      } else {
+        // 추가 (Insert)
+        const { error: insertError } = await supabase
+          .from('alumni')
+          .insert([payload]);
+        error = insertError;
+      }
+
+      if (error) throw error;
+
+      toast({ title: "Success", description: "Alumni record saved successfully." });
+      onBack(); // 목록으로 돌아가기
+    } catch (err: any) {
+      console.error(err);
+      toast({ 
+        variant: "destructive", 
+        title: "Error", 
+        description: err.message || "Failed to save record." 
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="space-y-6 p-6">
-      {/* 헤더 */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Alumni Management</h2>
-          <p className="text-muted-foreground">
-            Add, edit, or remove alumni records.
-          </p>
-        </div>
-        <Button onClick={() => navigate('/admin/alumni/new')} className="w-full sm:w-auto">
-          <Plus className="mr-2 h-4 w-4" /> Add Alumni
-        </Button>
-      </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>{alumniId ? 'Edit Alumni' : 'Add New Alumni'}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Name *</Label>
+              <Input 
+                id="name" 
+                name="name" 
+                value={formData.name} 
+                onChange={handleChange} 
+                required 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="graduation_year">Graduation Year *</Label>
+              <Input 
+                id="graduation_year" 
+                name="graduation_year" 
+                value={formData.graduation_year} 
+                onChange={handleChange} 
+                placeholder="e.g., 2023"
+                required 
+              />
+            </div>
+          </div>
 
-      {/* 카드 리스트 */}
-      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
-        {sortedAlumni.map((person) => (
-          <Card key={person.id} className="group relative hover:border-primary/50 transition-colors">
-            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-              <div className="space-y-1.5">
-                <CardTitle className="text-lg font-bold">{person.name}</CardTitle>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline">{person.degree}</Badge>
-                  <span className="text-xs text-muted-foreground flex items-center">
-                    <GraduationCap className="h-3 w-3 mr-1" />
-                    {person.graduation_year}
-                  </span>
-                </div>
-              </div>
-              
-              {/* 관리자용 수정/삭제 버튼 */}
-              <div className="flex gap-1 opacity-80 group-hover:opacity-100 transition-opacity bg-background/80 backdrop-blur-sm rounded-md">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 hover:text-blue-600"
-                  onClick={() => navigate(`/admin/alumni/${person.id}`)}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                      onClick={() => setDeleteId(person.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Alumni Record?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This will permanently delete <strong>{person.name}</strong>'s record. This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel onClick={() => setDeleteId(null)}>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </CardHeader>
-            
-            <CardContent className="space-y-3 mt-2">
-              {person.current_position && (
-                <div className="flex items-start gap-2 text-sm">
-                  <Building2 className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-                  <span className="text-foreground/80">{person.current_position}</span>
-                </div>
-              )}
-              {person.thesis && (
-                <div className="flex items-start gap-2 text-sm">
-                  <BookOpen className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-                  <span className="italic text-muted-foreground line-clamp-2 text-xs" title={person.thesis}>
-                    "{person.thesis}"
-                  </span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </div>
+          <div className="space-y-2">
+            <Label htmlFor="degree">Degree *</Label>
+            <Input 
+              id="degree" 
+              name="degree" 
+              value={formData.degree} 
+              onChange={handleChange} 
+              placeholder="e.g., Ph.D., M.S."
+              required 
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="current_position">Current Position</Label>
+            <Input 
+              id="current_position" 
+              name="current_position" 
+              value={formData.current_position} 
+              onChange={handleChange} 
+              placeholder="e.g., Senior Researcher at Samsung Electronics"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="thesis">Thesis Title</Label>
+            <Textarea 
+              id="thesis" 
+              name="thesis" 
+              value={formData.thesis} 
+              onChange={handleChange} 
+              placeholder="Thesis title..."
+              rows={2}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="achievements">Achievements / Note (One per line)</Label>
+            <Textarea 
+              id="achievements" 
+              name="achievements" 
+              value={formData.achievements} 
+              onChange={handleChange} 
+              placeholder="Award 1&#10;Achievement 2"
+              rows={3}
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4">
+            <Button type="button" variant="outline" onClick={onBack}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? 'Saving...' : 'Save Alumni'}
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
