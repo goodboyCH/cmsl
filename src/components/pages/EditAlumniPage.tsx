@@ -1,99 +1,236 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { supabase } from '@/lib/supabaseClient';
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/components/ui/use-toast';
+import { ArrowLeft } from 'lucide-react';
 
-interface EditAlumniPageProps {
-  alumniId?: number;
-  onBack: () => void;
-}
+const formSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  degree: z.string().min(1, 'Degree is required'),
+  thesis: z.string().optional(),
+  current_position: z.string().optional(),
+  achievements: z.string().optional(),
+  graduation_year: z.string().min(1, 'Graduation Year is required'), // year_range -> graduation_year
+});
 
-export function EditAlumniPage({ alumniId, onBack }: EditAlumniPageProps) {
-  const [formData, setFormData] = useState({
-    name: '', degree: '', thesis: '', current_position: '',
-    achievements: '', year_range: ''
+export default function EditAlumniPage() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: '',
+      degree: '',
+      thesis: '',
+      current_position: '',
+      achievements: '',
+      graduation_year: '',
+    },
   });
-  const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState('');
 
   useEffect(() => {
-    if (alumniId) {
+    if (id) {
       const fetchAlumni = async () => {
-        setLoading(true);
-        const { data } = await supabase.from('alumni').select('*').eq('id', alumniId).single();
+        const { data, error } = await supabase
+          .from('alumni')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (error) {
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to fetch alumni details.",
+          });
+          navigate('/admin/alumni');
+          return;
+        }
+
         if (data) {
-          setFormData({
-            name: data.name || '',
-            degree: data.degree || '',
+          form.reset({
+            name: data.name,
+            degree: data.degree,
             thesis: data.thesis || '',
             current_position: data.current_position || '',
-            achievements: (data.achievements || []).join('\n'),
-            year_range: data.year_range || ''
+            achievements: data.achievements ? data.achievements.join('\n') : '',
+            graduation_year: data.graduation_year || '', // DB 컬럼 매핑
           });
         }
-        setLoading(false);
       };
+
       fetchAlumni();
-    } else {
-      setLoading(false);
     }
-  }, [alumniId]);
+  }, [id, form, navigate, toast]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); setLoading(true); setMessage('');
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      const finalData = {
-        ...formData,
-        achievements: formData.achievements.split('\n').filter(line => line.trim() !== ''),
+      const alumniData = {
+        name: values.name,
+        degree: values.degree,
+        thesis: values.thesis || null,
+        current_position: values.current_position || null,
+        achievements: values.achievements ? values.achievements.split('\n').filter(Boolean) : [],
+        graduation_year: values.graduation_year, // 매핑 확인
       };
 
-      if (alumniId) {
-        const { error } = await supabase.from('alumni').update(finalData).eq('id', alumniId);
-        if (error) throw error;
-        setMessage('졸업생 정보가 성공적으로 수정되었습니다.');
-      } else {
-        const { error } = await supabase.from('alumni').insert([finalData]);
-        if (error) throw error;
-        setMessage('새 졸업생이 성공적으로 추가되었습니다.');
-      }
-      setTimeout(onBack, 1000);
-    } catch (error: any) {
-      setMessage(`오류 발생: ${error.message}`);
-    } finally {
-      setLoading(false);
+      const { error } = id
+        ? await supabase.from('alumni').update(alumniData).eq('id', id)
+        : await supabase.from('alumni').insert([alumniData]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: `Alumni ${id ? 'updated' : 'created'} successfully`,
+      });
+      navigate('/admin/alumni');
+    } catch (error) {
+      console.error('Error saving alumni:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save alumni.",
+      });
     }
   };
-
-  if (loading) return <p className="text-center p-8">Loading...</p>;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{alumniId ? '졸업생 정보 수정' : '새 졸업생 추가'}</CardTitle>
-        <CardDescription>졸업생의 상세 정보를 입력해주세요.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="container mx-auto px-4 py-8 max-w-2xl">
+      <Button
+        variant="ghost"
+        className="mb-6"
+        onClick={() => navigate('/admin/alumni')}
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" /> Back to Alumni
+      </Button>
+
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">
+          {id ? 'Edit Alumni' : 'Add New Alumni'}
+        </h1>
+        <p className="text-muted-foreground">
+          {id ? 'Update alumni information' : 'Create a new alumni record'}
+        </p>
+      </div>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. John Doe" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2"><Label>Name</Label><Input name="name" value={formData.name} onChange={handleChange} required /></div>
-            <div className="space-y-2"><Label>Degree</Label><Input name="degree" value={formData.degree} onChange={handleChange} placeholder="e.g., Ph.D. (2023)" /></div>
-            <div className="space-y-2"><Label>Current Position</Label><Input name="current_position" value={formData.current_position} onChange={handleChange} /></div>
-            <div className="space-y-2"><Label>Year Range</Label><Input name="year_range" value={formData.year_range} onChange={handleChange} placeholder="e.g., 2018-2023" /></div>
+            <FormField
+              control={form.control}
+              name="degree"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Degree</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. Ph.D." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="graduation_year"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Graduation Year</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. 2024" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
-          <div className="space-y-2"><Label>Thesis</Label><Textarea name="thesis" value={formData.thesis} onChange={handleChange} rows={2} /></div>
-          <div className="space-y-2"><Label>Achievements (한 줄에 하나씩)</Label><Textarea name="achievements" value={formData.achievements} onChange={handleChange} rows={3} /></div>
-          <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={onBack}>목록으로</Button><Button type="submit" disabled={loading}>{loading ? '저장 중...' : '저장'}</Button></div>
-          {message && <p className="text-sm text-center pt-2">{message}</p>}
+
+          <FormField
+            control={form.control}
+            name="current_position"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Current Position</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. Senior Researcher at Google" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="thesis"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Thesis Title</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Enter thesis title..." 
+                    className="min-h-[100px]"
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="achievements"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Achievements (One per line)</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Enter achievements..." 
+                    className="min-h-[100px]"
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <Button type="submit" className="w-full">
+            {id ? 'Save Changes' : 'Create Alumni'}
+          </Button>
         </form>
-      </CardContent>
-    </Card>
+      </Form>
+    </div>
   );
 }

@@ -1,213 +1,176 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ScrollAnimation } from '../ScrollAnimation';
-import { GraduationCap, Briefcase, Calendar, Award } from 'lucide-react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
+import { Button } from '@/components/ui/button';
+import { Plus, Pencil, Trash2, GraduationCap, Building2, BookOpen } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/components/ui/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 interface Alumni {
   id: number;
   name: string;
   degree: string;
-  thesis: string;
-  current_position: string;
-  achievements: string[];
-  year_range: string;
+  thesis: string | null;
+  current_position: string | null;
+  achievements: string[] | null;
+  graduation_year: string; // year_range -> graduation_year 변경
 }
 
-export function AlumniPage() {
-  const [alumni, setAlumni] = useState<Alumni[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function AlumniPage() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
-  useEffect(() => {
-    const fetchAlumni = async () => {
-      setLoading(true);
-      const { data } = await supabase.from('alumni').select('*').order('created_at', { ascending: false });
-      setAlumni(data || []);
-      setLoading(false);
-    };
-    fetchAlumni();
-  }, []);
+  const { data: alumni, isLoading, error, refetch } = useQuery({
+    queryKey: ['alumni'],
+    queryFn: async () => {
+      // DB 컬럼 graduation_year 기준으로 정렬
+      const { data, error } = await supabase
+        .from('alumni')
+        .select('*')
+        .order('graduation_year', { ascending: false });
+      
+      if (error) throw error;
+      return data as Alumni[];
+    },
+  });
 
-  const getDegreeColor = (degree: string) => {
-    if (degree.includes('Ph.D.')) return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-    return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+  const handleDelete = async () => {
+    if (!deleteId) return;
+
+    const { error } = await supabase
+      .from('alumni')
+      .delete()
+      .eq('id', deleteId);
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete alumni.",
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: "Alumni deleted successfully.",
+      });
+      refetch();
+    }
+    setDeleteId(null);
   };
 
-  const getPositionType = (position: string) => {
-    if (position.includes('Professor') || position.includes('Assistant Professor')) return 'academic';
-    if (position.includes('Student')) return 'student';
-    return 'industry';
-  };
+  // 클라이언트 사이드 정렬 (연도 -> 이름)
+  const sortedAlumni = [...(alumni || [])].sort((a, b) => {
+    const yearA = parseInt(a.graduation_year || '0');
+    const yearB = parseInt(b.graduation_year || '0');
+    
+    if (yearB === yearA) {
+        return (a.name || '').localeCompare(b.name || '');
+    }
+    return yearB - yearA;
+  });
 
-  const getPositionIcon = (position: string) => {
-    const type = getPositionType(position);
-    if (type === 'academic' || type === 'student') return <GraduationCap className="h-4 w-4" />;
-    return <Briefcase className="h-4 w-4" />;
-  };
-
-  if (loading) return <p className="text-center p-12">Loading alumni...</p>;
+  if (isLoading) return <div className="text-center py-20">Loading...</div>;
+  if (error) return <div className="text-center py-20 text-red-500">Error loading alumni</div>;
 
   return (
-    <div className="container px-4 sm:px-8 py-8 md:py-12 space-y-12">
-      <ScrollAnimation>
-        <div className="text-center space-y-4">
-          <h1 className="text-3xl sm:text-4xl font-bold text-primary">Alumni</h1>
-          <p className="text-lg sm:text-xl text-muted-foreground">
-            Celebrating the achievements of our graduated researchers
-          </p>
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Alumni</h1>
+          <p className="text-muted-foreground">Our distinguished graduates</p>
         </div>
-      </ScrollAnimation>
+        <Button onClick={() => navigate('/admin/alumni/new')}>
+          <Plus className="mr-2 h-4 w-4" /> Add Alumni
+        </Button>
+      </div>
 
-      <ScrollAnimation delay={100}>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-          <Card className="elegant-shadow text-center">
-            <CardContent className="p-4 sm:p-6">
-              <div className="text-2xl sm:text-3xl font-bold text-primary mb-1 sm:mb-2">
-                {alumni.filter(a => a.degree.includes('Ph.D.')).length}
-              </div>
-              <p className="text-xs sm:text-sm text-muted-foreground">Ph.D. Graduates</p>
-            </CardContent>
-          </Card>
-          <Card className="elegant-shadow text-center">
-            <CardContent className="p-4 sm:p-6">
-              <div className="text-2xl sm:text-3xl font-bold text-primary mb-1 sm:mb-2">
-                {alumni.filter(a => a.degree.includes('M.S.')).length}
-              </div>
-              <p className="text-xs sm:text-sm text-muted-foreground">M.S. Graduates</p>
-            </CardContent>
-          </Card>
-          <Card className="elegant-shadow text-center">
-            <CardContent className="p-4 sm:p-6">
-              <div className="text-2xl sm:text-3xl font-bold text-primary mb-1 sm:mb-2">
-                {alumni.filter(a => getPositionType(a.current_position) === 'academic' || getPositionType(a.current_position) === 'student').length}
-              </div>
-              <p className="text-xs sm:text-sm text-muted-foreground">In Academia</p>
-            </CardContent>
-          </Card>
-          <Card className="elegant-shadow text-center">
-            <CardContent className="p-4 sm:p-6">
-              <div className="text-2xl sm:text-3xl font-bold text-primary mb-1 sm:mb-2">
-                {alumni.filter(a => getPositionType(a.current_position) === 'industry').length}
-              </div>
-              <p className="text-xs sm:text-sm text-muted-foreground">In Industry</p>
-            </CardContent>
-          </Card>
-        </div>
-      </ScrollAnimation>
-
-      <ScrollAnimation delay={200}>
-        <div className="space-y-6">
-          <h2 className="text-2xl sm:text-3xl font-bold text-primary text-center md:text-left">Our Graduates</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            {alumni.map((alum, index) => (
-              <ScrollAnimation key={alum.id} delay={index * 50}>
-                <Card className="elegant-shadow smooth-transition hover:shadow-lg h-full">
-                  <CardHeader className="pb-4">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                      <Badge className={getDegreeColor(alum.degree)}>
-                        {alum.degree}
-                      </Badge>
-                      <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
-                        <Calendar className="h-3 w-3" />
-                        {alum.year_range}
-                      </div>
-                    </div>
-                    {/* CardTitle은 반응형으로 자동 조절됩니다. */}
-                    <CardTitle>{alum.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <h4 className="font-medium text-sm text-primary mb-2">Thesis</h4>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {alum.thesis}
-                      </p>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium text-sm text-primary mb-2 flex items-center gap-2">
-                        {getPositionIcon(alum.current_position)}
-                        Current Position
-                      </h4>
-                      <p className="text-sm font-medium">
-                        {alum.current_position}
-                      </p>
-                    </div>
-
-                    {alum.achievements && alum.achievements.length > 0 && (
-                      <div className="pt-3 border-t">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Award className="h-3 w-3 text-primary" />
-                          <span className="text-sm font-medium text-primary">Achievements</span>
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {alum.achievements.map((achievement, i) => (
-                            <Badge key={i} variant="outline" className="text-xs font-normal">
-                              {achievement}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </ScrollAnimation>
-            ))}
-          </div>
-        </div>
-      </ScrollAnimation>
-
-      <ScrollAnimation delay={300}>
-        <Card className="elegant-shadow">
-          <CardHeader>
-            {/* CardTitle, CardDescription은 반응형으로 자동 조절됩니다. */}
-            <CardTitle className="text-primary">Career Paths</CardTitle>
-            <CardDescription>
-              Where our alumni are making their mark in the world
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-              <div className="space-y-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {sortedAlumni.map((person) => (
+          <Card key={person.id} className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+              <div className="space-y-1">
+                <CardTitle className="text-xl font-bold">{person.name}</CardTitle>
                 <div className="flex items-center gap-2">
-                  <GraduationCap className="h-5 w-5 text-primary" />
-                  <h4 className="font-bold text-lg text-primary">Academia</h4>
+                  <Badge variant="secondary">{person.degree}</Badge>
+                  <span className="text-sm text-muted-foreground flex items-center">
+                    <GraduationCap className="h-3 w-3 mr-1" />
+                    {person.graduation_year}
+                  </span>
                 </div>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>• Assistant/Associate Professors</li>
-                  <li>• Postdoctoral Researchers</li>
-                  <li>• Ph.D. Students (Continuing)</li>
-                  <li>• Research Scientists</li>
-                </ul>
               </div>
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Briefcase className="h-5 w-5 text-primary" />
-                  <h4 className="font-bold text-lg text-primary">Industry</h4>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => navigate(`/admin/alumni/${person.id}`)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      onClick={() => setDeleteId(person.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the alumni record.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel onClick={() => setDeleteId(null)}>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4 mt-4">
+              {person.current_position && (
+                <div className="flex items-start gap-2 text-sm">
+                  <Building2 className="h-4 w-4 mt-1 text-muted-foreground shrink-0" />
+                  <span>{person.current_position}</span>
                 </div>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>• Samsung Electronics</li>
-                  <li>• POSCO Holdings</li>
-                  <li>• LG Chem</li>
-                  <li>• Hyundai Motor Group</li>
-                </ul>
-              </div>
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Award className="h-5 w-5 text-primary" />
-                  <h4 className="font-bold text-lg text-primary">Research Institutes</h4>
+              )}
+              {person.thesis && (
+                <div className="flex items-start gap-2 text-sm">
+                  <BookOpen className="h-4 w-4 mt-1 text-muted-foreground shrink-0" />
+                  <span className="italic text-muted-foreground line-clamp-2" title={person.thesis}>
+                    "{person.thesis}"
+                  </span>
                 </div>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>• KIMS (Korea Institute of Materials Science)</li>
-                  <li>• KIST (Korea Institute of Science and Technology)</li>
-                  <li>• KAIST (Korea Advanced Institute of Science and Technology)</li>
-                  <li>• International Universities</li>
-                </ul>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </ScrollAnimation>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }
