@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 import { Toaster } from '@/components/ui/toaster';
-import { LanguageProvider, useLanguage } from '@/components/LanguageProvider'; // useLanguage 추가;
+import { useLanguage } from '@/components/LanguageProvider'; // useLanguage 추가;
 import { Navigation } from '@/components/Navigation';
 import { MobileNavigation } from '@/components/MobileNavigation';
 import { ScrollToTopButton } from '@/components/ScrollToTopButton';
@@ -72,7 +72,6 @@ function App() {
   const currentPage = location.pathname.split('/')[1] || 'home';
 
   return (
-    <LanguageProvider>
       <div className="min-h-screen bg-background">
         <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="container flex items-center justify-between h-16 sm:h-20 px-4 sm:px-0">
@@ -189,7 +188,6 @@ function App() {
         <Toaster />
         {location.pathname === '/' && <SitePopup />}
       </div>
-    </LanguageProvider>
   );
 }
 
