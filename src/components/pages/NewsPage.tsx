@@ -14,11 +14,12 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { useLanguage } from '@/components/LanguageProvider'; // 1. import
 
 interface NoticeSummary {
   id: number;
   created_at: string;
-  title: string;
+  title: string; title_ko?: string; // 추가
   author: string;
   is_pinned: boolean;
 }
@@ -47,10 +48,15 @@ export function NewsPage({
   postsPerPage, searchTerm, setSearchTerm, handleSearch, onPageChange, 
   onPostClick, onEdit, onDelete, onTogglePin 
 }: NewsPageProps) {
-  
+
+  const { language } = useLanguage(); // 2. useLanguage
   const totalPages = Math.ceil(totalPosts / postsPerPage);
   const totalRegularPosts = totalPosts - totalPinned;
   const pinnedOnThisPage = notices.filter(n => n.is_pinned).length;
+  const getTitle = (notice: NoticeSummary) => {
+    if (language === 'ko' && notice.title_ko) return notice.title_ko;
+    return notice.title;
+  };
 
   const renderPageNumbers = () => {
     const pageNumbers = [];

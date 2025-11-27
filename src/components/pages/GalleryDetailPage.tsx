@@ -6,12 +6,13 @@ import 'react-quill/dist/quill.snow.css';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { ArrowLeft } from 'lucide-react';
+import { useLanguage } from '@/components/LanguageProvider'; // 1. import
 
 interface GalleryPostDetail {
   id: number;
   created_at: string;
-  title: string;
-  content: string;
+  title: string; title_ko?: string;
+  content: string; content_ko?: string;
   author: string;
   thumbnail_url: string;
 }
@@ -23,9 +24,19 @@ interface GalleryDetailPageProps {
 export function GalleryDetailPage({ session }: GalleryDetailPageProps) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { language } = useLanguage(); // 2. useLanguage
   
   const [post, setPost] = useState<GalleryPostDetail | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // 3. 헬퍼 함수
+  const getContent = (data: GalleryPostDetail | null, field: 'title' | 'content') => {
+    if (!data) return '';
+    if (language === 'ko' && data[`${field}_ko`]) {
+      return data[`${field}_ko`];
+    }
+    return data[field];
+  };
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -52,11 +63,10 @@ export function GalleryDetailPage({ session }: GalleryDetailPageProps) {
     <div className="container px-4 sm:px-8 py-8 md:py-12">
       <Card>
         <CardHeader className="border-b">
-          {/* --- ⬇️ 모바일 레이아웃 수정 ⬇️ --- */}
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
             <div className="flex-1">
-              {/* CardTitle은 반응형으로 자동 조절됩니다. */}
-              <CardTitle>{post.title}</CardTitle>
+              {/* 4. 적용 */}
+              <CardTitle>{getContent(post, 'title')}</CardTitle>
               <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 text-xs sm:text-sm text-muted-foreground pt-2">
                 <span>작성자: {post.author}</span>
                 <span>등록일: {new Date(post.created_at).toLocaleDateString()}</span>
@@ -69,11 +79,11 @@ export function GalleryDetailPage({ session }: GalleryDetailPageProps) {
               </div>
             )}
           </div>
-          {/* --- ⬆️ 수정 완료 ⬆️ --- */}
         </CardHeader>
         <CardContent className="py-8">
           <div className="prose dark:prose-invert w-full max-w-full ql-snow">
-            <div className="ql-editor" dangerouslySetInnerHTML={{ __html: post.content }} />
+            {/* 4. 적용 */}
+            <div className="ql-editor" dangerouslySetInnerHTML={{ __html: getContent(post, 'content') || '' }} />
           </div>
         </CardContent>
       </Card>

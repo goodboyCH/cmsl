@@ -4,12 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollAnimation } from '../ScrollAnimation';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-
+import { useLanguage } from '@/components/LanguageProvider'; // 1. import
 // Props 타입 정의를 'any' 대신 더 명확하게 지정하는 것이 좋습니다.
 interface Post {
   id: number;
   thumbnail_url: string;
-  title: string;
+  title: string; title_ko?: string; // 추가
   created_at: string;
 }
 
@@ -32,6 +32,11 @@ export function GalleryListPage({
   searchTerm, setSearchTerm, handleSearch, onPageChange, onPostClick 
 }: GalleryListPageProps) {
   const totalPages = Math.ceil(totalPosts / postsPerPage);
+  const { language } = useLanguage(); // 2. useLanguage
+  const getTitle = (post: Post) => {
+    if (language === 'ko' && post.title_ko) return post.title_ko;
+    return post.title;
+  };
 
   const renderPageNumbers = () => {
     if (totalPages <= 1) return null;
@@ -90,7 +95,7 @@ export function GalleryListPage({
                     </div>
                     {/* CardHeader의 기본 패딩이 반응형으로 수정되었으므로 p-4만 적용 */}
                     <CardHeader className="p-4">
-                      <CardTitle className="truncate text-base sm:text-lg">{post.title}</CardTitle>
+                      <CardTitle className="truncate text-base sm:text-lg">{getTitle(post)}</CardTitle>
                       <CardDescription className="text-xs sm:text-sm">{new Date(post.created_at).toLocaleDateString()}</CardDescription>
                     </CardHeader>
                   </Card>

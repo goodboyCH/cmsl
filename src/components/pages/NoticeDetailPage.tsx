@@ -6,13 +6,14 @@ import 'react-quill/dist/quill.snow.css';
 import { Paperclip, ArrowLeft } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
+import { useLanguage } from '@/components/LanguageProvider'; // 1. import
 
 interface Attachment { name: string; url: string; }
 interface NoticeDetail {
   id: number;
   created_at: string;
-  title: string;
-  content: string;
+  title: string; title_ko?: string; // 추가
+  content: string; content_ko?: string; // 추가
   author: string;
   attachments: Attachment[] | null;
 }
@@ -24,9 +25,19 @@ interface NoticeDetailPageProps {
 export function NoticeDetailPage({ session }: NoticeDetailPageProps) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { language } = useLanguage(); // 2. useLanguage
   
   const [notice, setNotice] = useState<NoticeDetail | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // 3. 언어 선택 헬퍼
+  const getContent = (data: NoticeDetail | null, field: 'title' | 'content') => {
+    if (!data) return '';
+    if (language === 'ko' && data[`${field}_ko`]) {
+      return data[`${field}_ko`];
+    }
+    return data[field];
+  };
 
   useEffect(() => {
     const fetchNotice = async () => {
@@ -53,11 +64,10 @@ export function NoticeDetailPage({ session }: NoticeDetailPageProps) {
     <div className="container px-4 sm:px-8 py-8 md:py-12">
       <Card>
         <CardHeader className="border-b">
-          {/* --- ⬇️ 모바일 레이아웃 수정 ⬇️ --- */}
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
             <div className="flex-1">
-              {/* CardTitle은 반응형으로 자동 조절됩니다. */}
-              <CardTitle>{notice.title}</CardTitle>
+              {/* 4. getContent 적용 */}
+              <CardTitle>{getContent(notice, 'title')}</CardTitle>
               <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 text-xs sm:text-sm text-muted-foreground pt-2">
                 <span>작성자: {notice.author}</span>
                 <span>등록일: {new Date(notice.created_at).toLocaleDateString()}</span>
@@ -70,11 +80,11 @@ export function NoticeDetailPage({ session }: NoticeDetailPageProps) {
               </div>
             )}
           </div>
-          {/* --- ⬆️ 수정 완료 ⬆️ --- */}
         </CardHeader>
         <CardContent className="py-8 space-y-8">
           <div className="prose dark:prose-invert w-full max-w-full ql-snow">
-            <div className="ql-editor" dangerouslySetInnerHTML={{ __html: notice.content }} />
+            {/* 4. getContent 적용 */}
+            <div className="ql-editor" dangerouslySetInnerHTML={{ __html: getContent(notice, 'content') || '' }} />
           </div>
 
           {notice.attachments && notice.attachments.length > 0 && (

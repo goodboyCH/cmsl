@@ -42,7 +42,7 @@ export function NoticeBoardPage({ session }: NoticeBoardPageProps) {
       const from = (currentPage - 1) * postsPerPage;
       const to = from + postsPerPage - 1;
 
-      let query = supabase.from('notices').select('id, created_at, title, author, is_pinned', { count: 'exact' });
+      let query = supabase.from('notices').select('id, created_at, title, title_ko, author, is_pinned', { count: 'exact' });
       let pinnedQuery = supabase.from('notices').select('*', { count: 'exact', head: true }).eq('is_pinned', true);
 
       if (searchQuery) {

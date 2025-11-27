@@ -10,8 +10,9 @@ import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { X } from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // 1. Tabs import
 
+// ... (sanitizeForStorage 함수 기존 유지)
 const sanitizeForStorage = (filename: string) => {
   const cleaned = filename.replace(/[^a-zA-Z0-9._-]/g, '');
   if (cleaned.indexOf('.') === -1) {
@@ -23,31 +24,45 @@ const sanitizeForStorage = (filename: string) => {
 
 export function AdminPage({ onNavigate }: { onNavigate: (page: string) => void }) {
   const [postType, setPostType] = useState<'notice' | 'gallery' | 'publication' | 'project'>('notice');
+  
+  // 2. 한글용 state 추가
   const [title, setTitle] = useState('');
+  const [titleKo, setTitleKo] = useState(''); 
   const [content, setContent] = useState('');
+  const [contentKo, setContentKo] = useState('');
+
   const [author, setAuthor] = useState('Administrator');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  
+  // 에디터 Ref 분리
   const quillRef = useRef<ReactQuill>(null);
+  const quillRefKo = useRef<ReactQuill>(null);
+
   const [attachments, setAttachments] = useState<File[]>([]);
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [pubData, setPubData] = useState({ year: new Date().getFullYear(), authors: '', journal: '', doi_link: '', is_featured: false });
   const [pubImage, setPubImage] = useState<File | null>(null);
 
   const resetForm = () => {
-    setTitle(''); setContent(''); setAuthor('Administrator'); setThumbnail(null); setAttachments([]); setPubImage(null);
+    setTitle(''); setTitleKo(''); 
+    setContent(''); setContentKo(''); 
+    setAuthor('Administrator'); setThumbnail(null); setAttachments([]); setPubImage(null);
     setPubData({ year: new Date().getFullYear(), authors: '', journal: '', doi_link: '', is_featured: false });
+    // input value 초기화 (기존 코드 유지)
     const thumbInput = document.getElementById('thumbnail-input') as HTMLInputElement; if (thumbInput) thumbInput.value = '';
     const attachInput = document.getElementById('attachment-input') as HTMLInputElement; if (attachInput) attachInput.value = '';
     const pubImageInput = document.getElementById('pub-image-input') as HTMLInputElement; if (pubImageInput) pubImageInput.value = '';
-    const projectThumbnailInput = document.getElementById('project-thumbnail-input') as HTMLInputElement; if (projectThumbnailInput) projectThumbnailInput.value = '';
   };
+
+  // ... (핸들러 함수들 기존 유지: handlePubDataChange, handlePubImageChange, handleThumbnailChange, handleAttachmentChange, removeAttachment)
   const handlePubDataChange = (e: React.ChangeEvent<HTMLInputElement>) => { const { name, value, type } = e.target; setPubData(prev => ({ ...prev, [name]: type === 'number' ? parseInt(value, 10) || 0 : value })); };
   const handlePubImageChange = (e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files?.[0]) setPubImage(e.target.files[0]); };
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files?.[0]) setThumbnail(e.target.files[0]); };
   const handleAttachmentChange = (e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files) setAttachments(Array.from(e.target.files)); };
   const removeAttachment = (index: number) => { setAttachments(attachments.filter((_, i) => i !== index)); };
 
+  // 이미지 핸들러 (기본적으로 영문 에디터에 삽입되도록 설정)
   const imageHandler = useCallback(() => {
     const input = document.createElement('input'); input.setAttribute('type', 'file'); input.setAttribute('accept', 'image/*'); input.click();
     input.onchange = async () => {
@@ -57,9 +72,12 @@ export function AdminPage({ onNavigate }: { onNavigate: (page: string) => void }
         const { error: uploadError } = await supabase.storage.from('notice-attachments').upload(filePath, file);
         if (uploadError) { setMessage(`이미지 업로드 오류: ${uploadError.message}`); setLoading(false); return; }
         const { data: urlData } = supabase.storage.from('notice-attachments').getPublicUrl(filePath);
+        
+        // 영문 에디터에 삽입
         const editor = quillRef.current?.getEditor();
-        if (editor) { const range = editor.getSelection(true); editor.insertEmbed(range.index, 'image', urlData.publicUrl); }
-        setMessage('이미지 업로드 완료.'); setLoading(false);
+        if (editor) { const range = editor.getSelection(true); editor.insertEmbed(range?.index || 0, 'image', urlData.publicUrl); }
+        
+        setMessage('이미지 업로드 완료. (영문 탭 에디터에 삽입됨)'); setLoading(false);
       }
     };
   }, []);
@@ -73,6 +91,7 @@ export function AdminPage({ onNavigate }: { onNavigate: (page: string) => void }
     imageResize: { parchment: Quill.import('parchment'), modules: ['Resize', 'DisplaySize'] }
   }), [imageHandler]);
 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); setLoading(true); setMessage('');
     try {
@@ -85,15 +104,26 @@ export function AdminPage({ onNavigate }: { onNavigate: (page: string) => void }
           const { data: urlData } = supabase.storage.from('notice-attachments').getPublicUrl(filePath);
           uploadedAttachments.push({ name: file.name, url: urlData.publicUrl });
         }
-        await supabase.from('notices').insert([{ title, content, author, attachments: uploadedAttachments }]);
+        // 3. title_ko, content_ko 추가 저장
+        await supabase.from('notices').insert([{ 
+          title, title_ko: titleKo, 
+          content, content_ko: contentKo, 
+          author, attachments: uploadedAttachments 
+        }]);
       } else if (postType === 'gallery') {
         if (!thumbnail) throw new Error('대표 이미지는 필수입니다.');
         const thumbPath = `public/gallery/thumbnails/${Date.now()}_${sanitizeForStorage(thumbnail.name)}`;
         const { error } = await supabase.storage.from('notice-attachments').upload(thumbPath, thumbnail);
         if (error) throw error;
         const { data: thumbUrlData } = supabase.storage.from('notice-attachments').getPublicUrl(thumbPath);
-        await supabase.from('gallery').insert([{ title, content, author, thumbnail_url: thumbUrlData.publicUrl }]);
+        // 3. title_ko, content_ko 추가 저장
+        await supabase.from('gallery').insert([{ 
+          title, title_ko: titleKo, 
+          content, content_ko: contentKo, 
+          author, thumbnail_url: thumbUrlData.publicUrl 
+        }]);
       } else if (postType === 'publication') {
+        // ... (Publication 로직 기존 유지)
         let imageUrl = null;
         if (pubImage) {
           const imagePath = `public/publication-images/${Date.now()}_${sanitizeForStorage(pubImage.name)}`;
@@ -114,6 +144,7 @@ export function AdminPage({ onNavigate }: { onNavigate: (page: string) => void }
 
   const renderPostForm = () => {
     if (postType === 'publication') {
+      // ... (Publication 폼 기존 유지) ...
       return (
         <div className="space-y-4">
           <div className="grid md:grid-cols-2 gap-4"><div className="space-y-2"><Label htmlFor="title">제목 (Title)</Label><Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required /></div><div className="space-y-2"><Label htmlFor="authors">저자 (Authors)</Label><Input id="authors" name="authors" value={pubData.authors} onChange={handlePubDataChange} required /></div><div className="space-y-2"><Label htmlFor="journal">학술지 (Journal)</Label><Input id="journal" name="journal" value={pubData.journal} onChange={handlePubDataChange} /></div><div className="space-y-2"><Label htmlFor="year">연도 (Year)</Label><Input id="year" name="year" type="number" value={pubData.year} onChange={handlePubDataChange} required /></div><div className="space-y-2"><Label htmlFor="doi_link">DOI 링크</Label><Input id="doi_link" name="doi_link" value={pubData.doi_link} onChange={handlePubDataChange} /></div></div>
@@ -125,11 +156,40 @@ export function AdminPage({ onNavigate }: { onNavigate: (page: string) => void }
     }
     return (
       <>
-        <div className="space-y-2"><Label htmlFor="title">제목</Label><Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required /></div>
         <div className="space-y-2"><Label htmlFor="author">작성자</Label><Input id="author" value={author} onChange={(e) => setAuthor(e.target.value)} required /></div>
-        <div className="space-y-2"><Label>내용</Label><ReactQuill ref={quillRef} theme="snow" value={content} onChange={setContent} modules={modules} className="bg-background"/></div>
-        {postType === 'gallery' && <div className="space-y-2"><Label htmlFor="thumbnail-input">대표 이미지 (필수)</Label><Input id="thumbnail-input" type="file" accept="image/*" onChange={handleThumbnailChange} required /></div>}
-        {postType === 'notice' && <div className="space-y-2"><Label htmlFor="attachment-input">첨부파일</Label><Input id="attachment-input" type="file" multiple onChange={handleAttachmentChange} />
+        
+        {/* 4. Tabs 적용: 제목 및 내용 */}
+        <Tabs defaultValue="en" className="border p-4 rounded-md mt-4">
+          <TabsList className="mb-4">
+            <TabsTrigger value="en">English (Primary)</TabsTrigger>
+            <TabsTrigger value="ko">Korean (Optional)</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="en" className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">Title (EN)</Label>
+              <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title in English" required />
+            </div>
+            <div className="space-y-2">
+              <Label>Content (EN)</Label>
+              <ReactQuill ref={quillRef} theme="snow" value={content} onChange={setContent} modules={modules} className="bg-background"/>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="ko" className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="title_ko">제목 (KO)</Label>
+              <Input id="title_ko" value={titleKo} onChange={(e) => setTitleKo(e.target.value)} placeholder="한글 제목" />
+            </div>
+            <div className="space-y-2">
+              <Label>내용 (KO)</Label>
+              <ReactQuill ref={quillRefKo} theme="snow" value={contentKo} onChange={setContentKo} modules={modules} className="bg-background"/>
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {postType === 'gallery' && <div className="space-y-2 mt-4"><Label htmlFor="thumbnail-input">대표 이미지 (필수)</Label><Input id="thumbnail-input" type="file" accept="image/*" onChange={handleThumbnailChange} required /></div>}
+        {postType === 'notice' && <div className="space-y-2 mt-4"><Label htmlFor="attachment-input">첨부파일</Label><Input id="attachment-input" type="file" multiple onChange={handleAttachmentChange} />
           {attachments.length > 0 && <div className="mt-2 space-y-2"><p className="text-sm font-medium">선택된 파일:</p><ul className="list-disc list-inside text-sm text-muted-foreground">{attachments.map((file, index) => (<li key={index} className="flex items-center justify-between"><span>{file.name}</span><Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeAttachment(index)}><X className="h-4 w-4" /></Button></li>))}</ul></div>}
         </div>}
       </>
