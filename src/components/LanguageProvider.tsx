@@ -204,8 +204,8 @@ const translations: Record<Language, Record<string, string>> = {
     'sim.status.ready': '상태: 준비됨. 시뮬레이션 타입을 선택하세요.',
 
     'header.line1': '국민대학교 신소재공학부',
-    'header.line2': '재료전산모사 연구실',
-    'footer.lab': '재료전산모사 연구실',
+    'header.line2': '계산재료과학 연구실',
+    'footer.lab': '계산재료과학 연구실',
     'footer.dept': '신소재공학부',
     'footer.univ': '국민대학교',
     'footer.links': '바로가기',
