@@ -61,9 +61,9 @@ export function ContactPage() {
                 <MapPin className="h-5 w-5 text-primary mt-1" />
                 <div>
                   <h4 className="font-semibold text-foreground">{t('contact.info.location')}</h4>
-                  <p>School of Materials Science & Engineering </p>
-                  <p>Kookmin University Engineering building Room 443</p>
-                  <p>77 Jeongneung-ro, Seongbuk-gu, Seoul, 02707, Korea</p>
+                  <p>{t('contact.addr.dept')}</p>
+                  <p>{t('contact.addr.building')}</p>
+                  <p>{t('contact.addr.street')}</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">

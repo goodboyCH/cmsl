@@ -73,7 +73,10 @@ const translations: Record<Language, Record<string, string>> = {
     'contact.form.sending': 'Sending...',
     'contact.success': 'Message sent successfully!',
     'contact.fail': 'Failed to send message:',
-
+    'contact.addr.dept': 'School of Materials Science & Engineering',
+    'contact.addr.building': 'Kookmin University Engineering building Room 443',
+    'contact.addr.street': '77 Jeongneung-ro, Seongbuk-gu, Seoul, 02707, Korea',
+    
     // ✅ Simulation Page (추가)
     'sim.header.title': 'Multi-Physics Simulation Service',
     'sim.header.desc': 'Powered by Python on Google Colab',
@@ -94,7 +97,21 @@ const translations: Record<Language, Record<string, string>> = {
     'sim.result.title': 'Result',
     'sim.result.placeholder': 'Result will be displayed here',
     'sim.status.ready': 'Status: Ready. Please select a simulation type.',
+    // ✅ Header & Footer (추가)
+    'header.line1': 'Computational Materials',
+    'header.line2': 'Science Laboratory',
     
+    'footer.lab': 'Computational Materials Science Laboratory',
+    'footer.dept': 'Dept. of Materials Science and Engineering',
+    'footer.univ': 'Kookmin University',
+    'footer.links': 'Quick Links',
+    'footer.links.research': 'Research Areas',
+    'footer.links.pubs': 'Publications',
+    'footer.links.members': 'Team Members',
+    'footer.links.contact': 'Contact Us',
+    'footer.contact': 'Contact',
+    'footer.address': '77 Jeongneung-ro, Seongbuk-gu, Seoul, 02707, Republic of Korea',
+    'footer.rights': '© 2024 CMSL - Computational Materials Science Laboratory. All rights reserved.',
     // Common
     'common.loading': 'Loading...',
     'common.read_more': 'Read More',
@@ -161,6 +178,10 @@ const translations: Record<Language, Record<string, string>> = {
     'contact.success': '메시지가 성공적으로 전송되었습니다!',
     'contact.fail': '전송 실패:',
 
+    'contact.addr.dept': '국민대학교 신소재공학부',
+    'contact.addr.building': '공학관 443호',
+    'contact.addr.street': '02707 서울특별시 성북구 정릉로 77',
+
     // ✅ Simulation Page (추가)
     'sim.header.title': '멀티피직스 시뮬레이션 서비스',
     'sim.header.desc': 'Google Colab 기반 Python 연산 엔진 구동',
@@ -182,6 +203,19 @@ const translations: Record<Language, Record<string, string>> = {
     'sim.result.placeholder': '결과 이미지가 여기에 표시됩니다.',
     'sim.status.ready': '상태: 준비됨. 시뮬레이션 타입을 선택하세요.',
 
+    'header.line1': '국민대학교 신소재공학부',
+    'header.line2': '재료전산모사 연구실',
+    'footer.lab': '재료전산모사 연구실',
+    'footer.dept': '신소재공학부',
+    'footer.univ': '국민대학교',
+    'footer.links': '바로가기',
+    'footer.links.research': '연구 분야',
+    'footer.links.pubs': '논문 성과',
+    'footer.links.members': '연구원 소개',
+    'footer.links.contact': '문의하기',
+    'footer.contact': '연락처',
+    'footer.address': '02707 서울특별시 성북구 정릉로 77',
+    'footer.rights': '© 2024 CMSL - Computational Materials Science Laboratory. All rights reserved.',
     // Common
     'common.loading': '로딩 중...',
     'common.read_more': '더 보기',

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 import { Toaster } from '@/components/ui/toaster';
-import { LanguageProvider } from '@/components/LanguageProvider';
+import { LanguageProvider, useLanguage } from '@/components/LanguageProvider'; // useLanguage 추가;
 import { Navigation } from '@/components/Navigation';
 import { MobileNavigation } from '@/components/MobileNavigation';
 import { ScrollToTopButton } from '@/components/ScrollToTopButton';
@@ -43,6 +43,7 @@ function App() {
   const [session, setSession] = useState<Session | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useLanguage(); // ✅ 번역 훅 사용 가능
 
   useIdleTimer({
     onIdle: () => supabase.auth.signOut(),
@@ -84,16 +85,15 @@ function App() {
                 />
               </button>
               <div className="hidden sm:flex flex-col items-start leading-tight">
-                {/* --- ⬇️ 텍스트 색상을 text-muted-foreground로 통일합니다. ⬇️ --- */}
-                <span className="font-bold text-sm lg:text-base text-muted-foreground">
-                  Computational Materials
-                </span>
-                {/* --- ⬆️ 수정 완료 ⬆️ --- */}
-                <span className="font-bold text-sm lg:text-base text-muted-foreground">
-                  Science Laboratory
-                </span>
-              </div>
+              {/* 🌍 헤더 텍스트 번역 적용 */}
+              <span className="font-bold text-sm lg:text-base text-muted-foreground">
+                {t('header.line1')}
+              </span>
+              <span className="font-bold text-sm lg:text-base text-muted-foreground">
+                {t('header.line2')}
+              </span>
             </div>
+          </div>
 
             <div className="hidden lg:flex">
               <Navigation currentPage={currentPage} onPageChange={handlePageChange} />
@@ -133,52 +133,51 @@ function App() {
         </main>
 
         <footer className="border-t bg-muted/50 mt-16">
-          <div className="container py-12 px-4 sm:px-8">
-            {/* --- ⬇️ Grid 대신 Flexbox를 사용하여 레이아웃을 수정합니다. ⬇️ --- */}
-            <div className="flex flex-col md:flex-row gap-8 text-center md:text-left">
-              {/* 각 항목에 md:flex-1을 추가하여 데스크톱에서 동일한 너비를 차지하도록 합니다. */}
-              <div className="flex flex-col items-center md:items-start md:flex-1">
-                <div className="mb-4">
-                  <h3 className="text-lg font-semibold text-primary mb-2">CMSL</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    Computational Materials Science Laboratory<br/>
-                    Dept. of Materials Science and Engineering<br/>
-                    Kookmin University
-                  </p>
-                </div>
-                <a href="https://cms.kookmin.ac.kr/mse/index.do" target="_blank" rel="noopener noreferrer">
-                  <img 
-                    src="/images/kmu-logo.png"
-                    alt="Kookmin University Logo" 
-                    className="h-14 sm:h-16 opacity-80"
-                  />
-                </a>
+        <div className="container py-12 px-4 sm:px-8">
+          <div className="flex flex-col md:flex-row gap-8 text-center md:text-left">
+            <div className="flex flex-col items-center md:items-start md:flex-1">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold text-primary mb-2">CMSL</h3>
+                {/* 🌍 푸터 정보 번역 적용 */}
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {t('footer.lab')}<br/>
+                  {t('footer.dept')}<br/>
+                  {t('footer.univ')}
+                </p>
               </div>
-              <div className="md:flex-1">
-                <h3 className="text-lg font-semibold text-primary mb-4">Quick Links</h3>
-                <div className="space-y-2 text-sm">
-                  <button onClick={() => handlePageChange('/research/casting')} className="block w-full text-muted-foreground hover:text-primary smooth-transition md:text-left">Research Areas</button>
-                  <button onClick={() => handlePageChange('/publications')} className="block w-full text-muted-foreground hover:text-primary smooth-transition md:text-left">Publications</button>
-                  <button onClick={() => handlePageChange('/people/members')} className="block w-full text-muted-foreground hover:text-primary smooth-transition md:text-left">Team Members</button>
-                  <button onClick={() => handlePageChange('/contact')} className="block w-full text-muted-foreground hover:text-primary smooth-transition md:text-left">Contact Us</button>
-                </div>
-              </div>
-              <div className="md:flex-1">
-                <h3 className="text-lg font-semibold text-primary mb-4">Contact</h3>
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <p>Prof. Cha Pil-Ryung</p>
-                  <p>cprdream@kookmin.ac.kr</p>
-                  <p>+82-2-910-4656</p>
-                </div>
+              <a href="https://cms.kookmin.ac.kr/mse/index.do" target="_blank" rel="noopener noreferrer">
+                <img 
+                  src="/images/kmu-logo.png"
+                  alt="Kookmin University Logo" 
+                  className="h-14 sm:h-16 opacity-80"
+                />
+              </a>
+            </div>
+            <div className="md:flex-1">
+              {/* 🌍 푸터 링크 번역 적용 */}
+              <h3 className="text-lg font-semibold text-primary mb-4">{t('footer.links')}</h3>
+              <div className="space-y-2 text-sm">
+                <button onClick={() => handlePageChange('/research/casting')} className="block w-full text-muted-foreground hover:text-primary smooth-transition md:text-left">{t('footer.links.research')}</button>
+                <button onClick={() => handlePageChange('/publications')} className="block w-full text-muted-foreground hover:text-primary smooth-transition md:text-left">{t('footer.links.pubs')}</button>
+                <button onClick={() => handlePageChange('/people/members')} className="block w-full text-muted-foreground hover:text-primary smooth-transition md:text-left">{t('footer.links.members')}</button>
+                <button onClick={() => handlePageChange('/contact')} className="block w-full text-muted-foreground hover:text-primary smooth-transition md:text-left">{t('footer.links.contact')}</button>
               </div>
             </div>
-            {/* --- ⬆️ 수정 완료 ⬆️ --- */}
-            <div className="border-t mt-8 pt-8 text-center text-xs sm:text-sm text-muted-foreground">
-               <p className="mb-2">77 Jeongneung-ro, Seongbuk-gu, Seoul, 02707, Republic of Korea</p>
-              <p>&copy; 2024 CMSL - Computational Materials Science Laboratory. All rights reserved.</p>
+            <div className="md:flex-1">
+              <h3 className="text-lg font-semibold text-primary mb-4">{t('footer.contact')}</h3>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p>Prof. Cha Pil-Ryung</p>
+                <p>cprdream@kookmin.ac.kr</p>
+                <p>+82-2-910-4656</p>
+              </div>
             </div>
           </div>
-        </footer>
+          <div className="border-t mt-8 pt-8 text-center text-xs sm:text-sm text-muted-foreground">
+              <p className="mb-2">{t('footer.address')}</p>
+            <p>{t('footer.rights')}</p>
+          </div>
+        </div>
+      </footer>
         
         {/* --- ⬇️ 모바일 네비게이션을 원래 위치로 복원 (z-index 문제 해결) ⬇️ --- */}
         <div className="fixed top-4 right-4 lg:hidden z-50">
@@ -193,5 +192,6 @@ function App() {
     </LanguageProvider>
   );
 }
+
 
 export default App;
