@@ -4,10 +4,11 @@ import { GalleryListPage } from './GalleryListPage';
 import { supabase } from '@/lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 
+// 1. Interface 수정 (title_ko 추가)
 interface GalleryPostSummary {
   id: number;
   created_at: string;
-  title: string;
+  title: string; title_ko?: string;
   thumbnail_url: string;
 }
 
@@ -32,17 +33,20 @@ export function GalleryBoardPage({ session }: GalleryBoardPageProps) {
     try {
       const from = (currentPage - 1) * postsPerPage;
       const to = from + postsPerPage - 1;
-      let query = supabase.from('gallery').select('id, created_at, title, thumbnail_url', { count: 'exact' });
+      
+      // 2. 쿼리에 title_ko 추가
+      let query = supabase.from('gallery').select('id, created_at, title, title_ko, thumbnail_url', { count: 'exact' });
       
       if (searchQuery) {
-        query = query.ilike('title', `%${searchQuery}%`);
+        // 3. 검색 시 영문/한글 제목 모두 검색 (or 조건)
+        query = query.or(`title.ilike.%${searchQuery}%,title_ko.ilike.%${searchQuery}%`);
       }
       
       const { data, error, count } = await query.order('created_at', { ascending: false }).range(from, to);
       
       if (error) throw error;
       
-      setPosts(data || []); // 데이터가 null일 경우 빈 배열로 설정
+      setPosts(data || []);
       setTotalPosts(count || 0);
     } catch (err: any) {
       setError(err.message);
@@ -59,6 +63,7 @@ export function GalleryBoardPage({ session }: GalleryBoardPageProps) {
     setCurrentPage(1);
     setSearchQuery(searchTerm);
   };
+  
   
   return (
     <GalleryListPage 

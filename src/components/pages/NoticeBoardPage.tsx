@@ -2,12 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { NewsPage } from './NewsPage';
 import { supabase } from '@/lib/supabaseClient';
-import { useNavigate } from 'react-router-dom'; // 1. useNavigate 훅을 가져옵니다.
+import { useNavigate } from 'react-router-dom';
 
+// 1. Interface 수정 (title_ko 추가)
 interface NoticeSummary {
   id: number;
   created_at: string;
-  title: string;
+  title: string; title_ko?: string;
   author: string;
   is_pinned: boolean;
 }
@@ -17,7 +18,6 @@ interface NoticeBoardPageProps {
 }
 
 export function NoticeBoardPage({ session }: NoticeBoardPageProps) {
-  // 2. view와 selectedNotice 상태를 삭제합니다.
   const [notices, setNotices] = useState<NoticeSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,9 +28,8 @@ export function NoticeBoardPage({ session }: NoticeBoardPageProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   
-  const navigate = useNavigate(); // 3. navigate 함수를 초기화합니다.
+  const navigate = useNavigate();
 
-  // 4. useEffect에서 view 상태에 대한 의존성을 제거합니다.
   useEffect(() => {
     fetchNotices();
   }, [currentPage, searchQuery]);
@@ -42,12 +41,17 @@ export function NoticeBoardPage({ session }: NoticeBoardPageProps) {
       const from = (currentPage - 1) * postsPerPage;
       const to = from + postsPerPage - 1;
 
+      // 2. 쿼리에 title_ko 추가 (이미 추가하셨을 수도 있지만 확인)
       let query = supabase.from('notices').select('id, created_at, title, title_ko, author, is_pinned', { count: 'exact' });
       let pinnedQuery = supabase.from('notices').select('*', { count: 'exact', head: true }).eq('is_pinned', true);
 
       if (searchQuery) {
-        query = query.ilike('title', `%${searchQuery}%`);
-        pinnedQuery = pinnedQuery.ilike('title', `%${searchQuery}%`);
+        // 3. 검색 시 영문/한글 제목 모두 검색되도록 수정 (or 조건)
+        const searchFilter = `title.ilike.%${searchQuery}%,title_ko.ilike.%${searchQuery}%`;
+        query = query.or(searchFilter);
+        // pinnedQuery는 단순히 개수만 세는 것이므로 필터링 필요 여부에 따라 조정 (보통 전체 개수 유지하거나 검색어 적용)
+        // 여기서는 검색어 적용
+        pinnedQuery = pinnedQuery.or(searchFilter);
       }
       
       const [noticeResult, pinnedResult] = await Promise.all([
@@ -81,11 +85,10 @@ export function NoticeBoardPage({ session }: NoticeBoardPageProps) {
   const handleDelete = async (id: number) => {
     if (window.confirm('정말로 이 공지사항을 삭제하시겠습니까?')) {
       await supabase.from('notices').delete().eq('id', id);
-      fetchNotices(); // 목록을 다시 불러옵니다.
+      fetchNotices();
     }
   };
 
-  // 5. 복잡한 switch 문 대신, NewsPage 컴포넌트만 반환합니다.
   return (
     <NewsPage 
       notices={notices}
@@ -100,7 +103,6 @@ export function NoticeBoardPage({ session }: NoticeBoardPageProps) {
       setSearchTerm={setSearchTerm}
       handleSearch={handleSearch}
       onPageChange={(page) => setCurrentPage(page)}
-      // 6. 클릭/수정 이벤트를 navigate 함수를 이용한 URL 이동으로 변경합니다.
       onPostClick={(id) => navigate(`/board/news/${id}`)} 
       onEdit={(id) => navigate(`/board/news/${id}/edit`)}
       onDelete={handleDelete}

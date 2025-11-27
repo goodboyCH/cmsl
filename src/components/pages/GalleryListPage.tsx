@@ -4,12 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollAnimation } from '../ScrollAnimation';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { useLanguage } from '@/components/LanguageProvider'; // 1. import
-// Props 타입 정의를 'any' 대신 더 명확하게 지정하는 것이 좋습니다.
+import { useLanguage } from '@/components/LanguageProvider';
+import { Session } from '@supabase/supabase-js'; // 1. Session import
+
 interface Post {
   id: number;
   thumbnail_url: string;
-  title: string; title_ko?: string; // 추가
+  title: string;
+  title_ko?: string;
   created_at: string;
 }
 
@@ -17,6 +19,7 @@ interface GalleryListPageProps {
   posts: Post[];
   loading: boolean;
   error: string | null;
+  session: Session | null; // 2. session prop 타입 정의 추가
   currentPage: number;
   totalPosts: number;
   postsPerPage: number;
@@ -28,15 +31,18 @@ interface GalleryListPageProps {
 }
 
 export function GalleryListPage({ 
-  posts, loading, error, currentPage, totalPosts, postsPerPage, 
+  posts, loading, error, session, // 3. session prop 받기
+  currentPage, totalPosts, postsPerPage, 
   searchTerm, setSearchTerm, handleSearch, onPageChange, onPostClick 
 }: GalleryListPageProps) {
-  const totalPages = Math.ceil(totalPosts / postsPerPage);
-  const { language } = useLanguage(); // 2. useLanguage
+  const { language } = useLanguage();
+
   const getTitle = (post: Post) => {
     if (language === 'ko' && post.title_ko) return post.title_ko;
     return post.title;
   };
+
+  const totalPages = Math.ceil(totalPosts / postsPerPage);
 
   const renderPageNumbers = () => {
     if (totalPages <= 1) return null;
@@ -91,9 +97,8 @@ export function GalleryListPage({
                 {posts.map((post) => (
                   <Card key={post.id} className="elegant-shadow smooth-transition hover:shadow-lg cursor-pointer overflow-hidden group" onClick={() => onPostClick(post.id)}>
                     <div className="aspect-video overflow-hidden border-b">
-                      <img src={post.thumbnail_url} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      <img src={post.thumbnail_url} alt={getTitle(post)} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                     </div>
-                    {/* CardHeader의 기본 패딩이 반응형으로 수정되었으므로 p-4만 적용 */}
                     <CardHeader className="p-4">
                       <CardTitle className="truncate text-base sm:text-lg">{getTitle(post)}</CardTitle>
                       <CardDescription className="text-xs sm:text-sm">{new Date(post.created_at).toLocaleDateString()}</CardDescription>
