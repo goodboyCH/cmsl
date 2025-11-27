@@ -28,6 +28,16 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.contact': 'Contact',
     'nav.simulation': 'PFM Calculation',
 
+    'members.header.title': 'Our Team',
+    'members.header.desc': 'Meet the talented researchers advancing computational materials science',
+    
+    'alumni.header.title': 'Alumni',
+    'alumni.header.desc': 'Meet our distinguished graduates who are making an impact in their fields.',
+    
+    'publications.header.title': 'Publications',
+    'publications.header.desc': 'Explore our research contributions to computational materials science.',
+
+
     // Home Page (Hero Section)
     'home.hero.title': 'Materials Science\n×\nComputational Thermodynamics',
     'home.hero.subtitle': 'We design predictable material systems based on microstructural physics,\ncontributing to innovation across various industries.',
@@ -68,6 +78,16 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.gallery': '갤러리',
     'nav.contact': '문의하기',
     'nav.simulation': 'PFM 시뮬레이션',
+
+    'members.header.title': '연구원 소개',
+    'members.header.desc': '계산 재료 과학 연구를 선도하는 연구원들을 소개합니다.',
+    
+    'alumni.header.title': '졸업생',
+    'alumni.header.desc': '각 분야에서 활약하고 있는 자랑스러운 졸업생들을 소개합니다.',
+    
+    'publications.header.title': '연구 논문',
+    'publications.header.desc': '계산 재료 과학 분야의 연구 성과와 기여를 확인해보세요.',
+    
 
     // Home Page
     'home.hero.title': '재료과학\n×\n계산열역학',

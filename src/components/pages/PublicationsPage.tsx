@@ -11,6 +11,7 @@ import { Search, ExternalLink, Users, BookOpen, Edit, Trash2, ChevronDown } from
 import { EditPublicationPage } from './EditPublicationPage';
 // 1. 페이지네이션 컴포넌트를 import 합니다.
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { useLanguage } from '../LanguageProvider'; // 1. import 추가
 
 interface Publication {
   id: number;
@@ -27,6 +28,7 @@ interface Publication {
 type ViewMode = { mode: 'list' } | { mode: 'edit', id: number };
 
 export function PublicationsPage() {
+  const { t } = useLanguage(); // 2. useLanguage 훅 사용
   const [publications, setPublications] = useState<Publication[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -141,9 +143,10 @@ export function PublicationsPage() {
     <div className="container px-4 sm:px-8 py-8 md:py-12 space-y-12">
       <ScrollAnimation>
         <div className="text-center space-y-4">
-          <h1 className="text-3xl sm:text-4xl font-bold text-primary">Publications</h1>
+          {/* 3. 상단 텍스트 다국어 적용 */}
+          <h1 className="text-3xl sm:text-4xl font-bold text-primary">{t('publications.header.title')}</h1>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
-            Explore our research contributions to computational materials science.
+            {t('publications.header.desc')}
           </p>
         </div>
       </ScrollAnimation>

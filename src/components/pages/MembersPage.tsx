@@ -5,6 +5,7 @@ import { ScrollAnimation } from '../ScrollAnimation';
 import { MemberDetailModal } from '../MemberDetailModal';
 import { Mail, GraduationCap, Calendar } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
+import { useLanguage } from '../LanguageProvider'; // 1. import 추가
 
 interface Member {
   id: number;
@@ -19,6 +20,7 @@ interface Member {
 }
 
 export function MembersPage() {
+  const { t } = useLanguage(); // 2. useLanguage 훅 사용
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,9 +82,9 @@ export function MembersPage() {
         <ScrollAnimation>
           <div className="text-center space-y-4">
             {/* --- ⬇️ 타이틀 텍스트 크기를 반응형으로 수정 ⬇️ --- */}
-            <h1 className="text-3xl font-bold text-primary sm:text-4xl">Our Team</h1>
+            <h1 className="text-3xl font-bold text-primary sm:text-4xl">{t('members.header.title')}</h1>
             <p className="text-lg text-muted-foreground sm:text-xl">
-              Meet the talented researchers advancing computational materials science
+              {t('members.header.desc')}
             </p>
           </div>
         </ScrollAnimation>

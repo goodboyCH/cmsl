@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useLanguage } from '../LanguageProvider'; // 1. import 추가
 
 // DB 스키마 타입 정의
 interface Alumni {
@@ -21,6 +22,7 @@ interface Alumni {
 }
 
 export function AlumniPage() {
+  const { t } = useLanguage(); // 2. useLanguage 훅 사용
   // useState로 상태 관리 (MembersPage 스타일)
   const [alumni, setAlumni] = useState<Alumni[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,9 +72,9 @@ export function AlumniPage() {
   return (
     <div className="container mx-auto px-4 py-12 max-w-7xl">
       <div className="mb-10 text-center">
-        <h1 className="text-4xl font-bold mb-4 text-primary">Alumni</h1>
+      <h1 className="text-4xl font-bold mb-4 text-primary">{t('alumni.header.title')}</h1>
         <p className="text-lg text-muted-foreground">
-          Meet our distinguished graduates who are making an impact in their fields.
+          {t('alumni.header.desc')}
         </p>
       </div>
 
