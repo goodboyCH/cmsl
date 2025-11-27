@@ -93,8 +93,9 @@ function AppContent() {
               </span>
             </div>
           </div>
-
-          <div className="hidden lg:flex">
+        
+          
+          <div className="hidden min-[1150px]:flex">
             <Navigation currentPage={currentPage} onPageChange={handlePageChange} />
           </div>
         </div>
@@ -175,7 +176,7 @@ function AppContent() {
         </div>
       </footer>
       
-      <div className="fixed top-4 right-4 lg:hidden z-50">
+      <div className="fixed top-4 right-4 min-[1150px]:hidden z-50">
         <MobileNavigation currentPage={currentPage} onPageChange={handlePageChange} />
       </div>
 
