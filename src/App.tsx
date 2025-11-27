@@ -2,15 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 import { Toaster } from '@/components/ui/toaster';
-import { useLanguage } from '@/components/LanguageProvider'; // useLanguage 추가;
+import { LanguageProvider, useLanguage } from '@/components/LanguageProvider'; // useLanguage 추가
 import { Navigation } from '@/components/Navigation';
 import { MobileNavigation } from '@/components/MobileNavigation';
 import { ScrollToTopButton } from '@/components/ScrollToTopButton';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useIdleTimer } from '@/hooks/useIdleTimer';
-import { SitePopup } from '@/components/SitePopup'; // 1. 방금 만든 팝업 import
+import { SitePopup } from '@/components/SitePopup';
 
-// 페이지 컴포넌트 import는 변경 없습니다.
 import { HomePage } from '@/components/pages/HomePage';
 import { IntroductionPage } from '@/components/pages/IntroductionPage';
 import { ProfessorPage } from '@/components/pages/ProfessorPage';
@@ -32,14 +31,15 @@ import { NoticeDetailPage } from '@/components/pages/NoticeDetailPage';
 import { GalleryDetailPage } from '@/components/pages/GalleryDetailPage';
 import { EditNoticePage } from '@/components/pages/EditNoticePage';
 import { EditGalleryPage } from '@/components/pages/EditGalleryPage';
-import { SimulationPage } from '@/components/pages/SimulationPage'; // 새로 만든 페이지 임포트
+import { SimulationPage } from '@/components/pages/SimulationPage'; 
 import { VtiViewerPage } from '@/components/pages/VtiViewerPage';
 
 import { Quill } from 'react-quill';
 import ImageResize from 'quill-image-resize-module-react';
 Quill.register('modules/imageResize', ImageResize);
 
-function App() {
+// 🏗️ 내부 컴포넌트 분리: useLanguage 훅을 사용하기 위함
+function AppContent() {
   const [session, setSession] = useState<Session | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -72,18 +72,18 @@ function App() {
   const currentPage = location.pathname.split('/')[1] || 'home';
 
   return (
-      <div className="min-h-screen bg-background">
-        <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="container flex items-center justify-between h-16 sm:h-20 px-4 sm:px-0">
-            <div className="flex items-center gap-2 sm:gap-4">
-              <button onClick={() => handlePageChange('/')} className="flex-shrink-0">
-                <img 
-                  src="/images/logo1.png" 
-                  alt="CMSL Logo" 
-                  className="h-12 sm:h-16 w-auto"
-                />
-              </button>
-              <div className="hidden sm:flex flex-col items-start leading-tight">
+    <div className="min-h-screen bg-background">
+      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex items-center justify-between h-16 sm:h-20 px-4 sm:px-0">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <button onClick={() => handlePageChange('/')} className="flex-shrink-0">
+              <img 
+                src="/images/logo1.png" 
+                alt="CMSL Logo" 
+                className="h-12 sm:h-16 w-auto"
+              />
+            </button>
+            <div className="hidden sm:flex flex-col items-start leading-tight">
               {/* 🌍 헤더 텍스트 번역 적용 */}
               <span className="font-bold text-sm lg:text-base text-muted-foreground">
                 {t('header.line1')}
@@ -94,44 +94,41 @@ function App() {
             </div>
           </div>
 
-            <div className="hidden lg:flex">
-              <Navigation currentPage={currentPage} onPageChange={handlePageChange} />
-            </div>
-            
-            {/* 모바일 네비게이션은 헤더에서 제외하고 바깥으로 이동시킵니다. */}
+          <div className="hidden lg:flex">
+            <Navigation currentPage={currentPage} onPageChange={handlePageChange} />
           </div>
-        </header>
+        </div>
+      </header>
 
-        <main>
-          <Routes>
-            {/* 라우팅 코드는 변경 없습니다. */}
-            <Route path="/" element={<HomePage onPageChange={handlePageChange} />} />
-            <Route path="/viewer" element={<VtiViewerPage />} />
-            <Route path="/simulation" element={<SimulationPage />} /> 
-            <Route path="/introduction" element={<IntroductionPage />} />
-            <Route path="/people/professor" element={<ProfessorPage />} />
-            <Route path="/people/members" element={<MembersPage />} />
-            <Route path="/people/alumni" element={<AlumniPage />} />
-            <Route path="/research/casting" element={<CastingAlloysPage />} />
-            <Route path="/research/films" element={<ThinFilmsPage />} />
-            <Route path="/research/biodegradable" element={<BiodegradableAlloysPage />} />
-            <Route path="/publications" element={<PublicationsPage />} />
-            <Route path="/board/news" element={<NoticeBoardPage session={session} />} />
-            <Route path="/board/news/:id" element={<NoticeDetailPage session={session} />} /> 
-            <Route path="/board/news/:id/edit" element={<EditNoticePage />} />
-            <Route path="/board/gallery" element={<GalleryBoardPage session={session} />} />
-            <Route path="/board/gallery/:id" element={<GalleryDetailPage session={session} />} />
-            <Route path="/board/gallery/:id/edit" element={<EditGalleryPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/cmsl2004" element={session ? <AdminPage onNavigate={handlePageChange} /> : <LoginPage />} />
-            <Route path="/cmsl20042" element={session ? <AdminPage2 onNavigate={handlePageChange} /> : <LoginPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
+      <main>
+        <Routes>
+          <Route path="/" element={<HomePage onPageChange={handlePageChange} />} />
+          <Route path="/viewer" element={<VtiViewerPage />} />
+          <Route path="/simulation" element={<SimulationPage />} /> 
+          <Route path="/introduction" element={<IntroductionPage />} />
+          <Route path="/people/professor" element={<ProfessorPage />} />
+          <Route path="/people/members" element={<MembersPage />} />
+          <Route path="/people/alumni" element={<AlumniPage />} />
+          <Route path="/research/casting" element={<CastingAlloysPage />} />
+          <Route path="/research/films" element={<ThinFilmsPage />} />
+          <Route path="/research/biodegradable" element={<BiodegradableAlloysPage />} />
+          <Route path="/publications" element={<PublicationsPage />} />
+          <Route path="/board/news" element={<NoticeBoardPage session={session} />} />
+          <Route path="/board/news/:id" element={<NoticeDetailPage session={session} />} /> 
+          <Route path="/board/news/:id/edit" element={<EditNoticePage />} />
+          <Route path="/board/gallery" element={<GalleryBoardPage session={session} />} />
+          <Route path="/board/gallery/:id" element={<GalleryDetailPage session={session} />} />
+          <Route path="/board/gallery/:id/edit" element={<EditGalleryPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/cmsl2004" element={session ? <AdminPage onNavigate={handlePageChange} /> : <LoginPage />} />
+          <Route path="/cmsl20042" element={session ? <AdminPage2 onNavigate={handlePageChange} /> : <LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </main>
 
-        <footer className="border-t bg-muted/50 mt-16">
+      <footer className="border-t bg-muted/50 mt-16">
         <div className="container py-12 px-4 sm:px-8">
           <div className="flex flex-col md:flex-row gap-8 text-center md:text-left">
             <div className="flex flex-col items-center md:items-start md:flex-1">
@@ -177,19 +174,25 @@ function App() {
           </div>
         </div>
       </footer>
-        
-        {/* --- ⬇️ 모바일 네비게이션을 원래 위치로 복원 (z-index 문제 해결) ⬇️ --- */}
-        <div className="fixed top-4 right-4 lg:hidden z-50">
-          <MobileNavigation currentPage={currentPage} onPageChange={handlePageChange} />
-        </div>
-        {/* --- ⬆️ 수정 완료 ⬆️ --- */}
-
-        <ScrollToTopButton />
-        <Toaster />
-        {location.pathname === '/' && <SitePopup />}
+      
+      <div className="fixed top-4 right-4 lg:hidden z-50">
+        <MobileNavigation currentPage={currentPage} onPageChange={handlePageChange} />
       </div>
+
+      <ScrollToTopButton />
+      <Toaster />
+      {location.pathname === '/' && <SitePopup />}
+    </div>
   );
 }
 
+// 메인 App 컴포넌트에서 Provider로 감싸줌
+function App() {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
+  );
+}
 
 export default App;
