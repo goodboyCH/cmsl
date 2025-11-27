@@ -4,11 +4,12 @@ import { NewsPage } from './NewsPage';
 import { supabase } from '@/lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 
-// 1. Interface 수정 (title_ko 추가)
+// 1. 인터페이스에 title_ko 추가 확인
 interface NoticeSummary {
   id: number;
   created_at: string;
-  title: string; title_ko?: string;
+  title: string;
+  title_ko?: string; // ✨ 필수
   author: string;
   is_pinned: boolean;
 }
@@ -41,17 +42,22 @@ export function NoticeBoardPage({ session }: NoticeBoardPageProps) {
       const from = (currentPage - 1) * postsPerPage;
       const to = from + postsPerPage - 1;
 
-      // 2. 쿼리에 title_ko 추가 (이미 추가하셨을 수도 있지만 확인)
-      let query = supabase.from('notices').select('id, created_at, title, title_ko, author, is_pinned', { count: 'exact' });
-      let pinnedQuery = supabase.from('notices').select('*', { count: 'exact', head: true }).eq('is_pinned', true);
+      // 2. ✨ 쿼리에 'title_ko'가 꼭 포함되어야 합니다! ✨
+      let query = supabase
+        .from('notices')
+        .select('id, created_at, title, title_ko, author, is_pinned', { count: 'exact' });
+      
+      // 공지글 쿼리에도 title_ko 추가
+      let pinnedQuery = supabase
+        .from('notices')
+        .select('id, created_at, title, title_ko, author, is_pinned', { count: 'exact', head: true })
+        .eq('is_pinned', true);
 
       if (searchQuery) {
-        // 3. 검색 시 영문/한글 제목 모두 검색되도록 수정 (or 조건)
-        const searchFilter = `title.ilike.%${searchQuery}%,title_ko.ilike.%${searchQuery}%`;
-        query = query.or(searchFilter);
-        // pinnedQuery는 단순히 개수만 세는 것이므로 필터링 필요 여부에 따라 조정 (보통 전체 개수 유지하거나 검색어 적용)
-        // 여기서는 검색어 적용
-        pinnedQuery = pinnedQuery.or(searchFilter);
+        // 한글/영문 제목 모두 검색되도록 설정
+        query = query.or(`title.ilike.%${searchQuery}%,title_ko.ilike.%${searchQuery}%`);
+        // pinnedQuery는 갯수만 세는 용도라면 필터링 제외해도 되지만, 정확성을 위해 포함
+        pinnedQuery = pinnedQuery.or(`title.ilike.%${searchQuery}%,title_ko.ilike.%${searchQuery}%`);
       }
       
       const [noticeResult, pinnedResult] = await Promise.all([

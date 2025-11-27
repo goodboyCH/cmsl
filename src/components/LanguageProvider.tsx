@@ -37,6 +37,11 @@ const translations: Record<Language, Record<string, string>> = {
     'publications.header.title': 'Publications',
     'publications.header.desc': 'Explore our research contributions to computational materials science.',
 
+    'news.header.title': 'Notices & News',
+    'news.header.desc': 'Stay updated with the latest news and announcements.',
+    
+    'gallery.header.title': 'Gallery',
+    'gallery.header.desc': 'Explore our lab\'s activities and achievements.',
 
     // Home Page (Hero Section)
     'home.hero.title': 'Materials Science\n×\nComputational Thermodynamics',
@@ -119,6 +124,11 @@ const translations: Record<Language, Record<string, string>> = {
     'publications.header.title': '연구 논문',
     'publications.header.desc': '계산 재료 과학 분야의 연구 성과와 기여를 확인해보세요.',
 
+    'news.header.title': '공지사항',
+    'news.header.desc': '연구실의 최신 소식과 공지사항을 확인하세요.',
+
+    'gallery.header.title': '갤러리',
+    'gallery.header.desc': '연구실의 다양한 활동과 성과를 사진으로 만나보세요.',
 
     // Home Page
     'home.hero.title': '재료과학\n×\n계산열역학',

@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollAnimation } from '../ScrollAnimation';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { useLanguage } from '@/components/LanguageProvider';
-import { Session } from '@supabase/supabase-js'; // 1. Session import
+import { useLanguage } from '@/components/LanguageProvider'; // 1. 경로 확인 (또는 '@/context/LanguageContext')
+import { Session } from '@supabase/supabase-js';
 
 interface Post {
   id: number;
@@ -19,7 +19,7 @@ interface GalleryListPageProps {
   posts: Post[];
   loading: boolean;
   error: string | null;
-  session: Session | null; // 2. session prop 타입 정의 추가
+  session: Session | null;
   currentPage: number;
   totalPosts: number;
   postsPerPage: number;
@@ -31,11 +31,11 @@ interface GalleryListPageProps {
 }
 
 export function GalleryListPage({ 
-  posts, loading, error, session, // 3. session prop 받기
+  posts, loading, error, session,
   currentPage, totalPosts, postsPerPage, 
   searchTerm, setSearchTerm, handleSearch, onPageChange, onPostClick 
 }: GalleryListPageProps) {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage(); // 2. t 함수 가져오기
 
   const getTitle = (post: Post) => {
     if (language === 'ko' && post.title_ko) return post.title_ko;
@@ -70,8 +70,11 @@ export function GalleryListPage({
     <div className="container px-4 sm:px-8 py-8 md:py-12 space-y-8">
       <ScrollAnimation>
         <div className="text-center space-y-4">
-          <h1 className="text-3xl sm:text-4xl font-bold text-primary">Gallery</h1>
-          <p className="text-lg sm:text-xl text-muted-foreground">Explore our lab's activities and achievements.</p>
+          {/* 3. 헤더 텍스트 다국어 적용 */}
+          <h1 className="text-3xl sm:text-4xl font-bold text-primary">{t('gallery.header.title')}</h1>
+          <p className="text-lg sm:text-xl text-muted-foreground">
+            {t('gallery.header.desc')}
+          </p>
         </div>
       </ScrollAnimation>
 
@@ -86,7 +89,7 @@ export function GalleryListPage({
         <Button onClick={handleSearch} className="w-full sm:w-auto">검색</Button>
       </div>
 
-      {loading && <p className="text-center p-8">Loading gallery...</p>}
+      {loading && <p className="text-center p-8">{t('common.loading')}</p>}
       {error && <p className="text-center text-red-500 p-8">Error: {error}</p>}
 
       {!loading && !error && (
