@@ -207,7 +207,7 @@ const translations: Record<Language, Record<string, string>> = {
     'header.line2': '계산재료과학 연구실',
     'footer.lab': '계산재료과학 연구실',
     'footer.dept': '국민대학교 신소재공학부',
-    'footer.univ': '',
+    'footer.univ': ' ',
     'footer.links': '바로가기',
     'footer.links.research': '연구 분야',
     'footer.links.pubs': '논문 성과',
