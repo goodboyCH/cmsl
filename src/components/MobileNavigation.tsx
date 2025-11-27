@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/components/LanguageProvider';
-import { ChevronDown, Menu, X } from 'lucide-react';
+import { ChevronDown, Menu, X, Globe } from 'lucide-react'; // Globe 아이콘 추가
 
 interface MobileNavigationProps {
   currentPage: string;
@@ -9,51 +9,51 @@ interface MobileNavigationProps {
 }
 
 export function MobileNavigation({ currentPage, onPageChange }: MobileNavigationProps) {
-  const { t } = useLanguage();
+  // 1. language와 toggleLanguage 가져오기
+  const { t, language, toggleLanguage } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
+  // 2. 메뉴명은 데스크톱과 동일하게 영어로 고정 (필요시 t() 사용 가능)
   const navItems = [
-    { key: 'home', path: '/', label: t('nav.home') },
-    { key: 'introduction', path: '/introduction', label: t('nav.introduction') },
+    { key: 'home', path: '/', label: 'Home' },
+    { key: 'introduction', path: '/introduction', label: 'Introduction' },
     { 
       key: 'people',
-      label: t('nav.people'),
+      label: 'People',
       subItems: [
-        { key: 'professor', path: '/people/professor', label: t('nav.professor') },
-        { key: 'members', path: '/people/members', label: t('nav.members') },
-        { key: 'alumni', path: '/people/alumni', label: t('nav.alumni') }
+        { key: 'professor', path: '/people/professor', label: 'Professor' },
+        { key: 'members', path: '/people/members', label: 'Members' },
+        { key: 'alumni', path: '/people/alumni', label: 'Alumni' }
       ]
     },
     { 
       key: 'research',
-      label: t('nav.research'),
+      label: 'Research',
       subItems: [
         { key: 'casting', path: '/research/casting', label: 'High-Performance Alloys' },
         { key: 'films', path: '/research/films', label: 'Ferroelectric Films' },
         { key: 'biodegradable', path: '/research/biodegradable', label: 'Biodegradable Alloys' }
       ]
     },
-    { key: 'publications', path: '/publications', label: t('nav.publications') },
+    { key: 'publications', path: '/publications', label: 'Publications' },
     { 
       key: 'board',
-      label: t('nav.board'),
+      label: 'Board',
       subItems: [
         { key: 'news', path: '/board/news', label: 'Notices & News' },
         { key: 'gallery', path: '/board/gallery', label: 'Gallery' }
       ]
     },
-    { key: 'contact', path: '/contact', label: t('nav.contact') },
-    // 1. ⬇️ 여기에 'PFM Calculation' 항목을 추가합니다. ⬇️
+    { key: 'contact', path: '/contact', label: 'Contact' },
     { 
       key: 'pfm', 
       path: '/simulation', 
       label: 'PFM Calculation', 
-      isExternal: true 
+      isExternal: false // 외부 링크 여부에 따라 조정 (시뮬레이션 페이지는 내부 라우트이므로 false)
     },
   ];
 
-  // 2. ⬇️ 내부/외부 링크를 모두 처리할 수 있도록 핸들러를 수정합니다. ⬇️
   const handleItemClick = (path: string, isExternal = false) => {
     if (isExternal) {
       window.open(path, '_blank');
@@ -113,8 +113,7 @@ export function MobileNavigation({ currentPage, onPageChange }: MobileNavigation
 
               {/* Navigation Items */}
               <nav className="flex-1 overflow-y-auto mt-4 space-y-1">
-                {/* 3. ⬇️ isExternal 속성을 확인하는 렌더링 로직을 추가합니다. ⬇️ */}
-                {navItems.map((item: any, index) => (
+                {navItems.map((item: any) => (
                   <div key={item.key}>
                     {item.isExternal ? (
                       <Button
@@ -164,8 +163,18 @@ export function MobileNavigation({ currentPage, onPageChange }: MobileNavigation
                 ))}
               </nav>
 
-              <div className="mt-auto pt-4 border-t text-center">
-                <p className="text-xs text-muted-foreground">
+              {/* 3. 언어 전환 버튼 추가 */}
+              <div className="mt-auto pt-4 border-t">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-center gap-2" 
+                  onClick={toggleLanguage}
+                >
+                  <Globe className="h-4 w-4" />
+                  {language === 'en' ? 'Switch to Korean' : 'Switch to English'}
+                </Button>
+                
+                <p className="text-xs text-muted-foreground text-center mt-4">
                   Computational Materials Science Laboratory
                 </p>
               </div>
