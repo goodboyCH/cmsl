@@ -1,6 +1,10 @@
 "use client";
 import React from 'react';
-import { SpotlightCard } from '@/components/ui/SpotlightCard';
+
+// ReactBits Components
+import SpotlightCard from '@/components/reactbits/SpotlightCard';
+import LogoLoop from '@/components/reactbits/LogoLoop';
+import GradientText from '@/components/reactbits/GradientText';
 
 interface Section5Props {
   items: { title: string; description: string }[];
@@ -8,70 +12,86 @@ interface Section5Props {
 }
 
 export function Section5_Impact({ items = [], logos = [] }: Section5Props) {
+  
+  // LogoLoop용 데이터 포맷 변환
+  const loopLogos = logos.map(logo => ({
+    src: logo.url,
+    alt: logo.name,
+    href: "#", // 실제 링크가 있다면 여기에 연결
+  }));
+
   return (
-    <section className="relative py-40 bg-gradient-to-b from-black to-zinc-950 border-t border-white/5">
-      <div className="container mx-auto px-6">
+    <section className="relative py-32 bg-black border-t border-white/10 overflow-hidden">
+      <div className="container mx-auto px-6 max-w-7xl relative z-10">
          
+         {/* --- 헤더 --- */}
          <div className="text-center mb-24">
-            <h2 className="text-4xl md:text-6xl font-bold mb-6 text-white tracking-tight">
-              Global Impact
+            <h2 className="text-4xl md:text-6xl font-bold mb-6">
+              <GradientText
+                 colors={["#06b6d4", "#ffffff", "#06b6d4", "#ffffff", "#06b6d4"]}
+                 animationSpeed={6}
+                 showBorder={false}
+              >
+                Global Impact
+              </GradientText>
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto text-lg leading-relaxed">
               우리의 연구는 실험실을 넘어, 실제 산업과 환경에<br className="hidden md:block"/> 
-              구체적이고 측정 가능한 변화를 만들어내고 있습니다.
+              구체적이고 측정 가능한 변화를 만들어냅니다.
             </p>
          </div>
          
-         {/* Cards Grid */}
-         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-7xl mx-auto">
+         {/* --- Bento Grid (Spotlight Cards) --- */}
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-40">
             {items.map((item, idx) => {
+              // 첫 번째와 마지막 아이템을 강조 (2칸 차지)
               const isLarge = idx === 0 || idx === 3;
               
               return (
-                <SpotlightCard 
+                <div 
                   key={idx} 
-                  // 1. font-mono 제거 -> 글로벌 폰트 적용
-                  // 2. backdrop-blur 제거 및 배경색 불투명하게(zinc-900) 변경 -> 가독성 해결
-                  className={`
-                    flex flex-col justify-between text-left border border-white/10 p-8
-                    ${isLarge ? 'md:col-span-2' : ''}
-                    bg-zinc-900 text-white shadow-xl z-10
-                  `}
+                  className={isLarge ? 'md:col-span-2' : ''}
                 >
-                    <div className="relative z-10">
-                      {/* 번호 스타일: 폰트 유지하되 색상만 포인트 */}
-                      <div className="text-cyan-500 mb-6 text-xl font-bold border-l-4 border-cyan-500 pl-3">
-                        0{idx + 1}
+                  <SpotlightCard 
+                    className="h-full p-10 flex flex-col justify-between"
+                    spotlightColor="rgba(6, 182, 212, 0.2)" // Cyan 색상 스포트라이트
+                  >
+                      <div>
+                        <div className="text-cyan-500 mb-6 text-xl font-bold font-mono">
+                          0{idx + 1}
+                        </div>
+                        <h3 className="text-2xl md:text-3xl font-bold mb-4 text-white">
+                          {item.title}
+                        </h3>
                       </div>
-                      <h3 className="text-2xl md:text-3xl font-bold mb-3 text-white">
-                        {item.title}
-                      </h3>
-                    </div>
-                    {/* 설명 텍스트: 회색조 밝게 조정 */}
-                    <p className="text-gray-300 text-sm md:text-base leading-relaxed mt-8 relative z-10 font-normal">
-                      {item.description}
-                    </p>
-                </SpotlightCard>
+                      
+                      <p className="text-gray-400 text-base leading-relaxed mt-6">
+                        {item.description}
+                      </p>
+                  </SpotlightCard>
+                </div>
               );
             })}
          </div>
 
-         {/* Partners Section */}
-         <div className="mt-40 pt-16 border-t border-white/10">
-            <p className="text-center text-gray-500 mb-12 text-sm font-bold uppercase tracking-widest">
+         {/* --- Partners (Logo Loop) --- */}
+         <div className="border-t border-white/10 pt-16">
+            <p className="text-center text-gray-500 mb-12 text-xs font-bold uppercase tracking-[0.2em]">
               Trusted Partners
             </p>
             
-            <div className="flex flex-wrap justify-center items-center gap-12 md:gap-24 opacity-70">
-              {logos.map((logo, idx) => (
-                <div key={idx} className="group relative transition-all duration-300 hover:opacity-100">
-                    <img 
-                      src={logo.url} 
-                      alt={logo.name} 
-                      className="h-8 md:h-12 w-auto object-contain brightness-0 invert group-hover:scale-110 transition-transform duration-500" 
-                    />
-                </div>
-              ))}
+            <div className="h-24 w-full">
+              {/* LogoLoop 적용 */}
+              <LogoLoop
+                logos={loopLogos}
+                speed={40}         // 천천히 흐르도록 설정
+                direction="left"
+                logoHeight={50}    // 로고 높이
+                gap={80}           // 로고 간격 넓게
+                scaleOnHover={true}
+                fadeOut={true}     // 양끝 페이드 아웃
+                fadeOutColor="#000000" // 배경색과 일치
+              />
             </div>
          </div>
 

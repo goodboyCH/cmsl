@@ -3,10 +3,13 @@ import React, { useLayoutEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
+// ReactBits Component
+import GradientText from '@/components/reactbits/GradientText';
+
 gsap.registerPlugin(ScrollTrigger);
 
 const VIDEO_SRC = "/videos/demo-sequence1.mp4"; 
-const FPS = 30; // 영상 프레임레이트에 맞춰 수정 (30 or 60)
+const FPS = 30; 
 
 export function Section4_Demo() {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -19,7 +22,6 @@ export function Section4_Demo() {
 
       const video = videoRef.current;
 
-      // 비디오 메타데이터 로드 핸들러
       const handleMetadata = () => {
         const duration = video.duration || 5; 
         const totalFrames = Math.floor(duration * FPS); 
@@ -29,45 +31,39 @@ export function Section4_Demo() {
           scrollTrigger: {
             trigger: sectionRef.current,
             start: "top top",
-            end: "+=600%", // 50배 길이 (충분히 긺)
+            end: "+=5000%", 
             pin: true,
-            scrub: 0.5,     // 부드러운 감속
+            scrub: 0.5,
           }
         });
 
-        // 🛑 [핵심 수정] duration: duration
-        // 이전 코드에서는 이 부분이 없어서 0.5초만에 비디오가 끝났습니다.
-        // 이제 비디오 길이(예: 5초)만큼 타임라인을 꽉 채웁니다.
         tl.to(videoState, {
           frame: totalFrames,
-          duration: duration, // ⭐️ 이 설정을 반드시 넣어야 스크롤 끝까지 비디오가 나옵니다.
+          duration: duration,
           ease: "none",
           onUpdate: () => {
             if (video) {
                 video.currentTime = videoState.frame / FPS;
             }
           }
-        }, 0); // 0초 지점부터 시작
+        }, 0); 
 
-        // 텍스트 애니메이션: 비디오 타임라인 위에 얹기
         if (textRef.current) {
-          // 비디오 전체 길이의 20%~40% 구간에서 등장했다가 사라짐
           const fadeInTime = duration * 0.2;
           const fadeOutTime = duration * 0.8;
           
           tl.fromTo(textRef.current, 
             { opacity: 0, y: 50 }, 
-            { opacity: 1, y: 0, duration: 1 }, // 텍스트 나타나는 속도
+            { opacity: 1, y: 0, duration: 1 }, 
             fadeInTime
           )
           .to(textRef.current, 
-            { opacity: 0, y: -50, duration: 1 }, // 텍스트 사라지는 속도
+            { opacity: 0, y: -50, duration: 1 }, 
             fadeOutTime
           );
         }
       };
 
-      // 이미 로드되어 있으면 바로 실행, 아니면 이벤트 대기
       if (video.readyState >= 1) {
         handleMetadata();
       } else {
@@ -96,10 +92,21 @@ export function Section4_Demo() {
         ref={textRef} 
         className="absolute bottom-20 left-0 w-full text-center z-10 opacity-0 pointer-events-none"
       >
-        <div className="inline-block bg-black/60 backdrop-blur-sm px-6 py-3 rounded-full border border-white/10">
-          <p className="text-white text-lg md:text-2xl font-bold tracking-wide">
-            "Simulation Results: <span className="text-cyan-500">Predicted Microstructure</span>"
-          </p>
+        <div className="inline-block bg-black/80 backdrop-blur-md px-8 py-4 rounded-full border border-white/10 shadow-2xl">
+          <div className="text-white text-lg md:text-3xl font-bold tracking-wide flex items-center justify-center gap-2 md:gap-3 flex-wrap">
+            <span>Simulation Results:</span>
+            
+            {/* 🛑 [변경] GradientText 적용 */}
+            <GradientText
+              colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
+              animationSpeed={3}
+              showBorder={false}
+              className="font-bold"
+            >
+              Predicted Microstructure
+            </GradientText>
+          
+          </div>
         </div>
       </div>
       
