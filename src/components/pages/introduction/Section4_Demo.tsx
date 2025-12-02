@@ -1,79 +1,98 @@
 "use client";
-import { useScrollytelling } from '@bsmnt/scrollytelling';
-import { gsap } from 'gsap';
 import React, { useLayoutEffect, useRef } from 'react';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-const VIDEO_SRC = "/videos/demo-sequence1.mp4";
-const VIDEO_DURATION_SECONDS = 5;
+// GSAP 플러그인 등록
+gsap.registerPlugin(ScrollTrigger);
+
+const VIDEO_SRC = "/videos/demo-sequence1.mp4"; // 기존 비디오 경로 유지
 
 export function Section4_Demo() {
-  const { timeline } = useScrollytelling();
   const sectionRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-
-  // --- ⬇️ '새 악보' (2350%) 적용 ⬇️ ---
-  const startTime = 12.5; // (시작은 16.5 동일)
-  const endTime = 16.5; // 18.5 -> 19.5
-  const sectionDuration = endTime - startTime; // 2.0 -> 3.0 (300vh)
-  const sectionHeight = `${sectionDuration * 100}vh`; // "300vh"
-  // --- ⬆️ '새 악보' 적용 ⬆️ ---
+  const textRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
-    // 2. sectionRef.current로 가드
-    if (!timeline || !videoRef.current || !sectionRef.current) return;
-
     const ctx = gsap.context(() => {
-      // --- ⬇️ (문제 1) 캡션/제목 애니메이션 추가 ⬇️ ---
-      const caption = sectionRef.current?.querySelector('.demo-caption');
-      if (caption) {
-        // 넉넉하게 0.3 (30vh) 뒤에 나타나고 0.3 (30vh) 전에 사라짐
-        timeline.fromTo(caption, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.1 }, startTime + 0.3);
-        timeline.to(caption, { opacity: 0, y: 20, duration: 0.1 }, endTime - 0.3);
-      }
-      // --- ⬆️ (문제 1) 캡션/제목 애니메이션 추가 ⬆️ ---
-      const videoTracker = { time: 0 };
+      if (!videoRef.current || !sectionRef.current) return;
 
-      // 5. 'frame' 대신 'videoTracker.time'을 0초에서 'VIDEO_DURATION_SECONDS'초까지 애니메이션
-      const videoTween = gsap.to(videoTracker, {
-        time: VIDEO_DURATION_SECONDS,
-        ease: "none",
-        duration: 3.0, // '고정' 시간을 위해 sectionDuration(3.0)보다 짧게 설정
-        onUpdate: () => {
-          // 6. videoTracker.time이 바뀔 때마다 <video>의 currentTime을 강제로 변경
-          if (videoRef.current) {
-            videoRef.current.currentTime = videoTracker.time;
-          }
-        },
-      });
-      timeline.add(videoTween, startTime); // 16.5 시점에 시작 
+      const video = videoRef.current;
       
-    }, sectionRef.current);
-    
+      // 1. 비디오 메타데이터 로드 대기 (길이 확보)
+      video.onloadedmetadata = () => {
+        const duration = video.duration || 5; // 비디오 길이가 없으면 기본 5초
+
+        // 2. 타임라인 생성
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top top", // 섹션 상단이 화면 상단에 닿을 때
+            end: "+=300%",    // 스크롤 길이 (300vh 만큼 스크롤 하는 동안 재생)
+            pin: true,        // 화면 고정
+            scrub: 1,         // 부드러운 스크러빙
+            // markers: true, // 디버깅 필요시 주석 해제
+          }
+        });
+
+        // 3. 비디오 재생 애니메이션 (currentTime을 스크롤에 매핑)
+        tl.fromTo(
+          video,
+          { currentTime: 0 },
+          { currentTime: duration, ease: "none" }
+        );
+
+        // 4. 텍스트(캡션) 애니메이션 추가
+        // 비디오 재생 중간쯤에 텍스트가 떴다가 사라짐
+        if (textRef.current) {
+          tl.fromTo(textRef.current, 
+            { opacity: 0, y: 50 }, 
+            { opacity: 1, y: 0, duration: duration * 0.1 }, 
+            duration * 0.2 // 20% 지점에서 등장
+          )
+          .to(textRef.current, 
+            { opacity: 0, y: -50, duration: duration * 0.1 }, 
+            duration * 0.8 // 80% 지점에서 퇴장
+          );
+        }
+      };
+    }, sectionRef);
+
     return () => ctx.revert();
-    
-  }, [timeline, sectionDuration, startTime, endTime]); // endTime 추가
+  }, []);
 
   return (
-    // 5. 'sticky'를 제거하고, '악보'에서 계산된 '높이(height)'를 할당
-    <div ref={sectionRef} className="relative" style={{ height: sectionHeight }}>
-      {/* 6. '소품'(Visuals)들만 'sticky'를 사용해 화면에 고정 */}
-      <div className="sticky top-0 h-screen">
-      <video
+    <div ref={sectionRef} className="relative h-screen w-full bg-black overflow-hidden">
+      {/* ScrollTrigger가 'pin: true'를 하면 자동으로 래퍼를 생성하므로, 
+        여기서는 별도의 sticky 클래스 없이 h-full로 채우면 됩니다. 
+      */}
+      
+      {/* 비디오 컨테이너 */}
+      <div className="absolute inset-0 w-full h-full z-0">
+        <video
           ref={videoRef}
           src={VIDEO_SRC}
-          className="w-full h-full object-contain"
-          playsInline // 모바일 자동재생 정책
-          muted // 모바일 자동재생 정책
-          preload="auto" // 미리 로드
+          className="w-full h-full object-contain" // object-contain으로 전체가 보이게 (혹은 cover)
+          playsInline
+          muted
+          preload="auto"
         />
+      </div>
 
-        {/* 7. 캡션에 GSAP이 제어할 클래스와 opacity-0 추가 */}
-        <div className="demo-caption opacity-0 absolute bottom-20 left-1/2 -translate-x-1/2 z-10">
-          <p className="text-white text-lg text-shadow-lg bg-black/30 p-2 rounded-md">
-            우리의 시뮬레이션은 이렇게 동작합니다.
+      {/* 캡션 오버레이 */}
+      <div 
+        ref={textRef} 
+        className="absolute bottom-20 left-0 w-full text-center z-10 opacity-0 pointer-events-none"
+      >
+        <div className="inline-block bg-black/50 backdrop-blur-md px-6 py-3 rounded-full border border-white/10">
+          <p className="text-white text-lg md:text-2xl font-bold tracking-wide">
+            "Simulation Results: <span className="text-cyan-500">Predicted Microstructure</span>"
           </p>
         </div>
       </div>
+      
+      {/* 장식용 오버레이 (Scanlines) */}
+      <div className="absolute inset-0 z-20 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay"></div>
     </div>
   );
 }

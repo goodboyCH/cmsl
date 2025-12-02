@@ -2,39 +2,24 @@
 import React from 'react';
 import { SpotlightCard } from '@/components/ui/SpotlightCard';
 import { MagneticButton } from '@/components/ui/MagneticButton';
-import { Cpu, Atom, FlaskConical, Network } from 'lucide-react'; // 아이콘 예시
 
-// 아이콘 매핑 헬퍼 (필요에 따라 추가)
-const IconMap: any = {
-  Cpu: <Cpu className="w-10 h-10" />,
-  Atom: <Atom className="w-10 h-10" />,
-  FlaskConical: <FlaskConical className="w-10 h-10" />,
-  default: <Network className="w-10 h-10" />
-};
-
-export function Section2_CoreCapabilites({ content }: { content: any }) {
-  const items = content.items || [];
-
+// items 배열 안에는 이미 <Cpu /> 같은 컴포넌트가 들어있으므로 바로 렌더링 가능
+export function Section2_CoreCapabilites({ items }: { items: any[] }) {
   return (
     <section className="relative py-32 px-6 md:px-12 bg-black z-10">
       <div className="max-w-7xl mx-auto">
-        
-        {/* 섹션 헤더 */}
-        <div className="flex flex-col md:flex-row justify-between items-end mb-20 border-b border-white/10 pb-8">
+        <div className="mb-20 border-b border-white/10 pb-8">
           <h2 className="text-4xl md:text-6xl font-bold text-white">
             Core <span className="text-cyan-500">Capabilities</span>
           </h2>
-          <p className="text-gray-400 mt-4 md:mt-0 max-w-md text-right">
-            우리는 재료과학과 인공지능의 경계에서<br/>새로운 가능성을 탐구합니다.
-          </p>
         </div>
 
-        {/* 그리드 레이아웃 + Spotlight 효과 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map((item: any, idx: number) => (
+          {items.map((item, idx) => (
             <SpotlightCard key={idx} className="h-full bg-zinc-900/30 p-8 border border-white/5 group">
               <div className="mb-6 text-cyan-500 transition-transform duration-500 group-hover:scale-110 group-hover:text-white">
-                {IconMap[item.icon] || IconMap.default}
+                {/* ⭐️ 여기가 핵심: 문자열 변환 없이 바로 사용 */}
+                {item.icon}
               </div>
               <h3 className="text-2xl font-bold mb-4 text-slate-100 group-hover:text-cyan-400 transition-colors">
                 {item.title}
@@ -43,7 +28,6 @@ export function Section2_CoreCapabilites({ content }: { content: any }) {
                 {item.description}
               </p>
               
-              {/* 더보기 버튼 (자석 효과) */}
               <div className="mt-8">
                 <MagneticButton>
                   <button className="text-xs font-bold text-white border border-white/20 px-4 py-2 rounded-full hover:bg-white hover:text-black transition-colors">
