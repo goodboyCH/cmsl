@@ -1,18 +1,21 @@
 "use client";
-import React from 'react';
-import { ParticleNetwork } from '@/components/interactive/ParticleNetwork';
+import React, { Suspense, lazy } from 'react'; // React 표준 lazy load 사용
 import { TechText } from '@/components/ui/TechText';
-import { GravityKeywords } from '@/components/interactive/GravityKeywords';
 import { motion } from 'framer-motion';
 
-// Props를 명확하게 받습니다.
+// React.lazy를 사용하여 동적 임포트 (next/dynamic 대체)
+const ParticleNetwork = lazy(() => import('@/components/interactive/ParticleNetwork').then(module => ({ default: module.ParticleNetwork })));
+const GravityKeywords = lazy(() => import('@/components/interactive/GravityKeywords').then(module => ({ default: module.GravityKeywords })));
+
 export function Section1_Intro({ missionKor, missionEng }: { missionKor: string, missionEng: string }) {
   return (
     <section className="relative h-screen w-full flex flex-col items-center justify-center overflow-hidden border-b border-white/10 bg-black">
       
-      {/* 3D 배경 */}
+      {/* 3D 배경: Suspense로 로딩 처리 */}
       <div className="absolute inset-0 z-0">
-        <ParticleNetwork />
+        <Suspense fallback={<div className="w-full h-full bg-black" />}>
+          <ParticleNetwork />
+        </Suspense>
       </div>
 
       {/* 텍스트 컨텐츠 */}
@@ -23,7 +26,6 @@ export function Section1_Intro({ missionKor, missionEng }: { missionKor: string,
           transition={{ duration: 1, delay: 0.5 }}
         >
           <h1 className="text-4xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-8 leading-tight text-white">
-             {/* TechText를 이용해 멋지게 등장 */}
             <TechText text={missionKor} />
           </h1>
           <p className="text-lg md:text-2xl text-cyan-400/80 font-mono tracking-widest uppercase">
@@ -34,10 +36,12 @@ export function Section1_Intro({ missionKor, missionEng }: { missionKor: string,
 
       {/* 물리 엔진 인터랙티브 존 */}
       <div className="absolute bottom-0 w-full z-20 h-[35vh]">
-         <div className="absolute top-0 left-1/2 -translate-x-1/2 text-[10px] md:text-xs text-gray-600 animate-pulse tracking-[0.2em] uppercase">
+         <div className="absolute top-0 left-1/2 -translate-x-1/2 text-[10px] md:text-xs text-gray-600 animate-pulse tracking-[0.2em] uppercase pointer-events-none">
             Interactive Zone • Drag Elements
          </div>
-         <GravityKeywords />
+         <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-white/10">Loading Physics...</div>}>
+            <GravityKeywords />
+         </Suspense>
       </div>
     </section>
   );

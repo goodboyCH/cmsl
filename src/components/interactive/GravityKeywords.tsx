@@ -6,7 +6,6 @@ const KEYWORDS = ["AI", "Alloy", "Data", "Atomic", "Future", "Simulation", "Lab"
 
 export function GravityKeywords() {
   const sceneRef = useRef<HTMLDivElement>(null);
-  const engineRef = useRef<Matter.Engine | null>(null);
 
   useEffect(() => {
     if (!sceneRef.current) return;
@@ -25,54 +24,55 @@ export function GravityKeywords() {
       engine: engine,
       options: {
         width: window.innerWidth,
-        height: 400, // 높이 조절
+        height: 400,
         wireframes: false,
         background: "transparent",
+        pixelRatio: 1,
       },
     });
 
-    // 벽 생성 (양옆과 바닥)
     const ground = Bodies.rectangle(window.innerWidth / 2, 410, window.innerWidth, 20, { isStatic: true, render: { visible: false } });
     const leftWall = Bodies.rectangle(0, 200, 20, 400, { isStatic: true, render: { visible: false } });
     const rightWall = Bodies.rectangle(window.innerWidth, 200, 20, 400, { isStatic: true, render: { visible: false } });
 
-    // 키워드 박스 생성
     const keywords = KEYWORDS.map((text, i) => {
       return Bodies.rectangle(
-        Math.random() * window.innerWidth * 0.8 + 50, // 랜덤 X 위치
-        Math.random() * -500, // 화면 위에서 떨어짐
-        120, // 너비
-        50,  // 높이
+        Math.random() * window.innerWidth * 0.8 + 50,
+        Math.random() * -500 - 100,
+        120, 50,
         {
-          chamfer: { radius: 20 }, // 둥근 모서리
+          chamfer: { radius: 20 },
           render: {
-            fillStyle: i % 2 === 0 ? "#06b6d4" : "#334155", // Cyan or Slate
-            text: {
-              content: text,
-              color: "#ffffff",
-              size: 16,
-              family: "Arial",
-            },
-          } as any, // Matter.js 타입 이슈 우회
+            fillStyle: i % 2 === 0 ? "#06b6d4" : "#334155",
+            // @ts-ignore -> Matter.js 타입 정의 누락 방지
+            text: { content: text, color: "#ffffff", size: 16, family: "Arial" },
+          } as any, // 타입 오류 강제 회피
         }
       );
     });
 
     World.add(engine.world, [ground, leftWall, rightWall, ...keywords]);
 
-    // 마우스 상호작용 추가
     const mouse = Mouse.create(render.canvas);
     const mouseConstraint = MouseConstraint.create(engine, {
       mouse: mouse,
       constraint: { stiffness: 0.2, render: { visible: false } },
     });
+
+    // 🛑 [수정된 부분] TypeScript 오류 해결: (mouseConstraint.mouse as any) 사용
+    // mousewheel 이벤트가 Matter.js 내부엔 있지만 타입 정의엔 없어서 any로 우회합니다.
+    const mouseAny = mouseConstraint.mouse as any;
+    if (mouseAny.element && mouseAny.mousewheel) {
+        mouseAny.element.removeEventListener("mousewheel", mouseAny.mousewheel);
+        mouseAny.element.removeEventListener("DOMMouseScroll", mouseAny.mousewheel);
+    }
+
     World.add(engine.world, mouseConstraint);
 
-    // 렌더링 루프 시작
-    Runner.run(engine);
+    const runner = Runner.create();
+    Runner.run(runner, engine);
     Render.run(render);
 
-    // 커스텀 렌더링 (텍스트를 박스 위에 그리기 위해 hook 사용)
     Matter.Events.on(render, "afterRender", () => {
       const ctx = render.context;
       ctx.font = "bold 16px Arial";
@@ -92,11 +92,12 @@ export function GravityKeywords() {
 
     return () => {
       Render.stop(render);
+      Runner.stop(runner);
+      if (render.canvas) render.canvas.remove();
       World.clear(engine.world, false);
       Engine.clear(engine);
-      render.canvas.remove();
     };
   }, []);
 
-  return <div ref={sceneRef} className="w-full h-[400px] overflow-hidden cursor-grab active:cursor-grabbing" />;
+  return <div ref={sceneRef} className="w-full h-[400px] overflow-hidden cursor-grab active:cursor-grabbing touch-none" />;
 }
