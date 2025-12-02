@@ -31,7 +31,7 @@ export function Section4_Demo() {
           scrollTrigger: {
             trigger: sectionRef.current,
             start: "top top",
-            end: "+=5000%", 
+            end: "+=600%", 
             pin: true,
             scrub: 0.5,
           }
