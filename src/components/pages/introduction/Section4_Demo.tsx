@@ -6,7 +6,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 gsap.registerPlugin(ScrollTrigger);
 
 const VIDEO_SRC = "/videos/demo-sequence1.mp4"; 
-const FPS = 30; // ⭐️ 비디오의 초당 프레임 수 (영상에 맞춰 30 또는 60으로 수정 필수)
+const FPS = 30; // 영상 프레임레이트에 맞춰 수정 (30 or 60)
 
 export function Section4_Demo() {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -19,55 +19,61 @@ export function Section4_Demo() {
 
       const video = videoRef.current;
 
-      video.onloadedmetadata = () => {
-        const duration = video.duration || 5;
-        // 전체 총 프레임 수 계산 (예: 5초 * 30fps = 150프레임)
-        const totalFrames = duration * FPS; 
-
-        // 비디오 상태를 제어할 가상의 객체 (Proxy)
+      // 비디오 메타데이터 로드 핸들러
+      const handleMetadata = () => {
+        const duration = video.duration || 5; 
+        const totalFrames = Math.floor(duration * FPS); 
         const videoState = { frame: 0 };
 
         const tl = gsap.timeline({
           scrollTrigger: {
             trigger: sectionRef.current,
             start: "top top",
-            
-            // ⭐️ 스크롤 민감도 조절:
-            // 비디오 1프레임을 넘기기 위해 스크롤해야 하는 픽셀 수 = (end 높이) / (총 프레임)
-            // +=2000% 정도면 30fps 영상 기준 아주 부드럽고 촘촘하게 제어됩니다.
-            end: "+=2000%", 
-            
+            end: "+=600%", // 50배 길이 (충분히 긺)
             pin: true,
-            scrub: 0.5, // 약간의 관성(0.5)을 줘야 뚝뚝 끊기는 느낌이 덜합니다.
+            scrub: 0.5,     // 부드러운 감속
           }
         });
 
-        // ⭐️ 핵심 변경: currentTime을 직접 돌리는 게 아니라 'frame'을 돌림
+        // 🛑 [핵심 수정] duration: duration
+        // 이전 코드에서는 이 부분이 없어서 0.5초만에 비디오가 끝났습니다.
+        // 이제 비디오 길이(예: 5초)만큼 타임라인을 꽉 채웁니다.
         tl.to(videoState, {
           frame: totalFrames,
+          duration: duration, // ⭐️ 이 설정을 반드시 넣어야 스크롤 끝까지 비디오가 나옵니다.
           ease: "none",
           onUpdate: () => {
-            // 현재 프레임 번호를 시간으로 환산하여 적용
-            // Math.floor를 쓰지 않고 정확한 나눗셈을 하되, 브라우저가 프레임을 잘 찾도록 유도
-            video.currentTime = videoState.frame / FPS;
+            if (video) {
+                video.currentTime = videoState.frame / FPS;
+            }
           }
-        });
+        }, 0); // 0초 지점부터 시작
 
-        // 텍스트 애니메이션 (기존 로직 유지하되 타임라인에 통합)
+        // 텍스트 애니메이션: 비디오 타임라인 위에 얹기
         if (textRef.current) {
-          // 전체 타임라인 진행률에 맞춰 텍스트 등장
-          // duration 대신 totalFrames 비율로 계산해도 되지만, 여기선 시간 비율로 유지
+          // 비디오 전체 길이의 20%~40% 구간에서 등장했다가 사라짐
+          const fadeInTime = duration * 0.2;
+          const fadeOutTime = duration * 0.8;
+          
           tl.fromTo(textRef.current, 
             { opacity: 0, y: 50 }, 
-            { opacity: 1, y: 0, duration: totalFrames * 0.1 }, 
-            totalFrames * 0.3 // 30% 지점
+            { opacity: 1, y: 0, duration: 1 }, // 텍스트 나타나는 속도
+            fadeInTime
           )
           .to(textRef.current, 
-            { opacity: 0, y: -50, duration: totalFrames * 0.1 }, 
-            totalFrames * 0.7 // 70% 지점
+            { opacity: 0, y: -50, duration: 1 }, // 텍스트 사라지는 속도
+            fadeOutTime
           );
         }
       };
+
+      // 이미 로드되어 있으면 바로 실행, 아니면 이벤트 대기
+      if (video.readyState >= 1) {
+        handleMetadata();
+      } else {
+        video.onloadedmetadata = handleMetadata;
+      }
+
     }, sectionRef);
 
     return () => ctx.revert();
@@ -83,7 +89,6 @@ export function Section4_Demo() {
           playsInline
           muted
           preload="auto"
-          // 중요: 자동재생 방지
         />
       </div>
 
@@ -98,7 +103,6 @@ export function Section4_Demo() {
         </div>
       </div>
       
-      {/* 노이즈 효과 (유지) */}
       <div className="absolute inset-0 z-20 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay"></div>
     </div>
   );
