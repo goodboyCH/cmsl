@@ -1,88 +1,63 @@
 "use client";
-import { useScrollytelling } from '@bsmnt/scrollytelling';
-import { gsap } from 'gsap';
-import React, { useLayoutEffect, useRef } from 'react';
-import { ScrollyText_UI } from '../../ui/ScrollyText_UI';
+import React from 'react';
+import { CipherImage } from '@/components/ui/CipherImage';
+import { MagneticButton } from '@/components/ui/MagneticButton';
 
 export function Section3_ResearchAreas({ content }: { content: any }) {
-  const { timeline } = useScrollytelling();
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  // --- ⬇️ '새 악보' (2350%) 적용 ⬇️ ---
-  const startTime = 6.5; 
-  const endTime = 12.5; // (9.5 + 7.0)
-  const sectionDuration = endTime - startTime; // 7.0 (700vh)
-  const sectionHeight = `${sectionDuration * 100}vh`; // "700vh"
-  // --- ⬆️ '새 악보' 적용 ⬆️ ---
-
   const items = content.items || [];
-  const imageList = items.map((item: any) => item.imageUrl);
-
-  useLayoutEffect(() => {
-    if (!timeline || !sectionRef.current || items.length === 0) return;
-
-    const ctx = gsap.context(() => {
-      const title = sectionRef.current?.querySelector('h2');
-      const textSections = gsap.utils.toArray<HTMLElement>('.research-text', sectionRef.current);
-      const images = gsap.utils.toArray<HTMLImageElement>('.research-image', sectionRef.current);
-      if (!title || textSections.length === 0 || images.length === 0) return;
-
-      // (문제 1 해결) 제목 애니메이션
-      timeline.fromTo(title, { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.1 }, startTime + 0.1);
-      timeline.to(title, { opacity: 0, y: -20, duration: 0.1 }, endTime - 0.2);
-
-      // (문제 2 해결)
-      const itemDuration = 2.0; // 200vh
-      const transitionDuration = 0.3; // 30vh
-
-      items.forEach((_, i: number) => {
-        const itemStartTime = startTime + (i * itemDuration);
-
-        // 'In' 애니메이션
-        timeline.fromTo(textSections[i], { opacity: 0, scale: 0.95, y: 30 }, { opacity: 1, scale: 1, y: 0, duration: transitionDuration }, itemStartTime);
-        timeline.fromTo(images[i], { opacity: 0, scale: 1.05 }, { opacity: 1, scale: 1, duration: transitionDuration }, itemStartTime);
-        
-        // 'Out' 애니메이션 (마지막 아이템 제외)
-        if (i < items.length - 1) {
-          const nextItemStartTime = itemStartTime + itemDuration;
-          timeline.to(textSections[i], { opacity: 0, scale: 0.95, y: -30, duration: transitionDuration }, nextItemStartTime - transitionDuration);
-          timeline.to(images[i], { opacity: 0, scale: 0.95, duration: transitionDuration }, nextItemStartTime - transitionDuration);
-        } else {
-          // (마지막 아이템 Out 제거, 300vh 동안 보임)
-        }
-      });
-    }, sectionRef.current); 
-    return () => ctx.revert();
-  }, [timeline, items, startTime, sectionDuration, endTime]);
 
   return (
-    // (JSX는 변경 없음, 'Sectoin2'에서 복사해옴)
-    <div ref={sectionRef} className="relative" style={{ height: sectionHeight }}>
-      <div className="sticky top-0 h-screen">
-        <h2 className="absolute top-32 left-1/2 -translate-x-1/2 text-3xl font-bold text-primary z-20 opacity-0">
-          {content.title}
+    <section className="relative py-32 bg-zinc-950">
+      <div className="container mx-auto px-6 md:px-12">
+        <h2 className="text-3xl md:text-5xl font-bold mb-24 text-right flex items-center justify-end gap-4">
+          <span className="w-20 h-1 bg-cyan-500 block"></span>
+          Research Areas
         </h2>
-        <div className="absolute inset-0 z-0">
-          {imageList.map((url, index) => (
-            <img
-              key={url}
-              src={url}
-              alt={items[index]?.title || 'Research Image'}
-              className="research-image w-full h-full object-cover absolute inset-0"
-              style={{ opacity: 0 }}
-            />
-          ))}
-        </div>
-        <div className="absolute inset-0 z-10">
-          {items.map((item: any, index: number) => (
-            <ScrollyText_UI
-              key={index}
-              item={item}
-              className={`research-text`}
-            />
+
+        <div className="space-y-32">
+          {items.map((item: any, idx: number) => (
+            <div 
+              key={idx} 
+              className={`flex flex-col md:flex-row gap-12 md:gap-20 items-center ${
+                idx % 2 === 1 ? 'md:flex-row-reverse' : ''
+              }`}
+            >
+              {/* 이미지 영역: 암호화 해독 효과 */}
+              <div className="w-full md:w-1/2 aspect-[16/9] relative rounded-lg overflow-hidden border border-white/10 bg-zinc-900">
+                {/* CipherImage 사용: 이미지가 노이즈와 함께 등장 */}
+                <CipherImage 
+                  src={item.imageUrl} 
+                  alt={item.title} 
+                  className="w-full h-full object-cover opacity-80 hover:opacity-100 transition-opacity duration-500"
+                />
+                
+                {/* 장식용 코너 UI */}
+                <div className="absolute top-4 left-4 w-2 h-2 bg-cyan-500"></div>
+                <div className="absolute bottom-4 right-4 w-2 h-2 bg-cyan-500"></div>
+                <div className="absolute top-4 right-4 font-mono text-xs text-cyan-500">SYS_IMG_0{idx+1}</div>
+              </div>
+
+              {/* 텍스트 영역 */}
+              <div className="w-full md:w-1/2 space-y-6">
+                <div className="text-cyan-500 font-mono text-sm tracking-widest">
+                  AREA 0{idx + 1}
+                </div>
+                <h3 className="text-3xl md:text-4xl font-bold text-white">
+                  {item.title}
+                </h3>
+                <p className="text-gray-400 leading-loose text-lg">
+                  {item.description}
+                </p>
+                <MagneticButton>
+                   <span className="inline-block border-b border-cyan-500 text-cyan-400 pb-1 cursor-pointer hover:text-white hover:border-white transition-colors">
+                     View Research Detail &rarr;
+                   </span>
+                </MagneticButton>
+              </div>
+            </div>
           ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 }

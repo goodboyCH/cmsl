@@ -1,56 +1,43 @@
 "use client";
-import { useScrollytelling } from '@bsmnt/scrollytelling';
-import { gsap } from 'gsap';
-import React, { useLayoutEffect, useRef } from 'react';
+import React from 'react';
+import { ParticleNetwork } from '@/components/interactive/ParticleNetwork';
+import { TechText } from '@/components/ui/TechText';
+import { GravityKeywords } from '@/components/interactive/GravityKeywords';
+import { motion } from 'framer-motion';
 
 export function Section1_Intro({ content }: { content: any }) {
-  const { timeline } = useScrollytelling();
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  // (악보 설정 동일)
-  const startTime = 0.0; 
-  const endTime = 0.5; 
-  const sectionDuration = endTime - startTime; 
-  const sectionHeight = `${sectionDuration * 100}vh`; 
-
-  useLayoutEffect(() => {
-    if (!timeline || !sectionRef.current) return;
-    const ctx = gsap.context(() => {
-      // videoElement 관련 코드는 제거하거나 주석 처리
-      const textElement = sectionRef.current?.querySelector('.section1-text');
-      if (!textElement) return;
-
-      // 텍스트 애니메이션 (동일)
-      timeline.set(textElement, { opacity: 1, y: 0 }, startTime);
-      timeline.to(textElement, { opacity: 0, y: -30, duration: 0.1 }, endTime - 0.1);
-
-    }, sectionRef.current);
-    return () => ctx.revert();
-  }, [timeline, sectionDuration, startTime, endTime]); 
-
   return (
-    <div ref={sectionRef} className="relative" style={{ height: sectionHeight }}>
-      {/* Change: bg-transparent 적용 
-         배경 비디오 div는 제거하거나 주석 처리하여 
-         뒤쪽의 3D Liquid Metal이 보이게 합니다.
-      */}
-      <div className="sticky top-0 h-screen bg-transparent flex flex-col justify-center items-center text-white text-center">
-        
-        {/* 기존 Video 배경 제거 (혹은 주석 처리) */}
-        {/* <div className="section1-video absolute inset-0 z-0">
-          <video ... />
-        </div> 
-        */}
-
-        <div className="section1-text z-10 p-8 rounded-2xl backdrop-blur-sm bg-black/10 border border-white/10 shadow-2xl">
-          <h1 className="text-5xl md:text-8xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-gray-400">
-            {content.korean_mission}
-          </h1>
-          <p className="text-lg md:text-2xl mt-4 text-slate-200">
-            "{content.english_mission}"
-          </p>
-        </div>
+    <section className="relative h-screen w-full flex flex-col items-center justify-center overflow-hidden border-b border-white/10">
+      
+      {/* 1. 배경: 3D 파티클 네트워크 */}
+      <div className="absolute inset-0 z-0">
+        <ParticleNetwork />
       </div>
-    </div>
+
+      {/* 2. 메인 텍스트: 디코딩 효과 */}
+      <div className="relative z-10 text-center px-4 max-w-6xl mix-blend-difference pointer-events-none">
+        <motion.div 
+          initial={{ opacity: 0, y: 50 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ duration: 1, delay: 0.5 }}
+        >
+          <h1 className="text-4xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-8 leading-tight">
+            <TechText text={content.korean_mission} />
+          </h1>
+          <p className="text-lg md:text-2xl text-cyan-400/80 font-mono tracking-widest uppercase">
+            {content.english_mission}
+          </p>
+        </motion.div>
+      </div>
+
+      {/* 3. 하단 인터랙티브 존: 물리 엔진 키워드 */}
+      {/* 사용자가 직접 던지고 놀 수 있는 영역 */}
+      <div className="absolute bottom-0 w-full z-20 h-[35vh]">
+         <div className="absolute top-0 left-1/2 -translate-x-1/2 text-xs text-gray-600 animate-pulse">
+            INTERACTIVE ZONE
+         </div>
+         <GravityKeywords />
+      </div>
+    </section>
   );
 }

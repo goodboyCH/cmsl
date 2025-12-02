@@ -1,81 +1,63 @@
 "use client";
-import { useScrollytelling } from '@bsmnt/scrollytelling';
-import { gsap } from 'gsap';
-import React, { useLayoutEffect, useRef } from 'react';
+import React from 'react';
+import { SpotlightCard } from '@/components/ui/SpotlightCard';
 
 export function Section5_Impact({ content }: { content: any }) {
-  const { timeline } = useScrollytelling();
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  // --- ⬇️ '새 악보' (2350%) 적용 ⬇️ ---
-  const startTime = 16.5; // 18.5 -> 19.5
-  const endTime = 20.5; // 25.5 -> 26.5
-  const sectionDuration = endTime - startTime; // 7.0 (700vh) (동일)
-  const sectionHeight = `${sectionDuration * 100}vh`; // "700vh"
-  // --- ⬆️ '새 악보' 적용 ⬆️ ---
-
   const items = content.items || [];
+  const logos = content.logos || [];
 
-  useLayoutEffect(() => {
-    if (!timeline || !sectionRef.current || items.length === 0) return;
-    
-    const ctx = gsap.context(() => {
-      const title = sectionRef.current?.querySelector('h2');
-      const impactCards = gsap.utils.toArray<HTMLElement>('.impact-card', sectionRef.current);
-      if (!title || impactCards.length === 0) return;
+  return (
+    <section className="relative py-40 bg-gradient-to-b from-black to-zinc-900">
+      <div className="container mx-auto px-6">
+         
+         <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-6xl font-bold mb-4">Global Impact</h2>
+            <p className="text-gray-500">우리의 연구가 세상에 미치는 영향</p>
+         </div>
+         
+         {/* Bento Grid Layout */}
+         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 max-w-7xl mx-auto auto-rows-[minmax(250px,auto)]">
+            
+            {/* Impact Items */}
+            {items.map((item: any, idx: number) => (
+              <SpotlightCard 
+                key={idx} 
+                // 첫 번째와 네 번째 아이템은 크게(2칸 차지) 배치
+                className={`p-8 flex flex-col justify-between text-left border border-white/5
+                  ${(idx === 0 || idx === 3) ? 'md:col-span-2 bg-zinc-900/50' : 'bg-black'}
+                `}
+              >
+                  <div>
+                    <div className="text-cyan-500 mb-4 text-xl font-mono">0{idx + 1}</div>
+                    <h3 className="text-2xl font-bold mb-2 text-white">{item.title}</h3>
+                  </div>
+                  <p className="text-gray-400 text-sm mt-4">{item.description}</p>
+              </SpotlightCard>
+            ))}
 
-      // (문제 1 해결) 제목 애니메이션
-      timeline.fromTo(title, { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.1 }, startTime + 0.1);
-      timeline.to(title, { opacity: 0, y: -20, duration: 0.1 }, endTime - 0.2);
+         </div>
 
-      // (문제 2 해결)
-      const itemDuration = sectionDuration / items.length; // 2.0 (200vh)
-      const animationDuration = itemDuration * 0.5; // 1.0 (100vh) -> "텀"을 50%로 설정
-
-      items.forEach((_, i: number) => {
-        const card = impactCards[i];
-        const itemStartTime = startTime + (i * itemDuration);
-
-        // 'In' 애니메이션 (100vh 동안 실행)
-        timeline.fromTo(card, { opacity: 0, y: 100 }, { opacity: 1, y: 0, duration: animationDuration, ease: 'power2.out' }, itemStartTime);
-        
-        // 'Out' 애니메이션 (마지막 아이템 제외)
-        if (i < items.length - 1) {
-          const nextItemStartTime = itemStartTime + itemDuration;
-          timeline.to(card, { opacity: 0, y: -100, duration: animationDuration * 0.5, ease: 'power2.in' }, nextItemStartTime - (animationDuration * 0.5));
-        } else {
-          // (마지막 아이템 Out 제거)
-        }
-      });
-    }, sectionRef.current); 
-    return () => ctx.revert();
-  }, [timeline, items, startTime, sectionDuration, endTime]);
-
- return (
-    <div ref={sectionRef} className="relative" style={{ height: sectionHeight }}>
-      {/* Change: p-8 추가하고 배경색 관련 클래스는 제거하여 투명하게 유지 */}
-      <div className="sticky top-0 h-screen flex flex-col justify-center items-center p-8">
-        
-        <h2 className="absolute top-32 text-3xl font-bold text-white z-20 opacity-0 text-shadow-lg">
-          {content.title || "Our Impact"}
-        </h2>
-        
-        <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl">
-          {items.map((item: any, index: number) => (
-            <div
-              key={index}
-              // Change: 카드 스타일을 'Glassmorphism'으로 변경
-              className="impact-card p-6 rounded-xl shadow-2xl border border-white/10 opacity-0 
-                         bg-black/30 backdrop-blur-md hover:bg-black/50 transition-colors duration-300"
-            >
-              {/* 이미지에 둥근 모서리와 약간의 그림자 추가 */}
-              <img src={item.imageUrl} alt={item.title} className="w-full h-40 object-cover rounded-lg mb-4 shadow-inner" />
-              <h3 className="text-xl font-bold text-white mb-2">{item.title}</h3>
-              <p className="text-gray-300">{item.description}</p>
+         {/* Partners Section (하단 통합) */}
+         <div className="mt-32 pt-16 border-t border-white/5">
+            <p className="text-center text-gray-600 mb-10 text-sm uppercase tracking-[0.3em]">
+              Trusted Partners
+            </p>
+            
+            {/* 흐르는 로고 or 깔끔한 그리드 */}
+            <div className="flex flex-wrap justify-center gap-12 md:gap-20 opacity-50">
+              {logos.map((logo: any, idx: number) => (
+                <div key={idx} className="group relative">
+                    <img 
+                      src={logo.url} 
+                      alt={logo.name} 
+                      className="h-8 md:h-12 invert transition-all duration-300 group-hover:scale-110 group-hover:opacity-100 grayscale group-hover:grayscale-0" 
+                    />
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+         </div>
+
       </div>
-    </div>
+    </section>
   );
 }

@@ -1,89 +1,60 @@
 "use client";
-import { useScrollytelling } from '@bsmnt/scrollytelling';
-import { gsap } from 'gsap';
-import React, { useLayoutEffect, useRef } from 'react';
-import { SvgImageMorph } from '../../SvgImageMorph';
-import { ScrollyText_UI } from '../../ui/ScrollyText_UI';
+import React from 'react';
+import { SpotlightCard } from '@/components/ui/SpotlightCard';
+import { MagneticButton } from '@/components/ui/MagneticButton';
+import { Cpu, Atom, FlaskConical, Network } from 'lucide-react'; // 아이콘 예시
+
+// 아이콘 매핑 헬퍼 (필요에 따라 추가)
+const IconMap: any = {
+  Cpu: <Cpu className="w-10 h-10" />,
+  Atom: <Atom className="w-10 h-10" />,
+  FlaskConical: <FlaskConical className="w-10 h-10" />,
+  default: <Network className="w-10 h-10" />
+};
 
 export function Section2_CoreCapabilites({ content }: { content: any }) {
-  const { timeline } = useScrollytelling();
-  const sectionRef = useRef<HTMLDivElement>(null); 
-
-  // --- ⬇️ '새 악보' (2350%) 적용 ⬇️ ---
-  const startTime = 0.5; 
-  const endTime = 6.5; // (0.5 + 9.0)
-  const sectionDuration = endTime - startTime; // 9.0 (600vh)
-  const sectionHeight = `${sectionDuration * 100}vh`; // "600vh"
-  // --- ⬆️ '새 악보' 적용 ⬆️ ---
-
   const items = content.items || [];
-  const imageList = items.map((item: any) => item.imageUrl);
-
-  useLayoutEffect(() => {
-    if (!timeline || !sectionRef.current || items.length === 0) return;
-
-    const ctx = gsap.context(() => {
-      const title = sectionRef.current?.querySelector('h2');
-      const textSections = gsap.utils.toArray<HTMLElement>('.core-cap-text', sectionRef.current);
-      const images = gsap.utils.toArray<SVGImageElement>('.core-cap-image', sectionRef.current);
-      const displacementFilter = sectionRef.current?.querySelector('#displacement-filter feDisplacementMap');
-      if (!title || textSections.length === 0 || images.length === 0 || !displacementFilter) return;
-
-      // --- ⬇️ (문제 1 해결) ⬇️ ---
-      // 제목이 10vh(0.1) 늦게 나타나고 20vh(0.2) 일찍 사라짐
-      timeline.fromTo(title, { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.1 }, startTime + 0.1);
-      timeline.to(title, { opacity: 0, y: -20, duration: 0.1 }, endTime - 0.2);
-      // --- ⬆️ (문제 1 해결) ⬆️ ---
-
-      // 1. 아이템 1개당 스크롤 시간 (e.g., 8.0 / 4개 = 2.0 (200vh))
-      const itemDuration = 1.5;
-      // 2. '전환'에 사용할 스크롤 시간 (0.3 = 30vh)
-      const transitionDuration = 0.3;
-
-      items.forEach((_, i: number) => {
-        // 3. 이 아이템이 시작되는 '절대 시점' (0.5, 2.5, 4.5, 6.5)
-        const itemStartTime = startTime + (i * itemDuration);
-
-        // 4. 'In' 애니메이션 (동일)
-        timeline.fromTo(textSections[i], { opacity: 0, scale: 0.95, y: 30 }, { opacity: 1, scale: 1, y: 0, duration: transitionDuration }, itemStartTime);
-        timeline.fromTo(images[i], { autoAlpha: 0 }, { autoAlpha: 1, duration: transitionDuration }, itemStartTime);
-        
-        // 5. 'Out' 애니메이션: (마지막 아이템이 *아니라면*)
-        if (i < items.length - 1) {
-          const nextItemStartTime = itemStartTime + itemDuration;
-          
-          timeline.to(textSections[i], { opacity: 0, scale: 0.95, y: -30, duration: transitionDuration }, nextItemStartTime - transitionDuration);
-          timeline.to(displacementFilter, { attr: { scale: 150 }, duration: transitionDuration }, nextItemStartTime - transitionDuration);
-          timeline.to(images[i], { autoAlpha: 0, duration: transitionDuration }, '<');
-          timeline.to(displacementFilter, { attr: { scale: 0 }, duration: 0 }, nextItemStartTime);
-        
-        } else {
-          // (아무것도 하지 않음)
-        }
-        // --- ⬆️ (문제 2 해결) ⬆️ ---
-      });
-    }, sectionRef.current); 
-    return () => ctx.revert();
-  }, [timeline, items, startTime, sectionDuration, endTime]);
 
   return (
-    // (JSX는 변경 없음)
-    <div ref={sectionRef} className="relative" style={{ height: sectionHeight }}>
-      <div className="sticky top-0 h-screen">
-        <h2 className="absolute top-32 left-1/2 -translate-x-1/2 text-3xl font-bold text-primary z-20 opacity-0">
-          {content.title}
-        </h2>
-        <SvgImageMorph imageUrls={imageList} imageClassName="core-cap-image" />
-        <div className="absolute inset-0 z-10">
-          {items.map((item: any, index: number) => (
-            <ScrollyText_UI
-              key={index}
-              item={item}
-              className={`core-cap-text`}
-            />
+    <section className="relative py-32 px-6 md:px-12 bg-black z-10">
+      <div className="max-w-7xl mx-auto">
+        
+        {/* 섹션 헤더 */}
+        <div className="flex flex-col md:flex-row justify-between items-end mb-20 border-b border-white/10 pb-8">
+          <h2 className="text-4xl md:text-6xl font-bold text-white">
+            Core <span className="text-cyan-500">Capabilities</span>
+          </h2>
+          <p className="text-gray-400 mt-4 md:mt-0 max-w-md text-right">
+            우리는 재료과학과 인공지능의 경계에서<br/>새로운 가능성을 탐구합니다.
+          </p>
+        </div>
+
+        {/* 그리드 레이아웃 + Spotlight 효과 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {items.map((item: any, idx: number) => (
+            <SpotlightCard key={idx} className="h-full bg-zinc-900/30 p-8 border border-white/5 group">
+              <div className="mb-6 text-cyan-500 transition-transform duration-500 group-hover:scale-110 group-hover:text-white">
+                {IconMap[item.icon] || IconMap.default}
+              </div>
+              <h3 className="text-2xl font-bold mb-4 text-slate-100 group-hover:text-cyan-400 transition-colors">
+                {item.title}
+              </h3>
+              <p className="text-gray-400 leading-relaxed text-sm">
+                {item.description}
+              </p>
+              
+              {/* 더보기 버튼 (자석 효과) */}
+              <div className="mt-8">
+                <MagneticButton>
+                  <button className="text-xs font-bold text-white border border-white/20 px-4 py-2 rounded-full hover:bg-white hover:text-black transition-colors">
+                    EXPLORE
+                  </button>
+                </MagneticButton>
+              </div>
+            </SpotlightCard>
           ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 }
