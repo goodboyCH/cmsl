@@ -30,22 +30,22 @@ export function Section6_Partner({ content }: { content: any }) {
     return () => ctx.revert();
   }, [timeline, duration, startTime]);
 
-  return (
-    // 1. 'sticky'를 제거하고, '악보'에서 계산된 '높이(height)'를 할당
+ return (
     <div ref={sectionRef} className="relative" style={{ height: sectionHeight }}>
-      {/* 2. '소품'(Visuals)들만 'sticky'를 사용해 화면에 고정 */}
-      <div className="sticky top-0 h-screen flex flex-col justify-center items-center p-8 bg-background">
-        <div className="logo-container w-full max-w-4xl">
-          <h3 className='text-xl md:text-2xl font-bold text-muted-foreground text-center mb-12'>
+      {/* Change: bg-background 제거 -> bg-transparent 적용 */}
+      <div className="sticky top-0 h-screen flex flex-col justify-center items-center p-8 bg-transparent">
+        <div className="logo-container w-full max-w-4xl bg-black/20 backdrop-blur-lg p-10 rounded-2xl border border-white/5">
+          <h3 className='text-xl md:text-2xl font-bold text-white/80 text-center mb-12'>
             Key Partners
           </h3>
           <div className="flex justify-center items-center gap-8 md:gap-12 flex-wrap">
             {logos.map((logo: any, index: number) => (
               <div key={index}>
+                {/* 로고가 어두운 배경에서도 잘 보이도록 brightness/invert 조절 필요할 수 있음 */}
                 <img 
                   src={logo.url} 
                   alt={logo.name} 
-                  className="h-10 md:h-16 opacity-70 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-300" 
+                  className="h-10 md:h-16 opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-300 invert" 
                 />
               </div>
             ))}

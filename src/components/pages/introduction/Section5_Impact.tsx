@@ -51,22 +51,27 @@ export function Section5_Impact({ content }: { content: any }) {
     return () => ctx.revert();
   }, [timeline, items, startTime, sectionDuration, endTime]);
 
-  return (
-    // (JSX는 변경 없음)
+ return (
     <div ref={sectionRef} className="relative" style={{ height: sectionHeight }}>
+      {/* Change: p-8 추가하고 배경색 관련 클래스는 제거하여 투명하게 유지 */}
       <div className="sticky top-0 h-screen flex flex-col justify-center items-center p-8">
-        <h2 className="absolute top-32 text-3xl font-bold text-primary z-20 opacity-0">
+        
+        <h2 className="absolute top-32 text-3xl font-bold text-white z-20 opacity-0 text-shadow-lg">
           {content.title || "Our Impact"}
         </h2>
+        
         <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl">
           {items.map((item: any, index: number) => (
             <div
               key={index}
-              className="impact-card bg-card p-6 rounded-lg shadow-lg border border-border opacity-0"
+              // Change: 카드 스타일을 'Glassmorphism'으로 변경
+              className="impact-card p-6 rounded-xl shadow-2xl border border-white/10 opacity-0 
+                         bg-black/30 backdrop-blur-md hover:bg-black/50 transition-colors duration-300"
             >
-              <img src={item.imageUrl} alt={item.title} className="w-full h-40 object-cover rounded-md mb-4" />
-              <h3 className="text-xl font-bold text-primary mb-2">{item.title}</h3>
-              <p className="text-muted-foreground">{item.description}</p>
+              {/* 이미지에 둥근 모서리와 약간의 그림자 추가 */}
+              <img src={item.imageUrl} alt={item.title} className="w-full h-40 object-cover rounded-lg mb-4 shadow-inner" />
+              <h3 className="text-xl font-bold text-white mb-2">{item.title}</h3>
+              <p className="text-gray-300">{item.description}</p>
             </div>
           ))}
         </div>
