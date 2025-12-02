@@ -28,7 +28,7 @@ export function Section4_Demo() {
           scrollTrigger: {
             trigger: sectionRef.current,
             start: "top top", // 섹션 상단이 화면 상단에 닿을 때
-            end: "+=300%",    // 스크롤 길이 (300vh 만큼 스크롤 하는 동안 재생)
+            end: "+=900%",    // 스크롤 길이 (300vh 만큼 스크롤 하는 동안 재생)
             pin: true,        // 화면 고정
             scrub: 1,         // 부드러운 스크러빙
             // markers: true, // 디버깅 필요시 주석 해제
