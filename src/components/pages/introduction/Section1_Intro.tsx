@@ -13,9 +13,9 @@ export function Section1_Intro({ missionKor, missionEng }: { missionKor: string,
         <Suspense fallback={<div className="w-full h-full bg-black" />}>
            <ColorBends 
              // 🎨 연구실 테마 컬러 팔레트 (Cyan, Slate, Deep Blue)
-             colors={['#06b6d4', '#0f172a', '#334155', '#000000', '#0891b2']}
+             colors={['#ff5c7a", "#8a5cff", "#00ffd1']}
              speed={0.6}       // 천천히 우아하게 움직임
-             rotation={130}      // 대각선 흐름
+             rotation={30}      // 대각선 흐름
              scale={1}
              frequency={1}
              mouseInfluence={1}        // 큼직한 패턴
