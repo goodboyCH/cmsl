@@ -26,23 +26,11 @@ void main() {
     vec3 centerPos = (uWorldMatrix * aInstanceMatrix * vec4(0., 0., 0., 1.)).xyz;
     float radius = length(centerPos.xyz);
 
-    if (gl_VertexID > 0) {
-        vec3 rotationAxis = uRotationAxisVelocity.xyz;
-        float rotationVelocity = min(.15, uRotationAxisVelocity.w * 15.);
-        vec3 stretchDir = normalize(cross(centerPos, rotationAxis));
-        vec3 relativeVertexPos = normalize(worldPosition.xyz - centerPos);
-        float strength = dot(stretchDir, relativeVertexPos);
-        float invAbsStrength = min(0., abs(strength) - 1.);
-        strength = rotationVelocity * sign(strength) * abs(invAbsStrength * invAbsStrength * invAbsStrength + 1.);
-        worldPosition.xyz += stretchDir * strength;
-    }
-
     worldPosition.xyz = radius * normalize(worldPosition.xyz);
 
     gl_Position = uProjectionMatrix * uViewMatrix * worldPosition;
 
-    vAlpha = smoothstep(0.9, 1.0, normalize(worldPosition.xyz).z); 
-    
+    vAlpha = smoothstep(0.8, 1., normalize(worldPosition.xyz).z) * .9 + .1;    
     vUvs = aModelUvs;
     vInstanceId = gl_InstanceID;
 }
@@ -897,6 +885,7 @@ class InfiniteGridMenu {
     const SCALE_INTENSITY = 1;
 
     positions.forEach((p, ndx) => {
+      const zRatio = (p[2] / this.SPHERE_RADIUS); // -1 ~ 1 사이 값
       const s = (Math.abs(p[2]) / this.SPHERE_RADIUS) * SCALE_INTENSITY + (1 - SCALE_INTENSITY);
       const finalScale = s * scale;
       const matrix = mat4.create();
