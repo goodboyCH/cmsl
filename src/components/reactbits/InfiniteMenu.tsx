@@ -893,7 +893,7 @@ class InfiniteGridMenu {
 
     const positions = this.instancePositions.map(p => vec3.transformQuat(vec3.create(), p, this.control.orientation));
     const scale = 0.25;
-    const SCALE_INTENSITY = 0.95;
+    const SCALE_INTENSITY = 1.2;
 
     positions.forEach((p, ndx) => {
       const s = (Math.abs(p[2]) / this.SPHERE_RADIUS) * SCALE_INTENSITY + (1 - SCALE_INTENSITY);
@@ -1109,39 +1109,28 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
         <>
           <h2
             className={`
-              select-none
-              absolute
-              top-1/2 left-1/2
-              transform -translate-x-1/2 -translate-y-1/2
-              
-              text-center
-              z-20
-              
-              /* 너비를 더 좁혀서 줄바꿈 유도 */
-              w-full
-              max-w-[50%] md:max-w-[40%] 
-              whitespace-normal 
-              break-words
-              leading-[1.1]
-              
-              font-black
-              text-4xl md:text-6xl lg:text-7xl
-              text-white
-              tracking-tighter
-              
-              /* mix-blend-overlay 제거 (선명도 확보) */
-              
-              transition-all
-              ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
-              ${
-                isMoving
-                  ? 'opacity-0 duration-[100ms] scale-90'
-                  : 'opacity-100 duration-[500ms] scale-100'
-              }
-            `}
-            style={{ 
-              textShadow: '0 4px 20px rgba(0,0,0,0.8)' // 그림자로 가독성 확보
-            }}
+          select-none
+          absolute
+          font-black
+          [font-size:4rem]
+          left-[1.6em]
+          top-1/2
+          transform
+          translate-x-[20%]
+          -translate-y-1/2
+          transition-all
+          ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
+          w-full
+          max-w-[50%] md:max-w-[40%] 
+          whitespace-normal 
+          break-words
+          leading-[1.1]
+          ${
+            isMoving
+              ? 'opacity-0 pointer-events-none duration-[100ms]'
+              : 'opacity-100 pointer-events-auto duration-[500ms]'
+          }
+        `}
           >
             {activeItem.title}
           </h2>
