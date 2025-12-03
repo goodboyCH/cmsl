@@ -892,8 +892,8 @@ class InfiniteGridMenu {
     this.control.update(deltaTime, this.TARGET_FRAME_DURATION);
 
     const positions = this.instancePositions.map(p => vec3.transformQuat(vec3.create(), p, this.control.orientation));
-    const scale = 0.45;
-    const SCALE_INTENSITY = 0.6;
+    const scale = 0.6;
+    const SCALE_INTENSITY = 0.95;
 
     positions.forEach((p, ndx) => {
       const s = (Math.abs(p[2]) / this.SPHERE_RADIUS) * SCALE_INTENSITY + (1 - SCALE_INTENSITY);
@@ -1109,23 +1109,34 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
         <>
           <h2
             className={`
-          select-none
-          absolute
-          font-black
-          [font-size:4rem]
-          left-[1.6em]
-          top-1/2
-          transform
-          translate-x-[20%]
-          -translate-y-1/2
-          transition-all
-          ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
-          ${
-            isMoving
-              ? 'opacity-0 pointer-events-none duration-[100ms]'
-              : 'opacity-100 pointer-events-auto duration-[500ms]'
-          }
-        `}
+              select-none
+              absolute
+              top-1/2 left-1/2
+              transform -translate-x-1/2 -translate-y-1/2
+              
+              text-center
+              z-20
+              
+              /* 🟢 [수정 3] 타이틀 줄바꿈 유도 */
+              w-full
+              max-w-[80%] md:max-w-[60%] /* 너비를 제한해서 강제로 두 줄로 만듦 */
+              leading-[1.1]              /* 줄 간격 좁힘 */
+              
+              font-black
+              text-4xl md:text-6xl lg:text-7xl
+              text-white
+              tracking-tighter
+              mix-blend-overlay
+              
+              transition-all
+              ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
+              ${
+                isMoving
+                  ? 'opacity-0 duration-[100ms] scale-90'
+                  : 'opacity-100 duration-[500ms] scale-100'
+              }
+            `}
+            style={{ textShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
           >
             {activeItem.title}
           </h2>
@@ -1135,31 +1146,33 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
           select-none
           absolute
           
-          /* 🟢 [수정 1] 너비와 폰트 조정 */
-          max-w-sm  
-          text-base md:text-lg 
+          /* 🟢 [수정 1] 위치를 '우측 하단'으로 이동 & 너비 확장 */
+          right-[5%] 
+          bottom-[10%]  /* top-1/2 제거하고 바닥에 붙임 */
+          max-w-lg      /* max-w-sm -> max-w-lg (더 넓게) */
+          
+          /* 폰트 및 가독성 */
+          text-base md:text-xl 
           text-gray-200
+          leading-relaxed
           
-          /* 🟢 [수정 2] 위치 조정 (너무 끝에 붙지 않게) */
-          right-[5%] md:right-[10%]
-          top-1/2
-          
-          /* 🟢 [수정 3] 배경 박스 디자인 추가 (가시성 확보 핵심) */
+          /* 배경 박스 디자인 */
           bg-zinc-950/80 
           backdrop-blur-md 
-          p-6 
-          rounded-xl 
+          p-8           /* 패딩을 좀 더 넉넉하게 */
+          rounded-2xl 
           border border-white/10
           shadow-2xl
 
+          /* 애니메이션 트랜지션 */
           transform
           transition-all
           ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
           ${
             isMoving
-              /* 움직일 때 효과: 투명해지면서 살짝 오른쪽으로 빠짐 */
-              ? 'opacity-0 pointer-events-none duration-[100ms] translate-x-[20%] -translate-y-1/2'
-              : 'opacity-100 pointer-events-auto duration-[500ms] translate-x-0 -translate-y-1/2'
+              /* 🟢 [수정 2] 움직일 때 Y축 중앙 정렬(-translate-y-1/2) 제거 */
+              ? 'opacity-0 pointer-events-none duration-[100ms] translate-x-[10%]'
+              : 'opacity-100 pointer-events-auto duration-[500ms] translate-x-0'
           }
         `}
           >
