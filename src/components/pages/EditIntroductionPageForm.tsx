@@ -7,9 +7,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/lib/supabaseClient';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Trash2 } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+// Select 등 사용하지 않는 import 제거 가능
 
 interface EditIntroductionPageFormProps { onBack: () => void; }
+
 export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormProps) {
   const [content, setContent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -25,7 +26,6 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
     fetchContent();
   }, []);
 
-  // (헬퍼 함수들은 변경 없음)
   const handleSectionChange = (section: string, field: string, value: any) => {
     setContent((prev: any) => ({
       ...prev,
@@ -50,7 +50,6 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    // (handleSubmit 로직은 변경 없음)
     e.preventDefault();
     setLoading(true);
     setMessage('');
@@ -72,29 +71,74 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
     <Card>
       <CardHeader>
         <CardTitle>Introduction 페이지 수정</CardTitle>
-        <CardDescription>페이지의 각 섹션별 내용을 수정합니다. (Scrollytelling 버전)</CardDescription>
+        <CardDescription>페이지의 각 섹션별 내용을 수정합니다.</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <Accordion type="multiple" defaultValue={['item-1', 'item-2', 'item-3', 'item-4']} className="w-full">
 
+            {/* --- 다른 섹션들은 생략하거나 기존 유지 --- */}
 
-            {/* Research Areas 섹션 폼 (변경 없음, 이미 imageUrl 존재) */}
+            {/* Research Areas 섹션 수정됨 */}
             <AccordionItem value="item-3">
               <AccordionTrigger>Section 3: Research Areas</AccordionTrigger>
               <AccordionContent className="space-y-4 pt-2">
-                <div className="space-y-2"><Label>Section Title</Label><Input value={content?.research?.title || ''} onChange={(e) => handleSectionChange('research', 'title', e.target.value)} /></div>
+                <div className="space-y-2">
+                  <Label>Section Title</Label>
+                  <Input value={content?.research?.title || ''} onChange={(e) => handleSectionChange('research', 'title', e.target.value)} />
+                </div>
+                
                 {(content?.research?.items || []).map((item: any, index: number) => (
-                  <div key={index} className="p-4 border rounded-md space-y-3 relative">
-                     <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeItemFromArray('research', 'items', index)}><Trash2 className="h-4 w-4"/></Button>
-                    <div className="space-y-2"><Label>Title</Label><Input value={item.title} onChange={(e) => handleArrayItemChange('research', 'items', index, 'title', e.target.value)} /></div>
-                    <div className="space-y-2"><Label>Description</Label><Textarea value={item.description} onChange={(e) => handleArrayItemChange('research', 'items', index, 'description', e.target.value)} /></div>
-                    <div className="space-y-2"><Label>Image URL (Optional)</Label><Input value={item.imageUrl} onChange={(e) => handleArrayItemChange('research', 'items', index, 'imageUrl', e.target.value)} /></div>
+                  <div key={index} className="p-4 border rounded-md space-y-3 relative bg-slate-50 dark:bg-slate-900">
+                     <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeItemFromArray('research', 'items', index)}>
+                       <Trash2 className="h-4 w-4"/>
+                     </Button>
+                    
+                    <div className="space-y-2">
+                      <Label>Title</Label>
+                      <Input value={item.title} onChange={(e) => handleArrayItemChange('research', 'items', index, 'title', e.target.value)} />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Description</Label>
+                      <Textarea value={item.description} onChange={(e) => handleArrayItemChange('research', 'items', index, 'description', e.target.value)} />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Image URL (Optional)</Label>
+                      <Input value={item.imageUrl} onChange={(e) => handleArrayItemChange('research', 'items', index, 'imageUrl', e.target.value)} />
+                    </div>
+
+                    {/* 🟢 [추가됨] Link URL 입력 필드 */}
+                    <div className="space-y-2">
+                      <Label>Link URL (페이지 이동 주소)</Label>
+                      <Input 
+                        placeholder="https://... 또는 /research/..." 
+                        value={item.link || ''} 
+                        onChange={(e) => handleArrayItemChange('research', 'items', index, 'link', e.target.value)} 
+                      />
+                    </div>
+
                   </div>
                 ))}
-                <Button type="button" variant="outline" size="sm" onClick={() => addItemToArray('research', 'items', {icon: 'Car', title: '', description: '', imageUrl: ''})}>Add Research Area</Button>
+                
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => addItemToArray('research', 'items', {
+                    icon: 'Car', 
+                    title: '', 
+                    description: '', 
+                    imageUrl: '', 
+                    link: '' // 새 항목 추가 시 link 필드도 초기화
+                  })}
+                >
+                  Add Research Area
+                </Button>
               </AccordionContent>
             </AccordionItem>
+
           </Accordion>
 
           <div className="flex justify-end gap-2 pt-4">
