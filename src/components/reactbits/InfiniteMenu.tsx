@@ -887,8 +887,8 @@ class InfiniteGridMenu {
     this.control.update(deltaTime, this.TARGET_FRAME_DURATION);
 
     const positions = this.instancePositions.map(p => vec3.transformQuat(vec3.create(), p, this.control.orientation));
-    const baseScale = 0.35;      // 기본 크기
-    const maxScaleMult = 1.8;
+    const baseScale = 0.3;      // 기본 크기
+    const maxScaleMult = 3;
 
     positions.forEach((p, ndx) => {
       // 1. 크기 계산 (하이라이트)
