@@ -925,9 +925,8 @@ class InfiniteGridMenu {
 
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
+    
     mat4.identity(this.worldMatrix);
-    mat4.translate(this.worldMatrix, this.worldMatrix, [-1.5, 0, 0]);
 
     gl.uniformMatrix4fv(this.discLocations.uWorldMatrix, false, this.worldMatrix);
     gl.uniformMatrix4fv(this.discLocations.uViewMatrix, false, this.camera.matrices.view);
@@ -996,7 +995,8 @@ class InfiniteGridMenu {
   private onControlUpdate(deltaTime: number): void {
     const timeScale = deltaTime / this.TARGET_FRAME_DURATION + 0.0001;
     let damping = 5 / timeScale;
-    let cameraTargetZ = 3;
+    let cameraTargetZ = 3.5;
+    let cameraTargetX = 0;
 
     const isMoving = this.control.isPointerDown || Math.abs(this.smoothRotationVelocity) > 0.01;
 
@@ -1011,12 +1011,16 @@ class InfiniteGridMenu {
       this.onActiveItemChange(itemIndex);
       const snapDirection = vec3.normalize(vec3.create(), this.getVertexWorldPosition(nearestVertexIndex));
       this.control.snapTargetDirection = snapDirection;
+      cameraTargetX = 1.5;
+
     } else {
       cameraTargetZ += this.control.rotationVelocity * 80 + 2.5;
       damping = 7 / timeScale;
+      cameraTargetX = 0;
     }
 
     this.camera.position[2] += (cameraTargetZ - this.camera.position[2]) / damping;
+    this.camera.position[0] += (cameraTargetX - this.camera.position[0]) / (damping * 1.5); // 조금 더 천천히 이동
     this.updateCameraMatrix();
   }
 
@@ -1115,16 +1119,12 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
               select-none
               absolute
               
-              /* 위치: 좌측 상단 */
-              top-[15%] 
+              /* 🟢 [수정 1] 더 위로 올림 (15% -> 10% or 5%) */
+              top-[10%] 
               left-[5%]
               
               z-20
-              
-              /* 너비 제한 (너무 길어지지 않게) */
               max-w-[50%] md:max-w-[40%]
-              
-              /* 폰트 스타일 */
               text-left
               font-black
               text-4xl md:text-6xl lg:text-7xl
@@ -1133,15 +1133,13 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
               leading-[1.1]
               whitespace-normal 
               break-words
-              
-              /* 그림자 */
               drop-shadow-2xl
               
               transition-all
               ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
               ${
                 isMoving
-                  ? 'opacity-0 duration-[100ms] -translate-x-10' // 움직일 때 왼쪽으로 사라짐
+                  ? 'opacity-0 duration-[100ms] -translate-x-10'
                   : 'opacity-100 duration-[500ms] translate-x-0'
               }
             `}
@@ -1149,7 +1147,7 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
             {activeItem.title}
           </h2>
 
-          {/* 🟢 [수정 3] 텍스트 박스: 화살표 제거 */}
+          {/* 텍스트 박스 수정 */}
           <div
             className={`
               absolute
@@ -1181,9 +1179,7 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
               {activeItem.description}
             </p>
             
-            <div className="mt-6 flex justify-end">
-               <span className="text-cyan-400 text-2xl animate-pulse">↗</span>
-            </div>
+            {/* 🔴 [삭제 완료] 화살표 div는 여기서 완전히 지웠습니다. */}
           </div>
 
           <div
