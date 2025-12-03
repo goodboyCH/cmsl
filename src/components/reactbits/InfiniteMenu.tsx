@@ -1120,10 +1120,11 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
             className={`
               absolute
               top-[25%] left-[5%] z-20
-              /* 너비 제한: 화면의 45%까지만 차지 */
+              /* 화면의 40% 너비 제한 */
               w-full max-w-[45%] md:max-w-[40%]
               flex flex-col items-start justify-start
-              pointer-events-none
+              /* pointer-events-none을 제거해야 내부 버튼 클릭 가능 */
+              pointer-events-none 
               transition-all ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
               ${
                 isMoving
@@ -1132,52 +1133,61 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
               }
             `}
           >
-            {/* 1. 타이틀: 배경 없이 깔끔하게 유지 */}
+            {/* 1. 타이틀 */}
             <h2 
               className="font-black text-white tracking-tighter leading-[0.95] text-4xl md:text-5xl lg:text-6xl mb-8 drop-shadow-2xl"
-              style={{ textShadow: '0 4px 30px rgba(0,0,0,0.8)' }} // 가독성 그림자 강화
+              style={{ textShadow: '0 4px 30px rgba(0,0,0,0.8)' }}
             >
               {activeItem.title}
             </h2>
 
-            {/* 2. 텍스트 박스: 내용에 맞춰 늘어나는 배경 박스 */}
+            <div className="w-12 h-1 bg-cyan-500 mb-4" />
+            
+            {/* 2. 텍스트 박스 (버튼 포함) */}
             <div 
               className={`
                 relative
-                w-fit               /* 텍스트 양에 맞춰 너비 자동 조절 */
-                h-auto              /* 텍스트 양에 맞춰 높이 자동 조절 */
-                bg-zinc-950/80      /* 진한 불투명 배경 */
-                backdrop-blur-md    /* 블러 효과 */
+                w-fit
+                h-auto
+                bg-zinc-950/80 
+                backdrop-blur-md 
                 border border-white/10
                 rounded-xl
-                p-6 md:p-8          /* 내부 여백 */
+                p-6 md:p-8
                 shadow-2xl
+                /* 중요: 박스 내부는 클릭 가능해야 함 */
+                pointer-events-auto
               `}
             >
-              {/* 장식용 라인 (박스 내부로 이동) */}
-              <div className="w-12 h-1 bg-cyan-500 mb-4" />
+
 
               {/* 설명 텍스트 */}
-              <p className="text-gray-200 text-lg md:text-xl leading-relaxed font-medium">
+              <p className="text-gray-200 text-lg md:text-xl leading-relaxed font-medium mb-6">
                 {activeItem.description}
               </p>
+
+              {/* 🟢 [수정] 박스 내부로 들어온 '더보기' 버튼 */}
+              <div className="flex justify-end">
+                <button
+                  onClick={handleButtonClick}
+                  className="
+                    group flex items-center gap-2 
+                    text-sm font-bold text-white 
+                    uppercase tracking-widest 
+                    hover:text-cyan-400 transition-colors
+                    cursor-pointer
+                  "
+                >
+                  View Project
+                  <span className="text-xl transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5">
+                    ↗
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* 링크 버튼 */}
-          <div
-            onClick={handleButtonClick}
-            className={`
-              absolute left-1/2 z-10 w-[60px] h-[60px] grid place-items-center bg-[#00ffff] border-[5px] border-black rounded-full cursor-pointer transition-all ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
-              ${
-                isMoving
-                  ? 'bottom-[-80px] opacity-0 pointer-events-none duration-[100ms] scale-0 -translate-x-1/2'
-                  : 'bottom-[3.8em] opacity-100 pointer-events-auto duration-[500ms] scale-100 -translate-x-1/2'
-              }
-            `}
-          >
-            <p className="select-none relative text-[#060010] top-[2px] text-[26px]">&#x2197;</p>
-          </div>
+          {/* 🔴 [삭제됨] 기존의 중앙 하단 원형 버튼 div는 삭제했습니다. */}
         </>
       )}
     </div>
