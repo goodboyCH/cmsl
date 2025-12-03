@@ -25,17 +25,19 @@ void main() {
     vec3 centerPos = (uWorldMatrix * aInstanceMatrix * vec4(0., 0., 0., 1.)).xyz;
     float radius = length(centerPos.xyz);
 
-    // [중요] 여기에 있던 if (gl_VertexID > 0) { ... } 블록을 완전히 삭제했습니다.
-    // 이 부분이 있으면 회전 속도 변화 시 이미지가 찢어지거나 튕깁니다.
+    // [삭제] 여기에 있던 if (gl_VertexID > 0) 블록(Stretch 효과)을 완전히 지우세요.
+    // 이 코드가 없어야 회전이 매끄럽습니다.
 
     worldPosition.xyz = radius * normalize(worldPosition.xyz);
 
     gl_Position = uProjectionMatrix * uViewMatrix * worldPosition;
 
-    // [하이라이트] 중앙 집중형 투명도
+    // [하이라이트 수정] 투명도 조절
     float dist = normalize(worldPosition.xyz).z;
-    vAlpha = smoothstep(0.6, 1.0, dist); // 0.6부터 선명해지기 시작
-    vAlpha = vAlpha * 0.9 + 0.1;         // 최소 밝기 0.1 유지
+    // 0.6부터 선명해지기 시작 (중앙 집중)
+    vAlpha = smoothstep(0.6, 1.0, dist); 
+    // 너무 안 보이지 않게 최소 밝기 0.15 유지
+    vAlpha = vAlpha * 0.85 + 0.15;
 
     vUvs = aModelUvs;
     vInstanceId = gl_InstanceID;
