@@ -1116,38 +1116,64 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
 
       {activeItem && (
         <>
-          {/* 변경된 텍스트 레이아웃 컨테이너 */}
           <div
             className={`
               absolute
-              top-[25%] left-[5%] z-20          /* 위치: 상단 25%, 좌측 5% */
-              w-full max-w-[45%] md:max-w-[40%] /* 너비 제한 */
-              flex flex-col items-start justify-start /* 수직 정렬(Column) */
+              top-[25%] left-[5%] z-20
+              /* 너비 제한: 화면의 45%까지만 차지 */
+              w-full max-w-[45%] md:max-w-[40%]
+              flex flex-col items-start justify-start
               pointer-events-none
               transition-all ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
-              ${isMoving ? 'opacity-0 duration-[100ms] -translate-x-10' : 'opacity-100 duration-[500ms] translate-x-0'}
+              ${
+                isMoving
+                  ? 'opacity-0 duration-[100ms] -translate-x-10'
+                  : 'opacity-100 duration-[500ms] translate-x-0'
+              }
             `}
           >
-            {/* 1. 타이틀 (크기 축소: text-4xl ~ 6xl) */}
-            <h2 className="font-black text-white tracking-tighter leading-[0.95] text-4xl md:text-5xl lg:text-6xl mb-6 drop-shadow-2xl">
+            {/* 1. 타이틀: 배경 없이 깔끔하게 유지 */}
+            <h2 
+              className="font-black text-white tracking-tighter leading-[0.95] text-4xl md:text-5xl lg:text-6xl mb-8 drop-shadow-2xl"
+              style={{ textShadow: '0 4px 30px rgba(0,0,0,0.8)' }} // 가독성 그림자 강화
+            >
               {activeItem.title}
             </h2>
 
-            {/* 2. 파란색 바 (중간 삽입) */}
-            <div className="w-16 h-1 bg-cyan-500 mb-6" />
+            {/* 2. 텍스트 박스: 내용에 맞춰 늘어나는 배경 박스 */}
+            <div 
+              className={`
+                relative
+                w-fit               /* 텍스트 양에 맞춰 너비 자동 조절 */
+                h-auto              /* 텍스트 양에 맞춰 높이 자동 조절 */
+                bg-zinc-950/80      /* 진한 불투명 배경 */
+                backdrop-blur-md    /* 블러 효과 */
+                border border-white/10
+                rounded-xl
+                p-6 md:p-8          /* 내부 여백 */
+                shadow-2xl
+              `}
+            >
+              {/* 장식용 라인 (박스 내부로 이동) */}
+              <div className="w-12 h-1 bg-cyan-500 mb-4" />
 
-            {/* 3. 설명 텍스트 */}
-            <p className="text-gray-300 text-lg md:text-xl leading-relaxed font-medium drop-shadow-md">
-              {activeItem.description}
-            </p>
+              {/* 설명 텍스트 */}
+              <p className="text-gray-200 text-lg md:text-xl leading-relaxed font-medium">
+                {activeItem.description}
+              </p>
+            </div>
           </div>
 
-          {/* 링크 버튼 (기존 코드 유지 혹은 아래 코드로 사용) */}
+          {/* 링크 버튼 */}
           <div
             onClick={handleButtonClick}
             className={`
               absolute left-1/2 z-10 w-[60px] h-[60px] grid place-items-center bg-[#00ffff] border-[5px] border-black rounded-full cursor-pointer transition-all ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
-              ${isMoving ? 'bottom-[-80px] opacity-0 pointer-events-none duration-[100ms] scale-0 -translate-x-1/2' : 'bottom-[3.8em] opacity-100 pointer-events-auto duration-[500ms] scale-100 -translate-x-1/2'}
+              ${
+                isMoving
+                  ? 'bottom-[-80px] opacity-0 pointer-events-none duration-[100ms] scale-0 -translate-x-1/2'
+                  : 'bottom-[3.8em] opacity-100 pointer-events-auto duration-[500ms] scale-100 -translate-x-1/2'
+              }
             `}
           >
             <p className="select-none relative text-[#060010] top-[2px] text-[26px]">&#x2197;</p>
