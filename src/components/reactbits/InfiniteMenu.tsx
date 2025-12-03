@@ -1105,6 +1105,11 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
       console.log('Internal route:', activeItem.link);
     }
   };
+const getSafeLink = (url?: string) => {
+    if (!url || url === '#' || url === '') return null;
+    if (url.startsWith('/') || url.startsWith('http')) return url;
+    return `https://${url}`;
+  };
 
   return (
     <div className="relative w-full h-full">
@@ -1167,32 +1172,31 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
               </p>
 
               {/* 🟢 [수정] 박스 내부로 들어온 '더보기' 버튼 */}
-              <div className="flex justify-end">
-                <a
-                  href={activeItem.link || '#'} // 링크가 없으면 # 처리
-                  target="_blank"               // 새 탭에서 열기
-                  rel="noopener noreferrer"     // 보안 권장 설정
-                  className="
-                    group flex items-center gap-2 
-                    text-sm font-bold text-white 
-                    uppercase tracking-widest 
-                    hover:text-cyan-400 transition-colors
-                    cursor-pointer
-                    no-underline
-                  "
-                  // 클릭 이벤트 전파 방지 (드래그 씹힘 방지)
-                  onPointerDown={(e) => e.stopPropagation()} 
-                >
-                  View More
-                  <span className="text-xl transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5">
-                    ↗
-                  </span>
-                </a>
+              {getSafeLink(activeItem.link) && (
+                <div className="flex justify-end">
+                  <a
+                    href={getSafeLink(activeItem.link)!}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="
+                      group flex items-center gap-2 
+                      text-sm font-bold text-white 
+                      uppercase tracking-widest 
+                      hover:text-cyan-400 transition-colors
+                      cursor-pointer
+                      no-underline
+                    "
+                    // 드래그 씹힘 방지
+                    onPointerDown={(e) => e.stopPropagation()} 
+                  >
+                    Learn More
+                    <span className="text-xl transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5">
+                    </span>
+                  </a>
               </div>
+              )}
             </div>
           </div>
-
-          {/* 🔴 [삭제됨] 기존의 중앙 하단 원형 버튼 div는 삭제했습니다. */}
         </>
       )}
     </div>

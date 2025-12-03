@@ -13,8 +13,11 @@ export function Section3_ResearchAreas({ content, loading }: { content: any, loa
   const menuItems = rawItems.map((item: any) => ({
     title: item.title,
     description: item.description,
-    image: item.imageUrl || "https://placehold.co/600x400/18181b/FFF?text=No+Image", // 이미지 없으면 대체
-    link: "#" // 실제 링크가 있다면 item.link 사용
+    image: item.imageUrl || "https://placehold.co/600x400/18181b/FFF?text=No+Image",
+    
+    // 🛑 [수정 필수] 이 줄이 빠져있어서 링크가 안 넘어갔던 것입니다!
+    // DB에 저장된 필드명(link 또는 url)을 확인하여 연결해주세요.
+    link: item.link || item.url || "" 
   }));
 
   // 데이터가 너무 적으면 무한 스크롤 느낌이 안 나므로 강제로 늘려줄 수도 있습니다.
