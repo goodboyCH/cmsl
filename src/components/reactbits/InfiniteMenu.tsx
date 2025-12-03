@@ -894,7 +894,7 @@ class InfiniteGridMenu {
 
     const positions = this.instancePositions.map(p => vec3.transformQuat(vec3.create(), p, this.control.orientation));
     const scale = 0.35;
-    const SCALE_INTENSITY = 4;
+    const SCALE_INTENSITY = 1;
 
     positions.forEach((p, ndx) => {
       const s = (Math.abs(p[2]) / this.SPHERE_RADIUS) * SCALE_INTENSITY + (1 - SCALE_INTENSITY);
