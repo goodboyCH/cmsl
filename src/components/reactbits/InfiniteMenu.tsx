@@ -558,7 +558,7 @@ class ArcballControl {
       quat.slerp(this.pointerRotation, this.pointerRotation, this.IDENTITY_QUAT, INTENSITY);
 
       if (this.snapTargetDirection) {
-        const SNAPPING_INTENSITY = 0.05;
+        const SNAPPING_INTENSITY = 0.2;
         const a = this.snapTargetDirection;
         const b = this.snapDirection;
         const sqrDist = vec3.squaredDistance(a, b);
@@ -893,8 +893,8 @@ class InfiniteGridMenu {
     this.control.update(deltaTime, this.TARGET_FRAME_DURATION);
 
     const positions = this.instancePositions.map(p => vec3.transformQuat(vec3.create(), p, this.control.orientation));
-    const scale = 0.35;
-    const SCALE_INTENSITY = 1;
+    const scale = 1.0;
+    const SCALE_INTENSITY = 0.99;
 
     positions.forEach((p, ndx) => {
       const s = (Math.abs(p[2]) / this.SPHERE_RADIUS) * SCALE_INTENSITY + (1 - SCALE_INTENSITY);
@@ -1000,7 +1000,7 @@ class InfiniteGridMenu {
 
   private onControlUpdate(deltaTime: number): void {
     const timeScale = deltaTime / this.TARGET_FRAME_DURATION + 0.0001;
-    let damping = 7 / timeScale;
+    let damping = 5 / timeScale;
     let cameraTargetZ = 3.5;
 
     const isMoving = this.control.isPointerDown || Math.abs(this.smoothRotationVelocity) > 0.01;
