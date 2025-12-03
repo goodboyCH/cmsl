@@ -892,7 +892,7 @@ class InfiniteGridMenu {
     this.control.update(deltaTime, this.TARGET_FRAME_DURATION);
 
     const positions = this.instancePositions.map(p => vec3.transformQuat(vec3.create(), p, this.control.orientation));
-    const scale = 0.6;
+    const scale = 0.25;
     const SCALE_INTENSITY = 0.95;
 
     positions.forEach((p, ndx) => {
@@ -1117,16 +1117,19 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
               text-center
               z-20
               
-              /* 🟢 [수정 3] 타이틀 줄바꿈 유도 */
+              /* 너비를 더 좁혀서 줄바꿈 유도 */
               w-full
-              max-w-[80%] md:max-w-[60%] /* 너비를 제한해서 강제로 두 줄로 만듦 */
-              leading-[1.1]              /* 줄 간격 좁힘 */
+              max-w-[50%] md:max-w-[40%] 
+              whitespace-normal 
+              break-words
+              leading-[1.1]
               
               font-black
               text-4xl md:text-6xl lg:text-7xl
               text-white
               tracking-tighter
-              mix-blend-overlay
+              
+              /* mix-blend-overlay 제거 (선명도 확보) */
               
               transition-all
               ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
@@ -1136,48 +1139,59 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
                   : 'opacity-100 duration-[500ms] scale-100'
               }
             `}
-            style={{ textShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
+            style={{ 
+              textShadow: '0 4px 20px rgba(0,0,0,0.8)' // 그림자로 가독성 확보
+            }}
           >
             {activeItem.title}
           </h2>
 
-          <p
+          <div
             className={`
-          select-none
-          absolute
-          
-          /* 🟢 [수정 1] 위치를 '우측 하단'으로 이동 & 너비 확장 */
-          right-[5%] 
-          bottom-[10%]  /* top-1/2 제거하고 바닥에 붙임 */
-          max-w-lg      /* max-w-sm -> max-w-lg (더 넓게) */
-          
-          /* 폰트 및 가독성 */
-          text-base md:text-xl 
-          text-gray-200
-          leading-relaxed
-          
-          /* 배경 박스 디자인 */
-          bg-zinc-950/80 
-          backdrop-blur-md 
-          p-8           /* 패딩을 좀 더 넉넉하게 */
-          rounded-2xl 
-          border border-white/10
-          shadow-2xl
+              absolute
+              
+              /* 우측에 딱 붙임 */
+              right-0
+              
+              /* 상하단 25% 여백 (높이 50% 차지) */
+              top-[25%]
+              bottom-[25%]
+              h-[50%]
+              
+              z-30
+              
+              /* 너비 유지 */
+              w-full
+              max-w-lg
+              
+              /* 스타일: 좌측만 둥글게 처리하여 우측 연결감 표현 */
+              bg-zinc-950/90 
+              backdrop-blur-xl
+              border-l border-y border-white/10
+              rounded-l-2xl
+              shadow-2xl
+              
+              /* 내부 텍스트 정렬 */
+              flex flex-col justify-center
+              px-8 md:px-12
 
-          /* 애니메이션 트랜지션 */
-          transform
-          transition-all
-          ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
-          ${
-            isMoving
-              /* 🟢 [수정 2] 움직일 때 Y축 중앙 정렬(-translate-y-1/2) 제거 */
-              ? 'opacity-0 pointer-events-none duration-[100ms] translate-x-[10%]'
-              : 'opacity-100 pointer-events-auto duration-[500ms] translate-x-0'
-          }
-        `}
+              transition-all
+              ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
+              ${
+                isMoving
+                  ? 'opacity-0 translate-x-full duration-[100ms]' // 움직일 때 화면 밖으로 슬라이드
+                  : 'opacity-100 translate-x-0 duration-[500ms]'
+              }
+            `}
           >
-            {activeItem.description}
-          </p>
+            <p className="text-gray-200 text-base md:text-xl leading-relaxed font-medium">
+              {activeItem.description}
+            </p>
+            
+            <div className="mt-6 flex justify-end">
+               <span className="text-cyan-400 text-2xl animate-pulse">↗</span>
+            </div>
+          </div>
 
           <div
             onClick={handleButtonClick}
