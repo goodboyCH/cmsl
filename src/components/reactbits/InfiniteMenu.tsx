@@ -926,6 +926,9 @@ class InfiniteGridMenu {
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    mat4.identity(this.worldMatrix);
+    mat4.translate(this.worldMatrix, this.worldMatrix, [-1.5, 0, 0]);
+
     gl.uniformMatrix4fv(this.discLocations.uWorldMatrix, false, this.worldMatrix);
     gl.uniformMatrix4fv(this.discLocations.uViewMatrix, false, this.camera.matrices.view);
     gl.uniformMatrix4fv(this.discLocations.uProjectionMatrix, false, this.camera.matrices.projection);
@@ -1109,58 +1112,59 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
         <>
           <h2
             className={`
-          select-none
-          absolute
-          font-black
-          [font-size:4rem]
-          left-[1.6em]
-          top-1/2
-          transform
-          translate-x-[20%]
-          -translate-y-1/2
-          transition-all
-          ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
-          w-full
-          max-w-[50%] md:max-w-[40%] 
-          whitespace-normal 
-          break-words
-          leading-[1.1]
-          ${
-            isMoving
-              ? 'opacity-0 pointer-events-none duration-[100ms]'
-              : 'opacity-100 pointer-events-auto duration-[500ms]'
-          }
-        `}
+              select-none
+              absolute
+              
+              /* 위치: 좌측 상단 */
+              top-[15%] 
+              left-[5%]
+              
+              z-20
+              
+              /* 너비 제한 (너무 길어지지 않게) */
+              max-w-[50%] md:max-w-[40%]
+              
+              /* 폰트 스타일 */
+              text-left
+              font-black
+              text-4xl md:text-6xl lg:text-7xl
+              text-white
+              tracking-tighter
+              leading-[1.1]
+              whitespace-normal 
+              break-words
+              
+              /* 그림자 */
+              drop-shadow-2xl
+              
+              transition-all
+              ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
+              ${
+                isMoving
+                  ? 'opacity-0 duration-[100ms] -translate-x-10' // 움직일 때 왼쪽으로 사라짐
+                  : 'opacity-100 duration-[500ms] translate-x-0'
+              }
+            `}
           >
             {activeItem.title}
           </h2>
 
+          {/* 🟢 [수정 3] 텍스트 박스: 화살표 제거 */}
           <div
             className={`
               absolute
-              
-              /* 우측에 딱 붙임 */
               right-0
-              
-              /* 상하단 25% 여백 (높이 50% 차지) */
               top-[25%]
               bottom-[25%]
               h-[50%]
-              
               z-30
-              
-              /* 너비 유지 */
               w-full
               max-w-lg
-              
-              /* 스타일: 좌측만 둥글게 처리하여 우측 연결감 표현 */
               bg-zinc-950/90 
               backdrop-blur-xl
               border-l border-y border-white/10
               rounded-l-2xl
               shadow-2xl
-              
-              /* 내부 텍스트 정렬 */
               flex flex-col justify-center
               px-8 md:px-12
 
@@ -1168,7 +1172,7 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
               ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
               ${
                 isMoving
-                  ? 'opacity-0 translate-x-full duration-[100ms]' // 움직일 때 화면 밖으로 슬라이드
+                  ? 'opacity-0 translate-x-full duration-[100ms]'
                   : 'opacity-100 translate-x-0 duration-[500ms]'
               }
             `}
