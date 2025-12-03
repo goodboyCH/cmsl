@@ -41,17 +41,7 @@ void main() {
 
     gl_Position = uProjectionMatrix * uViewMatrix * worldPosition;
 
-    float baseAlpha = smoothstep(0.9, 1.0, normalize(worldPosition.xyz).z); 
-    
-    // 2. 현재 그리는 아이템(gl_InstanceID)이 활성 아이템(uActiveIndex)인지 확인
-    bool isActive = (gl_InstanceID == uActiveIndex);
-    
-    // 3. 활성 상태면 투명도 1.0(선명), 아니면 0.2(흐릿)로 설정
-    // * 0.2 값을 조절하면 비활성 아이템의 흐릿한 정도를 바꿀 수 있습니다.
-    float focusAlpha = isActive ? 1.0 : 0.2;
-
-    // 4. 최종 투명도 적용
-    vAlpha = baseAlpha * focusAlpha; 
+    vAlpha = smoothstep(0.9, 1.0, normalize(worldPosition.xyz).z); 
     
     vUvs = aModelUvs;
     vInstanceId = gl_InstanceID;
@@ -689,7 +679,6 @@ class InfiniteGridMenu {
     uFrames: WebGLUniformLocation | null;
     uItemCount: WebGLUniformLocation | null;
     uAtlasSize: WebGLUniformLocation | null;
-    uActiveIndex: WebGLUniformLocation | null;
   };
 
   private viewportSize = vec2.create();
@@ -704,7 +693,7 @@ class InfiniteGridMenu {
   private instancePositions: vec3[] = [];
   private DISC_INSTANCE_COUNT = 0;
   private atlasSize = 1;
-  private activeIndex: number = -1;
+
   private _time = 0;
   private _deltaTime = 0;
   private _deltaFrames = 0;
@@ -797,8 +786,7 @@ class InfiniteGridMenu {
       uTex: gl.getUniformLocation(this.discProgram!, 'uTex'),
       uFrames: gl.getUniformLocation(this.discProgram!, 'uFrames'),
       uItemCount: gl.getUniformLocation(this.discProgram!, 'uItemCount'),
-      uAtlasSize: gl.getUniformLocation(this.discProgram!, 'uAtlasSize'),
-      uActiveIndex: gl.getUniformLocation(this.discProgram!, 'uActiveIndex')
+      uAtlasSize: gl.getUniformLocation(this.discProgram!, 'uAtlasSize')
     };
 
     this.discGeo = new DiscGeometry(56, 1);
@@ -960,7 +948,7 @@ class InfiniteGridMenu {
 
     gl.uniform1i(this.discLocations.uItemCount, this.items.length);
     gl.uniform1i(this.discLocations.uAtlasSize, this.atlasSize);
-    gl.uniform1i(this.discLocations.uActiveIndex, this.activeIndex);
+
     gl.uniform1f(this.discLocations.uFrames, this._frames);
     gl.uniform1f(this.discLocations.uScaleFactor, this.scaleFactor);
 
@@ -1016,8 +1004,6 @@ class InfiniteGridMenu {
     let cameraTargetZ = 3.5;
 
     const isMoving = this.control.isPointerDown || Math.abs(this.smoothRotationVelocity) > 0.01;
-    const nearestVertexIndex = this.findNearestVertexIndex();
-    this.activeIndex = nearestVertexIndex;
 
     if (isMoving !== this.movementActive) {
       this.movementActive = isMoving;
@@ -1025,6 +1011,7 @@ class InfiniteGridMenu {
     }
 
     if (!this.control.isPointerDown) {
+      const nearestVertexIndex = this.findNearestVertexIndex();
       const itemIndex = nearestVertexIndex % Math.max(1, this.items.length);
       this.onActiveItemChange(itemIndex);
       const snapDirection = vec3.normalize(vec3.create(), this.getVertexWorldPosition(nearestVertexIndex));
@@ -1127,48 +1114,74 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
         className="cursor-grab w-full h-full overflow-hidden relative outline-none active:cursor-grabbing"
       />
 
-      {/* [안전장치 1] activeItem이 존재해야만 내부를 렌더링합니다.
-         데이터 로딩 시점 차이로 인한 에러를 방지합니다.
-      */}
-      {activeItem ? (
+      {activeItem && (
         <>
+          {/* [수정 포인트] 
+            타이틀, 바, 설명을 하나의 div 컨테이너로 묶었습니다.
+            이렇게 하면 '타이틀 -> 바 -> 설명' 순서가 항상 보장됩니다.
+          */}
           <div
             className={`
               absolute
-              top-[25%] left-[5%] z-20
-              w-full max-w-[45%] md:max-w-[40%]
-              flex flex-col items-start justify-start
-              pointer-events-none
+              top-[25%] left-[5%] z-20   /* 위치 조절: 상단 25%, 좌측 5% */
+              w-full max-w-[45%] md:max-w-[40%] /* 너비 제한 */
+              flex flex-col items-start justify-start /* 수직 정렬 설정 */
+              pointer-events-none /* 텍스트 위에서도 드래그 가능하게 하려면 none, 텍스트 드래그 하려면 auto */
               transition-all ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
               ${isMoving ? 'opacity-0 duration-[100ms] -translate-x-10' : 'opacity-100 duration-[500ms] translate-x-0'}
             `}
           >
-            {/* [안전장치 2] activeItem?.title 
-               만약 activeItem은 있는데 title이 비어있어도 에러가 나지 않도록 물음표(?)를 붙입니다.
-            */}
-            <h2 className="font-black text-white tracking-tighter leading-[0.95] text-4xl md:text-5xl lg:text-6xl mb-6 drop-shadow-2xl">
-              {activeItem?.title || ""}
+            {/* 1. 타이틀 (폰트 크기 축소) */}
+            <h2 
+              className="
+                font-black text-white tracking-tighter leading-[0.95]
+                text-4xl md:text-5xl lg:text-6xl  /* 기존 5xl~8xl에서 크기 축소 */
+                mb-6 /* 아래쪽 여백 */
+                drop-shadow-2xl
+              "
+            >
+              {activeItem.title}
             </h2>
 
+            {/* 2. 파란색 바 (타이틀 바로 아래) */}
             <div className="w-16 h-1 bg-cyan-500 mb-6" />
 
+            {/* 3. 설명 텍스트 (바 아래) */}
             <p className="text-gray-300 text-lg md:text-xl leading-relaxed font-medium drop-shadow-md">
-              {activeItem?.description || ""}
+              {activeItem.description}
             </p>
           </div>
 
           <div
             onClick={handleButtonClick}
             className={`
-              absolute left-1/2 z-10 w-[60px] h-[60px] grid place-items-center bg-[#00ffff] border-[5px] border-black rounded-full cursor-pointer transition-all ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
-              ${isMoving ? 'bottom-[-80px] opacity-0 pointer-events-none duration-[100ms] scale-0 -translate-x-1/2' : 'bottom-[3.8em] opacity-100 pointer-events-auto duration-[500ms] scale-100 -translate-x-1/2'}
-            `}
+          absolute
+          left-1/2
+          z-10
+          w-[60px]
+          h-[60px]
+          grid
+          place-items-center
+          bg-[#00ffff]
+          border-[5px]
+          border-black
+          rounded-full
+          cursor-pointer
+          transition-all
+          ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
+          ${
+            isMoving
+              ? 'bottom-[-80px] opacity-0 pointer-events-none duration-[100ms] scale-0 -translate-x-1/2'
+              : 'bottom-[3.8em] opacity-100 pointer-events-auto duration-[500ms] scale-100 -translate-x-1/2'
+          }
+        `}
           >
             <p className="select-none relative text-[#060010] top-[2px] text-[26px]">&#x2197;</p>
           </div>
         </>
-      ) : null}
+      )}
     </div>
   );
-}
+};
+
 export default InfiniteMenu;
