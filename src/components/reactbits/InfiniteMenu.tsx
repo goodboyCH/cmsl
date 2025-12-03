@@ -892,7 +892,7 @@ class InfiniteGridMenu {
     this.control.update(deltaTime, this.TARGET_FRAME_DURATION);
 
     const positions = this.instancePositions.map(p => vec3.transformQuat(vec3.create(), p, this.control.orientation));
-    const scale = 0.25;
+    const scale = 0.45;
     const SCALE_INTENSITY = 0.6;
 
     positions.forEach((p, ndx) => {
@@ -1134,16 +1134,32 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
             className={`
           select-none
           absolute
-          max-w-[10ch]
-          text-[1.5rem]
+          
+          /* 🟢 [수정 1] 너비와 폰트 조정 */
+          max-w-sm  
+          text-base md:text-lg 
+          text-gray-200
+          
+          /* 🟢 [수정 2] 위치 조정 (너무 끝에 붙지 않게) */
+          right-[5%] md:right-[10%]
           top-1/2
-          right-[1%]
+          
+          /* 🟢 [수정 3] 배경 박스 디자인 추가 (가시성 확보 핵심) */
+          bg-zinc-950/80 
+          backdrop-blur-md 
+          p-6 
+          rounded-xl 
+          border border-white/10
+          shadow-2xl
+
+          transform
           transition-all
           ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
           ${
             isMoving
-              ? 'opacity-0 pointer-events-none duration-[100ms] translate-x-[-60%] -translate-y-1/2'
-              : 'opacity-100 pointer-events-auto duration-[500ms] translate-x-[-90%] -translate-y-1/2'
+              /* 움직일 때 효과: 투명해지면서 살짝 오른쪽으로 빠짐 */
+              ? 'opacity-0 pointer-events-none duration-[100ms] translate-x-[20%] -translate-y-1/2'
+              : 'opacity-100 pointer-events-auto duration-[500ms] translate-x-0 -translate-y-1/2'
           }
         `}
           >

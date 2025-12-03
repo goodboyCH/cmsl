@@ -27,7 +27,7 @@ export function Section2_CoreCapabilites({ items }: { items: any[] }) {
               showBorder={false}
               className="block"
             >
-              Advanced Simulation &
+              Advanced Simulation
             </GradientText>
             
             {/* 두 번째 줄은 은은하게 처리하거나 동일하게 적용 */}

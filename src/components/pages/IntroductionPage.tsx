@@ -12,7 +12,7 @@ import { Section4_Demo } from './introduction/Section4_Demo';
 import { Section5_Impact } from './introduction/Section5_Impact';
 
 // Icons
-import { Cpu, Atom, BrainCircuit } from 'lucide-react';
+import { Cpu, Atom, BrainCircuit, Boxes } from 'lucide-react';
 
 // Static Data (JSON 반영됨)
 const STATIC_CONTENT = {
@@ -35,6 +35,11 @@ const STATIC_CONTENT = {
       icon: <BrainCircuit className="w-10 h-10" />,
       title: "AI Integration",
       description: "머신러닝 기술을 재료 최적화 및 가속화된 신소재 발견에 적용하여, 연구 효율성을 극대화합니다."
+    },
+    {
+      icon: <Boxes className="w-10 h-10" />,
+      title: "Material Digital Twin",
+      description: "실제 미세조직을 가상 환경에 정밀하게 구현하는 디지털 트윈을 구축하여, 공정 변수에 따른 구조적 진화를 높은 정확도로 예측합니다."
     }
   ],
   impact: {
