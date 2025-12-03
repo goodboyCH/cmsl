@@ -22,15 +22,21 @@ flat out int vInstanceId;
 
 void main() {
     vec4 worldPosition = uWorldMatrix * aInstanceMatrix * vec4(aModelPosition, 1.);
-
     vec3 centerPos = (uWorldMatrix * aInstanceMatrix * vec4(0., 0., 0., 1.)).xyz;
     float radius = length(centerPos.xyz);
+
+    // [중요] 여기에 있던 if (gl_VertexID > 0) { ... } 블록을 완전히 삭제했습니다.
+    // 이 부분이 있으면 회전 속도 변화 시 이미지가 찢어지거나 튕깁니다.
 
     worldPosition.xyz = radius * normalize(worldPosition.xyz);
 
     gl_Position = uProjectionMatrix * uViewMatrix * worldPosition;
 
-    vAlpha = smoothstep(0.8, 1., normalize(worldPosition.xyz).z) * .9 + .1;    
+    // [하이라이트] 중앙 집중형 투명도
+    float dist = normalize(worldPosition.xyz).z;
+    vAlpha = smoothstep(0.6, 1.0, dist); // 0.6부터 선명해지기 시작
+    vAlpha = vAlpha * 0.9 + 0.1;         // 최소 밝기 0.1 유지
+
     vUvs = aModelUvs;
     vInstanceId = gl_InstanceID;
 }
@@ -881,14 +887,27 @@ class InfiniteGridMenu {
     this.control.update(deltaTime, this.TARGET_FRAME_DURATION);
 
     const positions = this.instancePositions.map(p => vec3.transformQuat(vec3.create(), p, this.control.orientation));
-    const scale = 0.35;
-    const SCALE_INTENSITY = 1;
+    const baseScale = 0.25;      // 기본 크기
+    const maxScaleMult = 1.8;
 
     positions.forEach((p, ndx) => {
-      const zRatio = (p[2] / this.SPHERE_RADIUS); // -1 ~ 1 사이 값
-      const s = (Math.abs(p[2]) / this.SPHERE_RADIUS) * SCALE_INTENSITY + (1 - SCALE_INTENSITY);
-      const finalScale = s * scale;
+      // 1. 크기 계산 (하이라이트)
+      // Z값이 클수록(내 눈앞) 1에 가깝습니다. 뒤에 있는 건(음수) 0 처리.
+      // Math.pow(..., 2)를 써서 중앙에 가까울수록 더 급격하게 커지게 만듭니다.
+      const zRatio = (p[2] / this.SPHERE_RADIUS); 
+      const scaleWeight = Math.pow(Math.max(0, zRatio), 2); 
+      const finalScale = baseScale * (1 + scaleWeight * (maxScaleMult - 1));
+
       const matrix = mat4.create();
+
+      // 2. [핵심 수정] 극점(Pole) 특이점 방지 로직
+      // 아이템이 맨 위나 아래(y축 절대값이 1에 가까움)에 있으면, Up 벡터를 Z축으로 잠시 바꿉니다.
+      const pNormalized = vec3.normalize(vec3.create(), p);
+      let safeUp = vec3.fromValues(0, 1, 0);
+      
+      if (Math.abs(pNormalized[1]) > 0.99) {
+         safeUp = vec3.fromValues(0, 0, 1); // 기준축을 잠시 변경하여 튕김 방지
+      }
 
       mat4.multiply(matrix, matrix, mat4.fromTranslation(mat4.create(), vec3.negate(vec3.create(), p)));
       mat4.multiply(matrix, matrix, mat4.targetTo(mat4.create(), [0, 0, 0], p, [0, 1, 0]));
