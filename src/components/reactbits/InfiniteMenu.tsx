@@ -892,8 +892,8 @@ class InfiniteGridMenu {
     this.control.update(deltaTime, this.TARGET_FRAME_DURATION);
 
     const positions = this.instancePositions.map(p => vec3.transformQuat(vec3.create(), p, this.control.orientation));
-    const scale = 0.25;
-    const SCALE_INTENSITY = 0.6;
+    const scale = 0.8;
+    const SCALE_INTENSITY = 0.98;
 
     positions.forEach((p, ndx) => {
       const s = (Math.abs(p[2]) / this.SPHERE_RADIUS) * SCALE_INTENSITY + (1 - SCALE_INTENSITY);
@@ -927,6 +927,7 @@ class InfiniteGridMenu {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     
     mat4.identity(this.worldMatrix);
+    mat4.translate(this.worldMatrix, this.worldMatrix, [2.0, 0, 0]);
 
     gl.uniformMatrix4fv(this.discLocations.uWorldMatrix, false, this.worldMatrix);
     gl.uniformMatrix4fv(this.discLocations.uViewMatrix, false, this.camera.matrices.view);
@@ -996,7 +997,6 @@ class InfiniteGridMenu {
     const timeScale = deltaTime / this.TARGET_FRAME_DURATION + 0.0001;
     let damping = 5 / timeScale;
     let cameraTargetZ = 3.5;
-    let cameraTargetX = 0;
 
     const isMoving = this.control.isPointerDown || Math.abs(this.smoothRotationVelocity) > 0.01;
 
@@ -1011,16 +1011,13 @@ class InfiniteGridMenu {
       this.onActiveItemChange(itemIndex);
       const snapDirection = vec3.normalize(vec3.create(), this.getVertexWorldPosition(nearestVertexIndex));
       this.control.snapTargetDirection = snapDirection;
-      cameraTargetX = 1.5;
 
     } else {
       cameraTargetZ += this.control.rotationVelocity * 80 + 2.5;
       damping = 7 / timeScale;
-      cameraTargetX = 0;
     }
 
     this.camera.position[2] += (cameraTargetZ - this.camera.position[2]) / damping;
-    this.camera.position[0] += (cameraTargetX - this.camera.position[0]) / (damping * 1.5); // 조금 더 천천히 이동
     this.updateCameraMatrix();
   }
 
@@ -1119,20 +1116,21 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
               select-none
               absolute
               
-              /* 🟢 [수정 1] 더 위로 올림 (15% -> 10% or 5%) */
-              top-[10%] 
+              /* 위치: 더 위로 올림 */
+              top-[15%] 
               left-[5%]
               
               z-20
-              max-w-[50%] md:max-w-[40%]
+              
+              /* 폰트 및 크기 */
               text-left
               font-black
-              text-4xl md:text-6xl lg:text-7xl
+              text-5xl md:text-7xl lg:text-8xl
               text-white
               tracking-tighter
-              leading-[1.1]
-              whitespace-normal 
-              break-words
+              leading-[0.9]
+              
+              /* 그림자 강화 */
               drop-shadow-2xl
               
               transition-all
@@ -1147,39 +1145,38 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
             {activeItem.title}
           </h2>
 
-          {/* 텍스트 박스 수정 */}
+          {/* 🟢 [수정 5] 텍스트 박스: 타이틀 바로 아래 (좌측) 배치 */}
           <div
             className={`
               absolute
-              right-0
-              top-[25%]
-              bottom-[25%]
-              h-[50%]
+              
+              /* 위치: 좌측, 타이틀 아래 영역 */
+              left-[5%]
+              top-[40%] /* 타이틀 높이 고려하여 아래로 내림 */
+              
               z-30
               w-full
-              max-w-lg
-              bg-zinc-950/90 
-              backdrop-blur-xl
-              border-l border-y border-white/10
-              rounded-l-2xl
-              shadow-2xl
-              flex flex-col justify-center
-              px-8 md:px-12
-
+              max-w-md /* 너비 제한 */
+              
+              /* 스타일: 좌측 정렬에 맞게 디자인 */
+              /* 배경은 필요 없다면 제거해도 되지만, 가독성을 위해 유지 */
+              /* 좌측에 붙어있으므로 rounded 스타일 변경 */
+              
               transition-all
               ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
               ${
                 isMoving
-                  ? 'opacity-0 translate-x-full duration-[100ms]'
+                  ? 'opacity-0 -translate-x-10 duration-[100ms]'
                   : 'opacity-100 translate-x-0 duration-[500ms]'
               }
             `}
           >
-            <p className="text-gray-200 text-base md:text-xl leading-relaxed font-medium">
+            {/* 장식용 라인 */}
+            <div className="w-12 h-1 bg-cyan-500 mb-6" />
+            
+            <p className="text-gray-300 text-lg md:text-xl leading-relaxed font-medium">
               {activeItem.description}
             </p>
-            
-            {/* 🔴 [삭제 완료] 화살표 div는 여기서 완전히 지웠습니다. */}
           </div>
 
           <div
