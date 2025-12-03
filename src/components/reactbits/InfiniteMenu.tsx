@@ -41,7 +41,8 @@ void main() {
 
     gl_Position = uProjectionMatrix * uViewMatrix * worldPosition;
 
-    vAlpha = smoothstep(0.5, 1., normalize(worldPosition.xyz).z) * .9 + .1;
+    vAlpha = smoothstep(0.9, 1.0, normalize(worldPosition.xyz).z); 
+    
     vUvs = aModelUvs;
     vInstanceId = gl_InstanceID;
 }
@@ -969,6 +970,7 @@ class InfiniteGridMenu {
   private updateCameraMatrix(): void {
     const target = vec3.fromValues(this.camera.position[0], this.camera.position[1], 0);
     mat4.targetTo(this.camera.matrix, this.camera.position, target, this.camera.up);
+    
     mat4.invert(this.camera.matrices.view, this.camera.matrix);
   }
 
@@ -990,6 +992,9 @@ class InfiniteGridMenu {
       this.camera.near,
       this.camera.far
     );
+
+    this.camera.matrices.projection[8] = -0.5; // -0.5 ~ -0.7 사이 값 추천
+
     mat4.invert(this.camera.matrices.inversProjection, this.camera.matrices.projection);
   }
 
@@ -1016,7 +1021,7 @@ class InfiniteGridMenu {
       cameraTargetZ += this.control.rotationVelocity * 80 + 2.5;
       damping = 7 / timeScale;
     }
-    this.camera.position[0] = -1.8;
+    this.camera.position[0] = 0;
     this.camera.position[2] += (cameraTargetZ - this.camera.position[2]) / damping;
     this.updateCameraMatrix();
   }
@@ -1113,40 +1118,13 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
         <>
           <h2
             className={`
-              select-none
-              absolute
-              
-              /* 위치: 최상단 좌측 */
-              top-[15%] 
-              left-[5%]
-              
-              z-20
-              
-              /* 너비 제한으로 자연스러운 두 줄 만들기 */
-              w-full
-              max-w-[40%]  /* 화면의 40%만 차지하게 하여 긴 텍스트는 줄바꿈 */
-              
-              /* 폰트 스타일 */
-              text-left
-              font-black
-              text-5xl md:text-7xl lg:text-8xl
-              text-white
-              tracking-tighter
-              leading-[0.95] /* 줄 간격 좁힘 */
-              
-              /* 자동 줄바꿈 속성 */
-              whitespace-normal
-              break-words
-              
-              drop-shadow-2xl
-              
-              transition-all
-              ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
-              ${
-                isMoving
-                  ? 'opacity-0 duration-[100ms] -translate-x-10'
-                  : 'opacity-100 duration-[500ms] translate-x-0'
-              }
+              select-none absolute
+              top-[15%] left-[5%] z-20
+              w-full max-w-[40%]
+              text-left font-black text-5xl md:text-7xl lg:text-8xl text-white tracking-tighter leading-[0.95]
+              whitespace-normal break-words drop-shadow-2xl
+              transition-all ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
+              ${isMoving ? 'opacity-0 duration-[100ms] -translate-x-10' : 'opacity-100 duration-[500ms] translate-x-0'}
             `}
           >
             {activeItem.title}
@@ -1156,22 +1134,10 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
           <div
             className={`
               absolute
-              
-              /* 위치: 좌측, 타이틀 아래쪽 */
-              left-[5%]
-              top-[45%] /* 타이틀 높이를 고려하여 아래로 배치 */
-              
-              z-30
-              w-full
-              max-w-md /* 너비 제한 */
-              
-              transition-all
-              ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
-              ${
-                isMoving
-                  ? 'opacity-0 duration-[100ms] -translate-x-10'
-                  : 'opacity-100 duration-[500ms] translate-x-0'
-              }
+              left-[5%] top-[45%] z-30
+              w-full max-w-md
+              transition-all ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
+              ${isMoving ? 'opacity-0 duration-[100ms] -translate-x-10' : 'opacity-100 duration-[500ms] translate-x-0'}
             `}
           >
             {/* 장식용 라인 */}
