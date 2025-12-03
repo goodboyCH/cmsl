@@ -22,23 +22,27 @@ flat out int vInstanceId;
 
 void main() {
     vec4 worldPosition = uWorldMatrix * aInstanceMatrix * vec4(aModelPosition, 1.);
+
     vec3 centerPos = (uWorldMatrix * aInstanceMatrix * vec4(0., 0., 0., 1.)).xyz;
     float radius = length(centerPos.xyz);
 
-    // [삭제] 여기에 있던 if (gl_VertexID > 0) 블록(Stretch 효과)을 완전히 지우세요.
-    // 이 코드가 없어야 회전이 매끄럽습니다.
+    if (gl_VertexID > 0) {
+        vec3 rotationAxis = uRotationAxisVelocity.xyz;
+        float rotationVelocity = min(.15, uRotationAxisVelocity.w * 15.);
+        vec3 stretchDir = normalize(cross(centerPos, rotationAxis));
+        vec3 relativeVertexPos = normalize(worldPosition.xyz - centerPos);
+        float strength = dot(stretchDir, relativeVertexPos);
+        float invAbsStrength = min(0., abs(strength) - 1.);
+        strength = rotationVelocity * sign(strength) * abs(invAbsStrength * invAbsStrength * invAbsStrength + 1.);
+        worldPosition.xyz += stretchDir * strength;
+    }
 
     worldPosition.xyz = radius * normalize(worldPosition.xyz);
 
     gl_Position = uProjectionMatrix * uViewMatrix * worldPosition;
 
-    // [하이라이트 수정] 투명도 조절
-    float dist = normalize(worldPosition.xyz).z;
-    // 0.6부터 선명해지기 시작 (중앙 집중)
-    vAlpha = smoothstep(0.6, 1.0, dist); 
-    // 너무 안 보이지 않게 최소 밝기 0.15 유지
-    vAlpha = vAlpha * 0.85 + 0.15;
-
+    vAlpha = smoothstep(0.9, 1.0, normalize(worldPosition.xyz).z); 
+    
     vUvs = aModelUvs;
     vInstanceId = gl_InstanceID;
 }
@@ -889,27 +893,13 @@ class InfiniteGridMenu {
     this.control.update(deltaTime, this.TARGET_FRAME_DURATION);
 
     const positions = this.instancePositions.map(p => vec3.transformQuat(vec3.create(), p, this.control.orientation));
-    const baseScale = 0.3;      // 기본 크기
-    const maxScaleMult = 5;
+    const scale = 0.35;
+    const SCALE_INTENSITY = 1;
 
     positions.forEach((p, ndx) => {
-      // 1. 크기 계산 (하이라이트)
-      // Z값이 클수록(내 눈앞) 1에 가깝습니다. 뒤에 있는 건(음수) 0 처리.
-      // Math.pow(..., 2)를 써서 중앙에 가까울수록 더 급격하게 커지게 만듭니다.
-      const zRatio = (p[2] / this.SPHERE_RADIUS); 
-      const scaleWeight = Math.pow(Math.max(0, zRatio), 2); 
-      const finalScale = baseScale * (1 + scaleWeight * (maxScaleMult - 1));
-
+      const s = (Math.abs(p[2]) / this.SPHERE_RADIUS) * SCALE_INTENSITY + (1 - SCALE_INTENSITY);
+      const finalScale = s * scale;
       const matrix = mat4.create();
-
-      // 2. [핵심 수정] 극점(Pole) 특이점 방지 로직
-      // 아이템이 맨 위나 아래(y축 절대값이 1에 가까움)에 있으면, Up 벡터를 Z축으로 잠시 바꿉니다.
-      const pNormalized = vec3.normalize(vec3.create(), p);
-      let safeUp = vec3.fromValues(0, 1, 0);
-      
-      if (Math.abs(pNormalized[1]) > 0.99) {
-         safeUp = vec3.fromValues(0, 0, 1); // 기준축을 잠시 변경하여 튕김 방지
-      }
 
       mat4.multiply(matrix, matrix, mat4.fromTranslation(mat4.create(), vec3.negate(vec3.create(), p)));
       mat4.multiply(matrix, matrix, mat4.targetTo(mat4.create(), [0, 0, 0], p, [0, 1, 0]));
@@ -1126,65 +1116,39 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
 
       {activeItem && (
         <>
-          {/* [수정 포인트] 
-            타이틀, 바, 설명을 하나의 div 컨테이너로 묶었습니다.
-            이렇게 하면 '타이틀 -> 바 -> 설명' 순서가 항상 보장됩니다.
-          */}
+          {/* 변경된 텍스트 레이아웃 컨테이너 */}
           <div
             className={`
               absolute
-              top-[25%] left-[5%] z-20   /* 위치 조절: 상단 25%, 좌측 5% */
+              top-[25%] left-[5%] z-20          /* 위치: 상단 25%, 좌측 5% */
               w-full max-w-[45%] md:max-w-[40%] /* 너비 제한 */
-              flex flex-col items-start justify-start /* 수직 정렬 설정 */
-              pointer-events-none /* 텍스트 위에서도 드래그 가능하게 하려면 none, 텍스트 드래그 하려면 auto */
+              flex flex-col items-start justify-start /* 수직 정렬(Column) */
+              pointer-events-none
               transition-all ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
               ${isMoving ? 'opacity-0 duration-[100ms] -translate-x-10' : 'opacity-100 duration-[500ms] translate-x-0'}
             `}
           >
-            {/* 1. 타이틀 (폰트 크기 축소) */}
-            <h2 
-              className="
-                font-black text-white tracking-tighter leading-[0.95]
-                text-4xl md:text-5xl lg:text-6xl  /* 기존 5xl~8xl에서 크기 축소 */
-                mb-6 /* 아래쪽 여백 */
-                drop-shadow-2xl
-              "
-            >
+            {/* 1. 타이틀 (크기 축소: text-4xl ~ 6xl) */}
+            <h2 className="font-black text-white tracking-tighter leading-[0.95] text-4xl md:text-5xl lg:text-6xl mb-6 drop-shadow-2xl">
               {activeItem.title}
             </h2>
 
-            {/* 2. 파란색 바 (타이틀 바로 아래) */}
+            {/* 2. 파란색 바 (중간 삽입) */}
             <div className="w-16 h-1 bg-cyan-500 mb-6" />
 
-            {/* 3. 설명 텍스트 (바 아래) */}
+            {/* 3. 설명 텍스트 */}
             <p className="text-gray-300 text-lg md:text-xl leading-relaxed font-medium drop-shadow-md">
               {activeItem.description}
             </p>
           </div>
 
+          {/* 링크 버튼 (기존 코드 유지 혹은 아래 코드로 사용) */}
           <div
             onClick={handleButtonClick}
             className={`
-          absolute
-          left-1/2
-          z-10
-          w-[60px]
-          h-[60px]
-          grid
-          place-items-center
-          bg-[#00ffff]
-          border-[5px]
-          border-black
-          rounded-full
-          cursor-pointer
-          transition-all
-          ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
-          ${
-            isMoving
-              ? 'bottom-[-80px] opacity-0 pointer-events-none duration-[100ms] scale-0 -translate-x-1/2'
-              : 'bottom-[3.8em] opacity-100 pointer-events-auto duration-[500ms] scale-100 -translate-x-1/2'
-          }
-        `}
+              absolute left-1/2 z-10 w-[60px] h-[60px] grid place-items-center bg-[#00ffff] border-[5px] border-black rounded-full cursor-pointer transition-all ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
+              ${isMoving ? 'bottom-[-80px] opacity-0 pointer-events-none duration-[100ms] scale-0 -translate-x-1/2' : 'bottom-[3.8em] opacity-100 pointer-events-auto duration-[500ms] scale-100 -translate-x-1/2'}
+            `}
           >
             <p className="select-none relative text-[#060010] top-[2px] text-[26px]">&#x2197;</p>
           </div>
