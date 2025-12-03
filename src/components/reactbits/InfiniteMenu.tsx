@@ -893,7 +893,7 @@ class InfiniteGridMenu {
     this.control.update(deltaTime, this.TARGET_FRAME_DURATION);
 
     const positions = this.instancePositions.map(p => vec3.transformQuat(vec3.create(), p, this.control.orientation));
-    const scale = 0.25;
+    const scale = 0.3;
     const SCALE_INTENSITY = 2;
 
     positions.forEach((p, ndx) => {
