@@ -894,7 +894,7 @@ class InfiniteGridMenu {
 
     const positions = this.instancePositions.map(p => vec3.transformQuat(vec3.create(), p, this.control.orientation));
     const scale = 0.3;
-    const SCALE_INTENSITY = 0.6;
+    const SCALE_INTENSITY = 0.8;
 
     positions.forEach((p, ndx) => {
       const s = (Math.abs(p[2]) / this.SPHERE_RADIUS) * SCALE_INTENSITY + (1 - SCALE_INTENSITY);
@@ -1178,7 +1178,7 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
                     cursor-pointer
                   "
                 >
-                  View Project
+                  View More
                   <span className="text-xl transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5">
                     ↗
                   </span>
