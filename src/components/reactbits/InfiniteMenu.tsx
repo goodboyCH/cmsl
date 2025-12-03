@@ -892,8 +892,8 @@ class InfiniteGridMenu {
     this.control.update(deltaTime, this.TARGET_FRAME_DURATION);
 
     const positions = this.instancePositions.map(p => vec3.transformQuat(vec3.create(), p, this.control.orientation));
-    const scale = 0.8;
-    const SCALE_INTENSITY = 0.98;
+    const scale = 1.0;
+    const SCALE_INTENSITY = 0.99;
 
     positions.forEach((p, ndx) => {
       const s = (Math.abs(p[2]) / this.SPHERE_RADIUS) * SCALE_INTENSITY + (1 - SCALE_INTENSITY);
@@ -927,7 +927,6 @@ class InfiniteGridMenu {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     
     mat4.identity(this.worldMatrix);
-    mat4.translate(this.worldMatrix, this.worldMatrix, [2.0, 0, 0]);
 
     gl.uniformMatrix4fv(this.discLocations.uWorldMatrix, false, this.worldMatrix);
     gl.uniformMatrix4fv(this.discLocations.uViewMatrix, false, this.camera.matrices.view);
@@ -968,7 +967,8 @@ class InfiniteGridMenu {
   }
 
   private updateCameraMatrix(): void {
-    mat4.targetTo(this.camera.matrix, this.camera.position, [0, 0, 0], this.camera.up);
+    const target = vec3.fromValues(this.camera.position[0], this.camera.position[1], 0);
+    mat4.targetTo(this.camera.matrix, this.camera.position, target, this.camera.up);
     mat4.invert(this.camera.matrices.view, this.camera.matrix);
   }
 
@@ -1016,7 +1016,7 @@ class InfiniteGridMenu {
       cameraTargetZ += this.control.rotationVelocity * 80 + 2.5;
       damping = 7 / timeScale;
     }
-
+    this.camera.position[0] = -1.8;
     this.camera.position[2] += (cameraTargetZ - this.camera.position[2]) / damping;
     this.updateCameraMatrix();
   }
@@ -1116,21 +1116,28 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
               select-none
               absolute
               
-              /* 위치: 더 위로 올림 */
+              /* 위치: 최상단 좌측 */
               top-[15%] 
               left-[5%]
               
               z-20
               
-              /* 폰트 및 크기 */
+              /* 너비 제한으로 자연스러운 두 줄 만들기 */
+              w-full
+              max-w-[40%]  /* 화면의 40%만 차지하게 하여 긴 텍스트는 줄바꿈 */
+              
+              /* 폰트 스타일 */
               text-left
               font-black
               text-5xl md:text-7xl lg:text-8xl
               text-white
               tracking-tighter
-              leading-[0.9]
+              leading-[0.95] /* 줄 간격 좁힘 */
               
-              /* 그림자 강화 */
+              /* 자동 줄바꿈 속성 */
+              whitespace-normal
+              break-words
+              
               drop-shadow-2xl
               
               transition-all
@@ -1145,34 +1152,30 @@ const InfiniteMenu: FC<InfiniteMenuProps> = ({ items = [] }) => {
             {activeItem.title}
           </h2>
 
-          {/* 🟢 [수정 5] 텍스트 박스: 타이틀 바로 아래 (좌측) 배치 */}
+          {/* 🟢 [수정 6] 텍스트 박스: 타이틀 바로 아래 배치 */}
           <div
             className={`
               absolute
               
-              /* 위치: 좌측, 타이틀 아래 영역 */
+              /* 위치: 좌측, 타이틀 아래쪽 */
               left-[5%]
-              top-[40%] /* 타이틀 높이 고려하여 아래로 내림 */
+              top-[45%] /* 타이틀 높이를 고려하여 아래로 배치 */
               
               z-30
               w-full
               max-w-md /* 너비 제한 */
               
-              /* 스타일: 좌측 정렬에 맞게 디자인 */
-              /* 배경은 필요 없다면 제거해도 되지만, 가독성을 위해 유지 */
-              /* 좌측에 붙어있으므로 rounded 스타일 변경 */
-              
               transition-all
               ease-[cubic-bezier(0.25,0.1,0.25,1.0)]
               ${
                 isMoving
-                  ? 'opacity-0 -translate-x-10 duration-[100ms]'
-                  : 'opacity-100 translate-x-0 duration-[500ms]'
+                  ? 'opacity-0 duration-[100ms] -translate-x-10'
+                  : 'opacity-100 duration-[500ms] translate-x-0'
               }
             `}
           >
             {/* 장식용 라인 */}
-            <div className="w-12 h-1 bg-cyan-500 mb-6" />
+            <div className="w-16 h-1 bg-cyan-500 mb-6" />
             
             <p className="text-gray-300 text-lg md:text-xl leading-relaxed font-medium">
               {activeItem.description}
