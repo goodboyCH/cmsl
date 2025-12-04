@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 // ⚠️ 중요: 여기서 초기화하지 마세요! (에러 원인)
 // const openai = new OpenAI(...);  <-- 지우세요
@@ -42,49 +42,39 @@ const SYSTEM_PROMPT = `
 }
 `;
 
-export default async function handler(req, res) {
-  // POST 요청만 허용
+module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // ✅ 해결책: 함수가 실행될 때(실제 요청이 들어왔을 때) 키를 가져오도록 위치 변경
-  const apiKey = process.env.OPENAI_API_KEY;
-
-  // 디버깅용 로그 (나중에 지우셔도 됩니다)
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    console.error("❌ 오류: OPENAI_API_KEY가 환경 변수에 없습니다!");
-    return res.status(500).json({ error: 'Missing API Key configuration' });
+    return res.status(500).json({ error: "GEMINI_API_KEY missing" });
   }
-
-  const openai = new OpenAI({
-    apiKey: apiKey,
-  });
 
   try {
     const { message } = req.body;
-
-    if (!message) {
-      return res.status(400).json({ error: 'Message is required' });
-    }
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: message },
-      ],
-      response_format: { type: "json_object" },
-      temperature: 0.3,
+    const genAI = new GoogleGenerativeAI(apiKey);
+    
+    // Gemini 1.5 Flash 모델 사용 (빠르고 무료 티어 제공)
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-1.5-flash",
+      generationConfig: { responseMimeType: "application/json" } // JSON 강제
     });
 
-    const aiContent = completion.choices[0].message.content;
-    const result = JSON.parse(aiContent);
+    // 시스템 프롬프트와 사용자 메시지 결합
+    const finalPrompt = `${SYSTEM_PROMPT}\n\nUser Request: ${message}`;
 
-    return res.status(200).json(result);
+    const result = await model.generateContent(finalPrompt);
+    const response = await result.response;
+    const text = response.text();
+
+    // JSON 파싱해서 프론트로 전달
+    const jsonResult = JSON.parse(text);
+    return res.status(200).json(jsonResult);
 
   } catch (error) {
-    console.error("OpenAI Error:", error);
-    return res.status(500).json({ error: 'Failed to generate parameters', details: error.message });
+    console.error("Gemini Error:", error);
+    return res.status(500).json({ error: "AI Processing Failed", details: error.message });
   }
-}
+};
