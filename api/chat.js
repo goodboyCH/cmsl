@@ -1,5 +1,4 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-
+import { GoogleGenerativeAI } from "@google/generative-ai";
 // ⚠️ 중요: 여기서 초기화하지 마세요! (에러 원인)
 // const openai = new OpenAI(...);  <-- 지우세요
 
@@ -42,39 +41,40 @@ const SYSTEM_PROMPT = `
 }
 `;
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
+  // POST 요청 확인
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // API Key 확인
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: "GEMINI_API_KEY missing" });
+    console.error("❌ GEMINI_API_KEY가 환경변수에 없습니다.");
+    return res.status(500).json({ error: "Server Configuration Error" });
   }
 
   try {
     const { message } = req.body;
-    const genAI = new GoogleGenerativeAI(apiKey);
     
-    // Gemini 1.5 Flash 모델 사용 (빠르고 무료 티어 제공)
+    // Gemini 모델 초기화
+    const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash",
-      generationConfig: { responseMimeType: "application/json" } // JSON 강제
+      model: "gemini-1.5-flash", 
+      generationConfig: { responseMimeType: "application/json" }
     });
 
-    // 시스템 프롬프트와 사용자 메시지 결합
-    const finalPrompt = `${SYSTEM_PROMPT}\n\nUser Request: ${message}`;
-
-    const result = await model.generateContent(finalPrompt);
+    // 실행
+    const result = await model.generateContent(`${SYSTEM_PROMPT}\n\nUser Request: ${message}`);
     const response = await result.response;
     const text = response.text();
 
-    // JSON 파싱해서 프론트로 전달
+    // 결과 반환
     const jsonResult = JSON.parse(text);
     return res.status(200).json(jsonResult);
 
   } catch (error) {
-    console.error("Gemini Error:", error);
+    console.error("🔥 Gemini Error:", error);
     return res.status(500).json({ error: "AI Processing Failed", details: error.message });
   }
-};
+}
