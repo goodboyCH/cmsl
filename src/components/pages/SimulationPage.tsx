@@ -7,6 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Terminal } from 'lucide-react';
 import { useLanguage } from '@/components/LanguageProvider'; // 1. Import
+import { AIChatAssistant } from '@/components/AIChatAssistant';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -23,6 +24,16 @@ export function SimulationPage() {
 
   const [gsParams, setGsParams] = useState({ im: 100, nnn_ed: 2000, Nout: 100, driv: 0.1 });
   const [dgParams, setDgParams] = useState({ n: 512, steps: 3000, n_fold_symmetry: 4, aniso_magnitude: 0.12, latent_heat_coef: 1.5 });
+  const handleAIUpdate = (type: string, params: any) => {
+    if (type === 'grain_shrinkage' || type === 'dendrite_growth') {
+      setSelectedSim(type as SimulationType);
+    }
+    if (type === 'grain_shrinkage') {
+      setGsParams(prev => ({ ...prev, ...params }));
+    } else if (type === 'dendrite_growth') {
+      setDgParams(prev => ({ ...prev, ...params }));
+    }
+  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -105,6 +116,9 @@ export function SimulationPage() {
           <Card>
             <CardHeader><CardTitle>{t('sim.control.title')}</CardTitle></CardHeader>
             <CardContent>
+              {/* 3. form 태그 시작 바로 아래에 AI 컴포넌트 삽입 ⬇️ */}
+              <AIChatAssistant onUpdateParams={handleAIUpdate} />
+              
               <form onSubmit={handleSubmit}>
                 <Tabs value={selectedSim} onValueChange={(value) => setSelectedSim(value as SimulationType)} className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
