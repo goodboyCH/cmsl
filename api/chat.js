@@ -1,9 +1,7 @@
 import OpenAI from 'openai';
 
-// Vercel Serverless Function 환경에서 작동합니다.
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// ⚠️ 중요: 여기서 초기화하지 마세요! (에러 원인)
+// const openai = new OpenAI(...);  <-- 지우세요
 
 const SYSTEM_PROMPT = `
 # Role
@@ -50,6 +48,19 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // ✅ 해결책: 함수가 실행될 때(실제 요청이 들어왔을 때) 키를 가져오도록 위치 변경
+  const apiKey = process.env.OPENAI_API_KEY;
+
+  // 디버깅용 로그 (나중에 지우셔도 됩니다)
+  if (!apiKey) {
+    console.error("❌ 오류: OPENAI_API_KEY가 환경 변수에 없습니다!");
+    return res.status(500).json({ error: 'Missing API Key configuration' });
+  }
+
+  const openai = new OpenAI({
+    apiKey: apiKey,
+  });
+
   try {
     const { message } = req.body;
 
@@ -74,6 +85,6 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error("OpenAI Error:", error);
-    return res.status(500).json({ error: 'Failed to generate parameters' });
+    return res.status(500).json({ error: 'Failed to generate parameters', details: error.message });
   }
 }
