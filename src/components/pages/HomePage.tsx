@@ -131,8 +131,8 @@ export function HomePage({ onPageChange }: HomePageProps) {
           <ScrollAnimation>
             <section className="space-y-16">
               <div className="text-center space-y-4">
-                <h2 className="text-3xl md:text-4xl font-bold text-foreground">Core Capabilities</h2>
-                <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                <h2 className="text-4xl md:text-5xl font-extrabold text-foreground tracking-tight">Core Capabilities</h2>
+                <p className="text-muted-foreground text-xl max-w-2xl mx-auto">
                   We combine advanced simulation with data-driven approaches to solve complex materials challenges.
                 </p>
               </div>
@@ -200,12 +200,12 @@ export function HomePage({ onPageChange }: HomePageProps) {
       </div>
 
       {/* Section 2: Research Topics */}
-      <div className="w-full py-24 md:py-32 bg-secondary/30">
+      <div className="w-full py-24 md:py-32 bg-gradient-to-b from-background to-muted/20">
         <div className="container">
           <ScrollAnimation delay={200}>
             <section className="space-y-16">
               <div className="text-center space-y-4">
-                <h2 className="text-3xl md:text-4xl font-bold text-foreground">Research Topics</h2>
+                <h2 className="text-4xl md:text-5xl font-extrabold text-foreground tracking-tight">Research Topics</h2>
                 <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
                   Exploring the frontiers of materials science through computational innovation.
                 </p>
@@ -247,11 +247,12 @@ export function HomePage({ onPageChange }: HomePageProps) {
         </div>
       </div>
 
-      {/* Section 3: Research Highlights (논문이라 영어 유지 또는 description만 번역) */}
+      {/* Section 3: Research Highlights */}
       <ScrollAnimation>
-        <section className="w-full gradient-primary py-24 text-white scientific-pattern">
+        <section className="w-full py-24 bg-muted/30 text-foreground relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent -z-10" />
           <div className="max-w-7xl mx-auto px-6 lg:px-12 xl:px-16">
-            <h2 className="text-3xl font-bold text-center mb-12">Research Highlights</h2>
+            <h2 className="text-4xl md:text-5xl font-extrabold text-center mb-16 tracking-tight">Research Highlights</h2>
             {/* ⚠️ HighlightsSlider 내부도 수정이 필요할 수 있습니다. 우선 데이터는 그대로 전달 */}
             <ResearchHighlightsSlider highlights={pageContent.research_highlights || []} />
           </div>
@@ -264,8 +265,8 @@ export function HomePage({ onPageChange }: HomePageProps) {
           {/* Recent Achievements */}
           <ScrollAnimation>
             <section>
-              <div className="flex justify-between items-end mb-10 border-b pb-4 border-border">
-                <h2 className="text-3xl font-bold text-foreground">Recent Achievements</h2>
+              <div className="flex justify-between items-end mb-12 border-b pb-6 border-border">
+                <h2 className="text-4xl md:text-5xl font-extrabold text-foreground tracking-tight">Recent Achievements</h2>
                 <Button variant="ghost" className="text-primary hover:bg-primary/5 font-medium" onClick={() => onPageChange('/publications')}>
                   View All Publications →
                 </Button>
@@ -296,8 +297,8 @@ export function HomePage({ onPageChange }: HomePageProps) {
           {/* Latest News */}
           <ScrollAnimation>
             <section>
-              <div className="flex justify-between items-end mb-10 border-b pb-4 border-border">
-                <h2 className="text-3xl font-bold text-foreground">Latest News</h2>
+              <div className="flex justify-between items-end mb-12 border-b pb-6 border-border">
+                <h2 className="text-4xl md:text-5xl font-extrabold text-foreground tracking-tight">Latest News</h2>
                 <Button variant="ghost" className="text-primary hover:bg-primary/5 font-medium" onClick={() => onPageChange('/board/news')}>
                   View All News →
                 </Button>
@@ -358,10 +359,10 @@ export function HomePage({ onPageChange }: HomePageProps) {
       </div>
 
       {/* Section 5: Videos */}
-      <div className="w-full py-24 bg-primary/5">
+      <div className="w-full py-24 bg-gradient-to-t from-muted/20 to-background">
         <ScrollAnimation>
           <section className="max-w-5xl mx-auto px-6 lg:px-12 xl:px-16">
-            <h2 className="text-3xl font-bold text-center text-primary mb-12">Research Video</h2>
+            <h2 className="text-4xl md:text-5xl font-extrabold text-center text-primary mb-16 tracking-tight">Research Video</h2>
             <Card className="elegant-shadow smooth-transition hover:shadow-lg overflow-hidden">
               <div className="aspect-video">
                 <iframe className="w-full h-full" src={pageContent.video_src} title="CMSL Laboratory Introduction Video" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
