@@ -115,148 +115,138 @@ export function ResearchPageTemplate({ pageKey, defaultContent }: ResearchPageTe
 
     return (
         <div className="w-full bg-background animate-in fade-in duration-500">
-            <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-16 py-16 space-y-20">
-
-                {/* Hero / Header Section */}
-                <ScrollAnimation>
-                    <div className="space-y-6 md:space-y-8 max-w-5xl">
-                        <div className="w-20 h-2 bg-primary mb-6" /> {/* Decorative line */}
-                        <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-primary tracking-tight leading-[1.1]">
+            {/* Hero Section - Centered & Impactful */}
+            <div className="relative w-full bg-gradient-to-b from-muted/30 to-background pt-20 pb-16">
+                <div className="max-w-[1000px] mx-auto px-6 text-center space-y-6">
+                    <ScrollAnimation>
+                        <div className="inline-block px-3 py-1 mb-4 text-xs font-semibold tracking-wider text-primary uppercase border border-primary/20 rounded-full bg-primary/5">
+                            Research Area
+                        </div>
+                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground tracking-tight leading-tight">
                             {getContent(content, 'title')}
                         </h1>
-                        <p className="text-xl md:text-2xl text-muted-foreground font-medium leading-relaxed max-w-3xl">
+                        <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
                             {getContent(content, 'subtitle')}
                         </p>
+                    </ScrollAnimation>
+                </div>
+            </div>
+
+            <div className="max-w-[1000px] mx-auto px-6 pb-24 space-y-24">
+
+                {/* Representative Media - Large & Cinematic */}
+                <ScrollAnimation delay={100}>
+                    <div className="w-full rounded-2xl overflow-hidden shadow-2xl border border-border/50 bg-card">
+                        <div className="aspect-video relative flex items-center justify-center bg-muted/10">
+                            {content.representative_media?.url ? (
+                                content.representative_media.type === 'video' ? (
+                                    <video
+                                        src={content.representative_media.url}
+                                        className="w-full h-full object-contain"
+                                        autoPlay loop muted playsInline
+                                    />
+                                ) : (
+                                    <img
+                                        src={content.representative_media.url}
+                                        alt={getContent(content.representative_media, 'alt') || "Representative Figure"}
+                                        className="w-full h-full object-contain"
+                                    />
+                                )
+                            ) : (
+                                <div className="text-muted-foreground flex flex-col items-center gap-2">
+                                    <span className="text-sm">No Representative Media</span>
+                                </div>
+                            )}
+                        </div>
+                        {content.representative_media?.alt && (
+                            <div className="p-4 bg-muted/30 border-t border-border/50 text-center">
+                                <p className="text-sm text-muted-foreground font-medium italic">
+                                    {getContent(content.representative_media, 'alt')}
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </ScrollAnimation>
 
-                <div className="w-full h-px bg-border/50" />
-
-                {/* Main Content Section */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-start">
-
-                    {/* Left Column: Text Content */}
-                    <div className="lg:col-span-7 space-y-12">
-                        <ScrollAnimation delay={100}>
-                            <div className="prose prose-lg dark:prose-invert max-w-none text-justify text-foreground/80">
-                                {/* Main Paragraph 1 */}
-                                <div className="mb-8">
-                                    {renderParagraph(getContent(content, 'main_paragraph_1'))}
-                                </div>
-                                {/* Main Paragraph 2 */}
-                                <div>
-                                    {renderParagraph(getContent(content, 'main_paragraph_2'))}
-                                </div>
-                            </div>
-                        </ScrollAnimation>
-                    </div>
-
-                    {/* Right Column: Visuals & Gallery */}
-                    <div className="lg:col-span-5 space-y-12 sticky top-24">
-                        <ScrollAnimation delay={200}>
-                            {/* Representative Media - Elevated and Boxed */}
-                            <div className="space-y-4">
-                                <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                                    <span className="w-8 h-px bg-primary"></span>
-                                    Representative Figure
-                                </h3>
-                                <div className="rounded-2xl overflow-hidden shadow-xl border border-border/50 bg-slate-50/50 dark:bg-zinc-900/50 p-6 md:p-8">
-                                    <div className="aspect-[4/3] relative flex items-center justify-center">
-                                        {content.representative_media?.url ? (
-                                            content.representative_media.type === 'video' ? (
-                                                <video
-                                                    src={content.representative_media.url}
-                                                    className="w-full h-full object-contain rounded-md shadow-sm"
-                                                    autoPlay loop muted playsInline
-                                                />
-                                            ) : (
-                                                <img
-                                                    src={content.representative_media.url}
-                                                    alt={getContent(content.representative_media, 'alt') || "Representative Figure"}
-                                                    className="w-full h-full object-contain rounded-md shadow-sm mix-blend-multiply dark:mix-blend-normal"
-                                                />
-                                            )
-                                        ) : (
-                                            <div className="text-muted-foreground text-sm flex flex-col items-center gap-2">
-                                                <span>No Representative Media</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                    {content.representative_media?.alt && (
-                                        <p className="mt-6 text-sm text-center text-muted-foreground font-medium italic border-t border-border/50 pt-4">
-                                            {getContent(content.representative_media, 'alt')}
-                                        </p>
-                                    )}
-                                </div>
+                {/* Main Article Content - Single Column for Readability */}
+                <div className="max-w-3xl mx-auto space-y-12">
+                    <ScrollAnimation delay={200}>
+                        <div className="prose prose-lg dark:prose-invert max-w-none text-foreground/80 leading-loose">
+                            {/* Paragraph 1 */}
+                            <div className="first-letter:text-5xl first-letter:font-bold first-letter:text-primary first-letter:float-left first-letter:mr-3 first-letter:mt-[-2px]">
+                                {renderParagraph(getContent(content, 'main_paragraph_1'))}
                             </div>
 
-                            {/* Gallery Carousel */}
-                            {content.gallery_images && content.gallery_images.length > 0 && (
-                                <div className="space-y-4 pt-8 border-t border-border/50">
-                                    <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                                        <span className="w-8 h-px bg-primary"></span>
-                                        Research Gallery
-                                    </h3>
-                                    <div className="rounded-xl overflow-hidden shadow-lg border border-border/50">
-                                        <ImageCarousel
-                                            items={content.gallery_images.map(img => ({
-                                                ...img,
-                                                alt: getContent(img, 'alt')
-                                            }))}
-                                        />
-                                    </div>
-                                </div>
-                            )}
-                        </ScrollAnimation>
-                    </div>
+                            {/* Paragraph 2 */}
+                            <div className="mt-8">
+                                {renderParagraph(getContent(content, 'main_paragraph_2'))}
+                            </div>
+                        </div>
+                    </ScrollAnimation>
                 </div>
 
-                <div className="w-full h-px bg-border/50" />
+                {/* Gallery Section - Horizontal Grid/Carousel */}
+                {content.gallery_images && content.gallery_images.length > 0 && (
+                    <ScrollAnimation delay={300}>
+                        <div className="space-y-8 py-12 border-t border-b border-border/50">
+                            <div className="text-center space-y-2">
+                                <h3 className="text-2xl font-bold text-foreground">Research Gallery</h3>
+                                <div className="w-12 h-1 bg-primary mx-auto rounded-full" />
+                            </div>
 
-                {/* Related Publications Section */}
-                <ScrollAnimation delay={300}>
+                            <div className="rounded-xl overflow-hidden bg-muted/10 p-4 sm:p-6 border border-border/50 shadow-inner">
+                                <ImageCarousel
+                                    items={content.gallery_images.map(img => ({
+                                        ...img,
+                                        alt: getContent(img, 'alt')
+                                    }))}
+                                />
+                            </div>
+                        </div>
+                    </ScrollAnimation>
+                )}
+
+                {/* Related Publications - Clean Grid */}
+                <ScrollAnimation delay={400}>
                     <section className="space-y-8">
-                        <div className="space-y-2">
-                            <h2 className="text-3xl md:text-4xl font-bold text-primary tracking-tight">
+                        <div className="flex items-center justify-between border-b pb-4">
+                            <h2 className="text-2xl md:text-3xl font-bold text-foreground">
                                 {getContent(content, 'related_publications_title') || "Related Publications"}
                             </h2>
-                            <p className="text-muted-foreground">
-                                Selected works related to {getContent(content, 'title')}.
-                            </p>
+                            <Button variant="ghost" size="sm" className="hidden sm:flex" asChild>
+                                <a href="/publications">View All <ExternalLink className="ml-2 w-4 h-4" /></a>
+                            </Button>
                         </div>
 
                         {publications.length === 0 ? (
-                            <div className="text-center py-12 bg-muted/20 rounded-2xl border border-dashed border-border text-muted-foreground">
+                            <div className="text-center py-12 bg-muted/20 rounded-xl border border-dashed border-border text-muted-foreground">
                                 No related publications selected.
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 gap-4">
                                 {publications.map((pub) => (
-                                    <Card key={pub.id} className="elegant-shadow hover:shadow-lg transition-shadow duration-300">
-                                        <CardContent className="p-6">
-                                            <div className="flex flex-col sm:flex-row gap-4 items-start justify-between">
-                                                <div className="space-y-2 flex-1">
-                                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                        <span className="font-semibold text-primary">{pub.year}</span>
-                                                        <span>•</span>
-                                                        <span className="line-clamp-1">{pub.journal}</span>
-                                                    </div>
-                                                    <h3 className="text-lg font-bold text-foreground leading-tight group-hover:text-primary transition-colors">
-                                                        {pub.title}
-                                                    </h3>
-                                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                        <Users className="w-4 h-4" />
-                                                        <span className="line-clamp-1">{pub.authors}</span>
-                                                    </div>
+                                    <Card key={pub.id} className="group hover:border-primary/50 transition-colors duration-300">
+                                        <CardContent className="p-5 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                                            <div className="flex-1 space-y-2">
+                                                <div className="flex items-center gap-2 text-xs font-semibold text-primary uppercase tracking-wide">
+                                                    <span>{pub.year}</span>
+                                                    <span className="text-muted-foreground/30">•</span>
+                                                    <span className="text-muted-foreground line-clamp-1 max-w-[200px]">{pub.journal}</span>
                                                 </div>
-                                                {pub.doi_link && (
-                                                    <Button variant="outline" size="sm" asChild className="shrink-0">
-                                                        <a href={pub.doi_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
-                                                            Read Paper <ExternalLink className="w-3 h-3" />
-                                                        </a>
-                                                    </Button>
-                                                )}
+                                                <h3 className="text-lg font-bold text-foreground leading-snug group-hover:text-primary transition-colors">
+                                                    {pub.title}
+                                                </h3>
+                                                <div className="text-sm text-muted-foreground line-clamp-1">
+                                                    {pub.authors}
+                                                </div>
                                             </div>
+                                            {pub.doi_link && (
+                                                <Button variant="outline" size="sm" asChild className="shrink-0 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                                                    <a href={pub.doi_link} target="_blank" rel="noopener noreferrer">
+                                                        Read Paper
+                                                    </a>
+                                                </Button>
+                                            )}
                                         </CardContent>
                                     </Card>
                                 ))}
@@ -264,6 +254,7 @@ export function ResearchPageTemplate({ pageKey, defaultContent }: ResearchPageTe
                         )}
                     </section>
                 </ScrollAnimation>
+
             </div>
         </div>
     );
