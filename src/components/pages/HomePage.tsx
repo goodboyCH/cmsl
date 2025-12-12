@@ -131,7 +131,7 @@ export function HomePage({ onPageChange }: HomePageProps) {
           <ScrollAnimation>
             <section className="space-y-16">
               <div className="text-center space-y-4">
-                <h2 className="text-4xl md:text-5xl font-extrabold text-foreground tracking-tight">Core Capabilities</h2>
+                <h2 className="text-4xl md:text-5xl font-extrabold text-primary tracking-tight">Core Capabilities</h2>
                 <p className="text-muted-foreground text-xl max-w-2xl mx-auto">
                   We combine advanced simulation with data-driven approaches to solve complex materials challenges.
                 </p>
@@ -205,7 +205,7 @@ export function HomePage({ onPageChange }: HomePageProps) {
           <ScrollAnimation delay={200}>
             <section className="space-y-16">
               <div className="text-center space-y-4">
-                <h2 className="text-4xl md:text-5xl font-extrabold text-foreground tracking-tight">Research Topics</h2>
+                <h2 className="text-4xl md:text-5xl font-extrabold text-primary tracking-tight">Research Topics</h2>
                 <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
                   Exploring the frontiers of materials science through computational innovation.
                 </p>
@@ -252,7 +252,7 @@ export function HomePage({ onPageChange }: HomePageProps) {
         <section className="w-full py-24 bg-muted/30 text-foreground relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent -z-10" />
           <div className="max-w-7xl mx-auto px-6 lg:px-12 xl:px-16">
-            <h2 className="text-4xl md:text-5xl font-extrabold text-center mb-16 tracking-tight">Research Highlights</h2>
+            <h2 className="text-4xl md:text-5xl font-extrabold text-center text-primary mb-16 tracking-tight">Research Highlights</h2>
             {/* ⚠️ HighlightsSlider 내부도 수정이 필요할 수 있습니다. 우선 데이터는 그대로 전달 */}
             <ResearchHighlightsSlider highlights={pageContent.research_highlights || []} />
           </div>
@@ -266,7 +266,7 @@ export function HomePage({ onPageChange }: HomePageProps) {
           <ScrollAnimation>
             <section>
               <div className="flex justify-between items-end mb-12 border-b pb-6 border-border">
-                <h2 className="text-4xl md:text-5xl font-extrabold text-foreground tracking-tight">Recent Achievements</h2>
+                <h2 className="text-4xl md:text-5xl font-extrabold text-primary tracking-tight">Recent Achievements</h2>
                 <Button variant="ghost" className="text-primary hover:bg-primary/5 font-medium" onClick={() => onPageChange('/publications')}>
                   View All Publications →
                 </Button>
@@ -298,7 +298,7 @@ export function HomePage({ onPageChange }: HomePageProps) {
           <ScrollAnimation>
             <section>
               <div className="flex justify-between items-end mb-12 border-b pb-6 border-border">
-                <h2 className="text-4xl md:text-5xl font-extrabold text-foreground tracking-tight">Latest News</h2>
+                <h2 className="text-4xl md:text-5xl font-extrabold text-primary tracking-tight">Latest News</h2>
                 <Button variant="ghost" className="text-primary hover:bg-primary/5 font-medium" onClick={() => onPageChange('/board/news')}>
                   View All News →
                 </Button>

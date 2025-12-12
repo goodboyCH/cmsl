@@ -166,11 +166,11 @@ export function ResearchHighlightsSlider({ highlights }: SliderProps) {
                 exit="exit"
                 className="w-full"
               >
-                <Card className="bg-white/10 backdrop-blur-md border border-white/20 overflow-hidden shadow-2xl rounded-2xl mx-auto">
+                <Card className="bg-black/50 backdrop-blur-md border border-white/20 overflow-hidden shadow-2xl rounded-2xl mx-auto">
                   <div className="flex flex-col md:flex-row h-full">
 
                     {/* Image Section */}
-                    <div className="md:w-2/5 relative h-64 md:h-auto overflow-hidden bg-white/20 group cursor-pointer" onClick={handleCardClick}>
+                    <div className="md:w-2/5 relative h-64 md:h-auto overflow-hidden bg-white group cursor-pointer" onClick={handleCardClick}>
                       <motion.img
                         src={currentHighlight.image}
                         alt={currentHighlight.title}
