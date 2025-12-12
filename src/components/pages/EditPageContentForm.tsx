@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/lib/supabaseClient';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Trash2 } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"; // 1. Tabs 컴포넌트 import
 
 interface EditPageContentFormProps {
@@ -36,10 +36,10 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
     const fetchContent = async () => {
       setLoading(true);
       const { data } = await supabase.from('pages').select('content').eq('page_key', pageKey).single();
-      
+
       if (data?.content) {
         const processedContent = { ...data.content };
-        
+
         // projects 태그 배열 -> 문자열 변환 (줄바꿈으로 표시)
         if (processedContent.projects) {
           processedContent.projects = processedContent.projects.map((proj: any) => ({
@@ -60,15 +60,15 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
 
         // 대표 미디어 초기화
         if (!processedContent.representative_media) {
-           processedContent.representative_media = { 
-             url: processedContent.main_image_url || '', 
-             type: 'image', 
-             alt: '' 
-           };
+          processedContent.representative_media = {
+            url: processedContent.main_image_url || '',
+            type: 'image',
+            alt: ''
+          };
         }
 
         setContent(processedContent);
-        
+
         // Professor 페이지 데이터 처리
         if (pageKey === 'professor') {
           setTextBlocks({
@@ -93,14 +93,14 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
     updatedItems[index] = { ...updatedItems[index], [field]: value };
     setContent(prev => (prev ? { ...prev, [arrayName]: updatedItems } : { [arrayName]: updatedItems }));
   };
-  
+
   // 배열에 새 항목 추가 핸들러
   const addItemToArray = (arrayName: string, newItem: object) => {
     if (!content) return;
     const updatedItems = [...(content[arrayName] || []), newItem];
     setContent(prev => (prev ? { ...prev, [arrayName]: updatedItems } : { [arrayName]: updatedItems }));
   };
-  
+
   // 배열 항목 삭제 핸들러
   const removeItemFromArray = (arrayName: string, indexToRemove: number) => {
     if (!content) return;
@@ -157,7 +157,7 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
         finalContent.experience = textBlocks.experience.split('\n').filter(line => line.includes('|')).map(line => ({ period: line.split('|')[0].trim(), description: line.split('|')[1].trim() }));
         finalContent.awards_and_honors = textBlocks.awards_and_honors.split('\n').filter(line => line.includes('|')).map(line => ({ period: line.split('|')[0].trim(), description: line.split('|')[1].trim() }));
         finalContent.research_interests = textBlocks.research_interests.split('\n').filter(line => line.trim() !== '');
-        
+
         // 교수 프로필 이미지 업로드
         if (newImage) {
           if (finalContent.profile_image_url) {
@@ -171,26 +171,26 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
           finalContent.profile_image_url = supabase.storage.from('professor-photo').getPublicUrl(imagePath).data.publicUrl;
         }
       }
-      
+
       // Projects 태그 처리 (줄바꿈 -> 배열)
       if (finalContent.projects) {
         finalContent.projects = finalContent.projects.map((proj: any) => ({
           ...proj,
-          tags: typeof proj.tags === 'string' 
-            ? proj.tags.split('\n').filter(line => line.trim() !== '') 
+          tags: typeof proj.tags === 'string'
+            ? proj.tags.split('\n').filter(line => line.trim() !== '')
             : proj.tags
         }));
       }
 
       // main_image_url 동기화 (하위 호환성 유지용)
       if (finalContent.representative_media?.url) {
-          finalContent.main_image_url = finalContent.representative_media.url;
+        finalContent.main_image_url = finalContent.representative_media.url;
       }
 
       // DB 업데이트
       const { error } = await supabase.from('pages').update({ content: finalContent }).eq('page_key', pageKey);
       if (error) throw error;
-      
+
       setMessage('페이지 콘텐츠가 성공적으로 저장되었습니다.');
       setTimeout(onBack, 1500);
     } catch (err: any) {
@@ -210,7 +210,7 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          
+
           {pageKey === 'professor' ? (
             // -------------------------------------------------------
             // Professor 페이지 편집 폼 (기존 유지)
@@ -245,7 +245,7 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
               <AccordionItem value="item-1">
                 <AccordionTrigger>페이지 소개 및 대표 미디어</AccordionTrigger>
                 <AccordionContent className="space-y-4 pt-2">
-                  
+
                   {/* 🌍 1. 메인 텍스트 (한/영 탭 적용) */}
                   <div className="border p-4 rounded-md">
                     <Label className="mb-2 block font-semibold text-base">Main Content</Label>
@@ -254,7 +254,7 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
                         <TabsTrigger value="en">English (Primary)</TabsTrigger>
                         <TabsTrigger value="ko">Korean (Optional)</TabsTrigger>
                       </TabsList>
-                      
+
                       <TabsContent value="en" className="space-y-4">
                         <div className="space-y-2"><Label>Main Title (h1)</Label><Input name="title" value={content?.title || ''} onChange={handleContentChange} /></div>
                         <div className="space-y-2"><Label>Subtitle (p)</Label><Input name="subtitle" value={content?.subtitle || ''} onChange={handleContentChange} /></div>
@@ -270,7 +270,7 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
                       </TabsContent>
                     </Tabs>
                   </div>
-                  
+
                   {/* 2. Representative Media (공통) */}
                   {/* Representative Media Section */}
                   <div className="p-4 border rounded-md space-y-3 bg-muted/20">
@@ -278,16 +278,16 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
                     <div className="grid grid-cols-3 gap-4">
                       <div className="col-span-2 space-y-2">
                         <Label>Media URL</Label>
-                        <Input 
-                          value={content?.representative_media?.url || ''} 
-                          onChange={(e) => handleRepresentativeChange('url', e.target.value)} 
-                          placeholder="https://... (Image or Video URL)" 
+                        <Input
+                          value={content?.representative_media?.url || ''}
+                          onChange={(e) => handleRepresentativeChange('url', e.target.value)}
+                          placeholder="https://... (Image or Video URL)"
                         />
                       </div>
                       <div className="space-y-2">
                         <Label>Type</Label>
-                        <Select 
-                          value={content?.representative_media?.type || 'image'} 
+                        <Select
+                          value={content?.representative_media?.type || 'image'}
                           onValueChange={(val) => handleRepresentativeChange('type', val)}
                         >
                           <SelectTrigger><SelectValue /></SelectTrigger>
@@ -298,7 +298,7 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
                         </Select>
                       </div>
                     </div>
-                    
+
                     {/* Alt Text with Tabs */}
                     <div className="space-y-1">
                       <Label>Description (Alt Text)</Label>
@@ -308,17 +308,17 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
                           <TabsTrigger value="ko" className="text-xs h-7">Alt Text (KO)</TabsTrigger>
                         </TabsList>
                         <TabsContent value="en">
-                          <Input 
-                            value={content?.representative_media?.alt || ''} 
-                            onChange={(e) => handleRepresentativeChange('alt', e.target.value)} 
-                            placeholder="Description in English" 
+                          <Input
+                            value={content?.representative_media?.alt || ''}
+                            onChange={(e) => handleRepresentativeChange('alt', e.target.value)}
+                            placeholder="Description in English"
                           />
                         </TabsContent>
                         <TabsContent value="ko">
-                          <Input 
-                            value={content?.representative_media?.alt_ko || ''} 
-                            onChange={(e) => handleRepresentativeChange('alt_ko', e.target.value)} 
-                            placeholder="한글 설명 (캡션)" 
+                          <Input
+                            value={content?.representative_media?.alt_ko || ''}
+                            onChange={(e) => handleRepresentativeChange('alt_ko', e.target.value)}
+                            placeholder="한글 설명 (캡션)"
                           />
                         </TabsContent>
                       </Tabs>
@@ -330,29 +330,29 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
                     <Label className="font-semibold text-base">Media Gallery (Bottom Carousel)</Label>
                     {(content?.gallery_images || []).map((item: any, index: number) => (
                       <div key={index} className="p-4 border rounded-md space-y-3 relative bg-white/50">
-                        <Button 
-                          type="button" 
-                          variant="destructive" 
-                          size="icon" 
-                          className="absolute top-2 right-2 h-7 w-7" 
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-2 right-2 h-7 w-7"
                           onClick={() => removeItemFromArray('gallery_images', index)}
                         >
-                          <Trash2 className="h-4 w-4"/>
+                          <Trash2 className="h-4 w-4" />
                         </Button>
-                        
+
                         <div className="grid grid-cols-3 gap-4">
                           <div className="col-span-2 space-y-2">
                             <Label>Media URL</Label>
-                            <Input 
-                              value={item.url || ''} 
-                              onChange={(e) => handleArrayItemChange('gallery_images', index, 'url', e.target.value)} 
-                              placeholder="https://..." 
+                            <Input
+                              value={item.url || ''}
+                              onChange={(e) => handleArrayItemChange('gallery_images', index, 'url', e.target.value)}
+                              placeholder="https://..."
                             />
                           </div>
                           <div className="space-y-2">
                             <Label>Type</Label>
-                            <Select 
-                              value={item.type || 'image'} 
+                            <Select
+                              value={item.type || 'image'}
                               onValueChange={(val) => handleArrayItemChange('gallery_images', index, 'type', val)}
                             >
                               <SelectTrigger><SelectValue /></SelectTrigger>
@@ -373,107 +373,79 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
                               <TabsTrigger value="ko" className="text-xs h-7">Alt (KO)</TabsTrigger>
                             </TabsList>
                             <TabsContent value="en">
-                              <Input 
-                                value={item.alt || ''} 
-                                onChange={(e) => handleArrayItemChange('gallery_images', index, 'alt', e.target.value)} 
-                                placeholder="Description" 
+                              <Input
+                                value={item.alt || ''}
+                                onChange={(e) => handleArrayItemChange('gallery_images', index, 'alt', e.target.value)}
+                                placeholder="Description"
                               />
                             </TabsContent>
                             <TabsContent value="ko">
-                              <Input 
-                                value={item.alt_ko || ''} 
-                                onChange={(e) => handleArrayItemChange('gallery_images', index, 'alt_ko', e.target.value)} 
-                                placeholder="설명" 
+                              <Input
+                                value={item.alt_ko || ''}
+                                onChange={(e) => handleArrayItemChange('gallery_images', index, 'alt_ko', e.target.value)}
+                                placeholder="설명"
                               />
                             </TabsContent>
                           </Tabs>
                         </div>
                       </div>
                     ))}
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
                       onClick={() => addItemToArray('gallery_images', { url: '', type: 'image', alt: '', alt_ko: '' })}
                     >
                       + Add Media Item
                     </Button>
                   </div>
-                  
+
                 </AccordionContent>
               </AccordionItem>
-              
+
               <AccordionItem value="item-2">
-                <AccordionTrigger>프로젝트 카드 (하단)</AccordionTrigger>
+                <AccordionTrigger>Publication Filtering (Keywords)</AccordionTrigger>
                 <AccordionContent className="space-y-6 pt-2">
-                   
-                   {/* 🌍 4. 프로젝트 섹션 타이틀 (한/영 탭) */}
-                   <div className="border p-4 rounded-md">
-                      <Label className="mb-2 block font-semibold text-base">Section Title</Label>
-                      <Tabs defaultValue="en">
-                        <TabsList className="grid w-full grid-cols-2 mb-4">
-                          <TabsTrigger value="en">English</TabsTrigger>
-                          <TabsTrigger value="ko">Korean</TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="en" className="space-y-2">
-                          <div className="space-y-1"><Label>Title</Label><Input name="projects_title" value={content?.projects_title || ''} onChange={handleContentChange} /></div>
-                          <div className="space-y-1"><Label>Subtitle</Label><Input name="projects_subtitle" value={content?.projects_subtitle || ''} onChange={handleContentChange} /></div>
-                        </TabsContent>
-                        <TabsContent value="ko" className="space-y-2">
-                          <div className="space-y-1"><Label>섹션 제목 (KO)</Label><Input name="projects_title_ko" value={content?.projects_title_ko || ''} onChange={handleContentChange} placeholder="현재 진행 중인 프로젝트" /></div>
-                          <div className="space-y-1"><Label>섹션 부제목 (KO)</Label><Input name="projects_subtitle_ko" value={content?.projects_subtitle_ko || ''} onChange={handleContentChange} placeholder="연구실에서 수행 중인 과제들입니다." /></div>
-                        </TabsContent>
-                      </Tabs>
-                   </div>
-                   
-                   {/* 5. 개별 프로젝트 리스트 */}
-                   <div className="space-y-4">
-                     {(content?.projects || []).map((project: any, index: number) => (
-                        <div key={index} className="p-4 border rounded-md space-y-4 relative bg-muted/10">
-                          <div className="flex justify-between items-center">
-                            <Label className="font-bold text-primary">Project #{index + 1}</Label>
-                            <Button type="button" variant="destructive" size="sm" className="h-8" onClick={() => removeItemFromArray('projects', index)}><Trash2 className="h-4 w-4"/> 삭제</Button>
-                          </div>
-                          
-                          {/* 🌍 Tabs 적용: 개별 프로젝트 내용 */}
-                          <Tabs defaultValue="en">
-                            <TabsList><TabsTrigger value="en">English</TabsTrigger><TabsTrigger value="ko">Korean</TabsTrigger></TabsList>
-                            
-                            <TabsContent value="en" className="space-y-2 mt-2">
-                              <div className="space-y-1"><Label>Project Title</Label><Input value={project.title} onChange={(e) => handleArrayItemChange('projects', index, 'title', e.target.value)} /></div>
-                              <div className="space-y-1"><Label>Description</Label><Textarea value={project.description} onChange={(e) => handleArrayItemChange('projects', index, 'description', e.target.value)} rows={3} /></div>
-                            </TabsContent>
 
-                            <TabsContent value="ko" className="space-y-2 mt-2">
-                              <div className="space-y-1"><Label>프로젝트 제목 (KO)</Label><Input value={project.title_ko || ''} onChange={(e) => handleArrayItemChange('projects', index, 'title_ko', e.target.value)} placeholder="한글 제목" /></div>
-                              <div className="space-y-1"><Label>설명 (KO)</Label><Textarea value={project.description_ko || ''} onChange={(e) => handleArrayItemChange('projects', index, 'description_ko', e.target.value)} rows={3} placeholder="한글 설명" /></div>
-                            </TabsContent>
-                          </Tabs>
+                  {/* 4. 섹션 타이틀 (한/영 탭) */}
+                  <div className="border p-4 rounded-md">
+                    <Label className="mb-2 block font-semibold text-base">Section Title</Label>
+                    <Tabs defaultValue="en">
+                      <TabsList className="grid w-full grid-cols-2 mb-4">
+                        <TabsTrigger value="en">English</TabsTrigger>
+                        <TabsTrigger value="ko">Korean</TabsTrigger>
+                      </TabsList>
+                      <TabsContent value="en" className="space-y-2">
+                        <div className="space-y-1"><Label>Title</Label><Input name="related_publications_title" value={content?.related_publications_title || ''} onChange={handleContentChange} /></div>
+                      </TabsContent>
+                      <TabsContent value="ko" className="space-y-2">
+                        <div className="space-y-1"><Label>섹션 제목 (KO)</Label><Input name="related_publications_title_ko" value={content?.related_publications_title_ko || ''} onChange={handleContentChange} placeholder="관련 연구 논문" /></div>
+                      </TabsContent>
+                    </Tabs>
+                  </div>
 
-                          {/* 공통 정보 */}
-                          <div className="grid grid-cols-2 gap-4 pt-2 border-t mt-2">
-                            <div className="space-y-1"><Label>담당자 (Manager)</Label><Input value={project.person_in_charge} onChange={(e) => handleArrayItemChange('projects', index, 'person_in_charge', e.target.value)} /></div>
-                            <div className="space-y-1"><Label>로고 URL (Logo)</Label><Input value={project.logo_url} onChange={(e) => handleArrayItemChange('projects', index, 'logo_url', e.target.value)} /></div>
-                            <div className="space-y-1"><Label>Status</Label>
-                              <Select value={project.status} onValueChange={(val) => handleArrayItemChange('projects', index, 'status', val)}>
-                                <SelectTrigger><SelectValue/></SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="Active">Active</SelectItem>
-                                  <SelectItem value="Completed">Completed</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                          <div className="space-y-1">
-                            <Label>Tags (Common, Newline Separated)</Label>
-                            <Textarea value={project.tags || ''} onChange={(e) => handleArrayItemChange('projects', index, 'tags', e.target.value)} rows={2} />
-                          </div>
-                        </div>
-                     ))}
-                     <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => addItemToArray('projects', {
-                        title: '', description: '', person_in_charge: '', logo_url: '', status: 'Active', tags: ''
-                     })}>+ Add New Project Card</Button>
-                   </div>
+                  {/* 5. 키워드 입력 */}
+                  <div className="p-4 border rounded-md space-y-4 bg-muted/10">
+                    <div className="space-y-2">
+                      <Label className="font-bold text-primary">Publication Keywords</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Enter keywords separated by commas. Publications containing these keywords in their title or abstract will be automatically displayed on the page.
+                        <br />(e.g., "casting, aluminum, magnesium")
+                      </p>
+                      <Textarea
+                        name="publication_keywords"
+                        value={Array.isArray(content?.publication_keywords) ? content?.publication_keywords.join(', ') : (content?.publication_keywords || '')}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          // Store momentarily as string, will be processed on submit
+                          setContent(prev => (prev ? { ...prev, publication_keywords: val } : { publication_keywords: val }));
+                        }}
+                        rows={3}
+                        placeholder="casting, alloy, microstructure..."
+                      />
+                    </div>
+                  </div>
+
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
