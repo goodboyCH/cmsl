@@ -41,7 +41,7 @@ export function HomePage({ onPageChange }: HomePageProps) {
         .select('content')
         .eq('page_key', 'home')
         .single();
-      
+
       if (pageData?.content) {
         setPageContent(pageData.content);
       }
@@ -56,12 +56,12 @@ export function HomePage({ onPageChange }: HomePageProps) {
 
       const { data: news } = await supabase.from('notices').select('id, created_at, title, title_ko, content, content_ko').eq('is_pinned', false).order('created_at', { ascending: false }).limit(4);
       const { data: gallery } = await supabase.from('gallery').select('id, created_at, title, title_ko, thumbnail_url, content, content_ko').order('created_at', { ascending: false }).limit(4);
-      
+
       // 뉴스/갤러리 데이터 매핑 시 언어 처리 미리 적용 가능 (여기서는 렌더링 시 처리)
-      const combinedNews = [...(news || []).map(n => ({...n, type: 'notice'})), ...(gallery || []).map(g => ({...g, type: 'gallery'}))]
+      const combinedNews = [...(news || []).map(n => ({ ...n, type: 'notice' })), ...(gallery || []).map(g => ({ ...g, type: 'gallery' }))]
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setLatestNews(combinedNews);
-      
+
       setLoading(false);
     };
     fetchPageData();
@@ -81,53 +81,83 @@ export function HomePage({ onPageChange }: HomePageProps) {
   return (
     <div className="w-full">
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 z-0">
+      {/* Hero Section */}
+      <section className="relative h-[90vh] flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 z-0 select-none">
           <video
-            src={pageContent.hero.background_gif_url} 
+            src={pageContent.hero.background_gif_url}
             className="absolute inset-0 w-full h-full object-cover z-0"
             autoPlay
             loop
             muted
             playsInline
           />
+          {/* Softer overlay for better text readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
         </div>
-        <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-12 text-center text-white">
-          <div className="space-y-8 bg-black/40 backdrop-blur-sm rounded-2xl p-8 lg:p-12">
-            {/* 🌍 getContent 적용 */}
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight text-center whitespace-pre-line">
-              {getContent(pageContent.hero, 'title')}
-            </h1>
-            <p className="text-xl md:text-2xl lg:text-3xl opacity-90 leading-relaxed max-w-5xl mx-auto whitespace-pre-line">
-              {getContent(pageContent.hero, 'subtitle')}
-            </p>
-            <p className="text-lg md:text-xl opacity-80 max-w-4xl mx-auto">
-              {getContent(pageContent.hero, 'capabilities_text')}
-            </p>
-            <div className="pt-6">
-              <Badge variant="secondary" className="text-lg md:text-xl px-8 py-3 bg-white/20 text-white border-white/30 hover:bg-white/30 cursor-pointer transition-all" onClick={() => onPageChange('/contact')}>
-                {getContent(pageContent.hero, 'recruitment_text')} →
-              </Badge>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-12 text-center text-white">
+          <ScrollAnimation>
+            <div className="space-y-8 py-10">
+              {/* 🌍 getContent 적용 */}
+              <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold leading-tight tracking-tight text-center whitespace-pre-line drop-shadow-xl">
+                {getContent(pageContent.hero, 'title')}
+              </h1>
+              <p className="text-xl md:text-2xl lg:text-3xl font-light opacity-90 leading-relaxed max-w-4xl mx-auto whitespace-pre-line drop-shadow-md">
+                {getContent(pageContent.hero, 'subtitle')}
+              </p>
+              <div className="pt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+                <button
+                  onClick={() => onPageChange('/contact')}
+                  className="px-10 py-4 bg-white text-black text-lg font-semibold rounded-full hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1 active:scale-95"
+                >
+                  {getContent(pageContent.hero, 'recruitment_text')}
+                </button>
+                <button
+                  onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
+                  className="px-10 py-4 bg-white/10 backdrop-blur-md text-white border border-white/20 text-lg font-medium rounded-full hover:bg-white/20 transition-all duration-300"
+                >
+                  Explore More
+                </button>
+              </div>
             </div>
-          </div>
+          </ScrollAnimation>
         </div>
       </section>
 
       {/* Section 1: Core Capabilities */}
-      <div className="w-full py-24 bg-background">
+      <div className="w-full py-24 lg:py-32 bg-background">
         <div className="container">
           <ScrollAnimation>
-            <section className="space-y-8">
-              <h2 className="text-3xl font-bold text-center text-primary">Core Capabilities</h2>
+            <section className="space-y-16">
+              <div className="text-center space-y-4">
+                <h2 className="text-3xl md:text-4xl font-bold text-foreground">Core Capabilities</h2>
+                <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                  We combine advanced simulation with data-driven approaches to solve complex materials challenges.
+                </p>
+              </div>
+
               <div className="relative" onMouseLeave={() => setSelectedCapabilityId(null)}>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 min-h-[28rem]">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 min-h-[32rem]">
                   {(pageContent.capabilities || []).map((cap: any) => (
-                    <motion.div key={cap.id} layoutId={`capability-card-${cap.id}`} onMouseEnter={() => setSelectedCapabilityId(cap.id)} className="relative h-full rounded-lg overflow-hidden cursor-pointer elegant-shadow">
-                      <motion.img layoutId={`capability-img-${cap.id}`} src={cap.bgImage} alt={cap.title} className="absolute inset-0 w-full h-full object-cover"/>
-                      <div className="absolute inset-0 bg-black/50"/>
-                      <motion.div layout="position" className="relative z-10 flex items-center justify-center h-full p-4">
+                    <motion.div
+                      key={cap.id}
+                      layoutId={`capability-card-${cap.id}`}
+                      onMouseEnter={() => setSelectedCapabilityId(cap.id)}
+                      className="relative h-full rounded-2xl overflow-hidden cursor-pointer shadow-sm hover:shadow-xl transition-shadow duration-300 group bg-card border border-border/50"
+                    >
+                      <motion.img
+                        layoutId={`capability-img-${cap.id}`}
+                        src={cap.bgImage}
+                        alt={cap.title}
+                        className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 scale-100 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
+
+                      <motion.div layout="position" className="relative z-10 flex flex-col items-center justify-end h-full p-8 pb-12 text-center">
+                        <div className="w-12 h-1 bg-primary mb-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                         {/* 🌍 getContent 적용 */}
-                        <h3 className={`font-bold text-white text-xl text-center transition-opacity duration-200 ${selectedCapabilityId !== null ? 'opacity-0' : 'opacity-100'}`}>
+                        <h3 className={`font-bold text-white text-2xl transition-all duration-300 ${selectedCapabilityId !== null ? 'opacity-0' : 'opacity-100'}`}>
                           {getContent(cap, 'title')}
                         </h3>
                       </motion.div>
@@ -136,13 +166,27 @@ export function HomePage({ onPageChange }: HomePageProps) {
                 </div>
                 <AnimatePresence>
                   {selectedCapability && (
-                    <motion.div layoutId={`capability-card-${selectedCapability.id}`} className="absolute inset-0 w-full h-full rounded-lg overflow-hidden elegant-shadow bg-card z-10">
-                      <motion.img layoutId={`capability-img-${selectedCapability.id}`} src={selectedCapability.bgImage} alt={selectedCapability.title} className="absolute inset-0 w-full h-full object-cover"/>
-                      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent"/>
-                      <motion.div layout="position" className="relative z-10 p-8 md:p-12 text-white h-full flex flex-col justify-start items-start text-left">
+                    <motion.div
+                      layoutId={`capability-card-${selectedCapability.id}`}
+                      className="absolute inset-0 w-full h-full rounded-2xl overflow-hidden shadow-2xl bg-card z-20"
+                    >
+                      <motion.img
+                        layoutId={`capability-img-${selectedCapability.id}`}
+                        src={selectedCapability.bgImage}
+                        alt={selectedCapability.title}
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className="relative z-10 p-8 md:p-16 text-white h-full flex flex-col justify-center items-start text-left max-w-4xl"
+                      >
+                        <span className="text-primary font-bold tracking-widest uppercase text-sm mb-4">Core Capability</span>
                         {/* 🌍 getContent 적용 */}
-                        <h3 className="font-bold text-3xl">{getContent(selectedCapability, 'title')}</h3>
-                        <p className="mt-2 max-w-xl text-lg whitespace-pre-line">
+                        <h3 className="font-bold text-4xl md:text-5xl mb-6">{getContent(selectedCapability, 'title')}</h3>
+                        <p className="text-lg md:text-xl leading-relaxed text-gray-200 whitespace-pre-line max-w-2xl">
                           {getContent(selectedCapability, 'description')}
                         </p>
                       </motion.div>
@@ -156,24 +200,46 @@ export function HomePage({ onPageChange }: HomePageProps) {
       </div>
 
       {/* Section 2: Research Topics */}
-      <div className="w-full py-24 md:py-32 bg-primary/5">
+      <div className="w-full py-24 md:py-32 bg-secondary/30">
         <div className="container">
           <ScrollAnimation delay={200}>
-            <section className="space-y-12">
-              <h2 className="text-3xl font-bold text-center text-primary">Research Topics</h2>
+            <section className="space-y-16">
+              <div className="text-center space-y-4">
+                <h2 className="text-3xl md:text-4xl font-bold text-foreground">Research Topics</h2>
+                <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                  Exploring the frontiers of materials science through computational innovation.
+                </p>
+              </div>
+
               <div className="grid md:grid-cols-3 gap-8">
                 {(pageContent.research_topics || []).map((topic: any) => (
-                  <Card key={topic.title} className="elegant-shadow smooth-transition hover:shadow-lg group cursor-pointer relative overflow-hidden h-96" onClick={() => onPageChange(topic.path)}>
-                    <div className="absolute inset-0">
-                      <img src={topic.bgImage} alt={topic.title} className="w-full h-full object-cover group-hover:scale-105 smooth-transition"/>
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+                  <div
+                    key={topic.title}
+                    className="group cursor-pointer relative overflow-hidden h-[28rem] rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-500 bg-white"
+                    onClick={() => onPageChange(topic.path)}
+                  >
+                    <div className="absolute inset-0 z-0">
+                      <img
+                        src={topic.bgImage}
+                        alt={topic.title}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90 transition-opacity duration-300 group-hover:opacity-80"></div>
                     </div>
-                    <CardContent className="relative z-10 p-6 h-full flex flex-col justify-end text-white">
-                      {/* 🌍 getContent 적용 */}
-                      <h3 className="text-xl font-bold">{getContent(topic, 'title')}</h3>
-                      <p className="text-sm text-white/90 mt-2">{getContent(topic, 'description')}</p>
-                    </CardContent>
-                  </Card>
+
+                    <div className="relative z-10 p-8 h-full flex flex-col justify-end text-white">
+                      <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                        {/* 🌍 getContent 적용 */}
+                        <h3 className="text-2xl font-bold mb-4">{getContent(topic, 'title')}</h3>
+                        <p className="text-base text-gray-200 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100 line-clamp-3 leading-relaxed">
+                          {getContent(topic, 'description')}
+                        </p>
+                        <div className="mt-6 flex items-center text-sm font-medium text-primary-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-200">
+                          Explore Topic <span className="ml-2">→</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             </section>
@@ -191,81 +257,96 @@ export function HomePage({ onPageChange }: HomePageProps) {
           </div>
         </section>
       </ScrollAnimation>
-      
+
       {/* Achievements & News Section */}
       <div className="w-full py-24 md:py-32 bg-background">
-        <div className="container space-y-24">
-          {/* Recent Achievements (보통 영어로 유지) */}
+        <div className="container space-y-32">
+          {/* Recent Achievements */}
           <ScrollAnimation>
             <section>
-              <div className="flex justify-between items-center mb-8">
-                <h2 className="text-3xl font-bold text-primary">Recent Achievements</h2>
-                <Button variant="link" onClick={() => onPageChange('/publications')}>View All →</Button>
+              <div className="flex justify-between items-end mb-10 border-b pb-4 border-border">
+                <h2 className="text-3xl font-bold text-foreground">Recent Achievements</h2>
+                <Button variant="ghost" className="text-primary hover:bg-primary/5 font-medium" onClick={() => onPageChange('/publications')}>
+                  View All Publications →
+                </Button>
               </div>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                 {achievements.map(item => (
-                  <div key={`${item.id}-${item.title}`} className="cursor-pointer group" onClick={() => onPageChange('/publications')}>
-                    <div className="overflow-hidden rounded-lg mb-4 aspect-[4/3] border">
-                      <img src={item.image_url || item.thumbnail_url || '/images/logo.png'} alt={item.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                  <div
+                    key={`${item.id}-${item.title}`}
+                    className="cursor-pointer group flex flex-col h-full hover:-translate-y-1 transition-transform duration-300"
+                    onClick={() => onPageChange('/publications')}
+                  >
+                    <div className="overflow-hidden rounded-xl mb-5 aspect-[4/3] border border-border/50 shadow-sm bg-muted/20">
+                      <img src={item.image_url || item.thumbnail_url || '/images/logo.png'} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                     </div>
-                    <p className="text-xs sm:text-sm text-muted-foreground">{item.authors ? 'PUBLICATION' : 'PROJECT'} · {new Date(item.created_at).toLocaleDateString()}</p>
-                    <h3 className="text-base sm:text-lg font-semibold mt-1 leading-snug group-hover:text-primary transition-colors">{item.title}</h3>
-                    <p className="text-sm sm:text-base text-muted-foreground mt-2 hidden sm:block">
-                      {stripHtmlAndTruncate(item.abstract || item.description, 80)}...
-                    </p>
+                    <div className="flex flex-col flex-1">
+                      <p className="text-xs font-bold text-primary tracking-wide mb-2 uppercase">{item.authors ? 'PUBLICATION' : 'PROJECT'} · {new Date(item.created_at).toLocaleDateString()}</p>
+                      <h3 className="text-lg font-bold leading-tight group-hover:text-primary transition-colors line-clamp-2 mb-3 text-foreground/90">{item.title}</h3>
+                      <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
+                        {stripHtmlAndTruncate(item.abstract || item.description, 100)}...
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>
             </section>
           </ScrollAnimation>
 
-          <div className="border-b-2 border-primary/20"></div>
-
-          {/* Latest News (한/영 전환 적용) */}
+          {/* Latest News */}
           <ScrollAnimation>
             <section>
-              <div className="flex justify-between items-center mb-8">
-                <h2 className="text-3xl font-bold text-primary">Latest News</h2>
-                <Button variant="link" onClick={() => onPageChange('/board/news')}>View All →</Button>
+              <div className="flex justify-between items-end mb-10 border-b pb-4 border-border">
+                <h2 className="text-3xl font-bold text-foreground">Latest News</h2>
+                <Button variant="ghost" className="text-primary hover:bg-primary/5 font-medium" onClick={() => onPageChange('/board/news')}>
+                  View All News →
+                </Button>
               </div>
-              
+
               {latestNews.length > 0 && (
-                <div className="grid grid-cols-1 lg:grid-cols-24">
-                  <div 
-                    className="cursor-pointer group flex flex-col h-full lg:col-span-11"
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                  {/* Main Featured News */}
+                  <div
+                    className="cursor-pointer group relative overflow-hidden rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 h-[24rem] lg:h-auto"
                     onClick={() => onPageChange(latestNews[0].type === 'notice' ? `/board/news/${latestNews[0].id}` : `/board/gallery/${latestNews[0].id}`)}
                   >
-                    <div className="overflow-hidden rounded-lg mb-4 aspect-video border">
-                      <img src={latestNews[0].thumbnail_url || '/images/logo.png'} alt={latestNews[0].title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"/>
-                    </div>
-                    <div className="flex flex-col flex-grow">
-                      <p className="text-sm text-muted-foreground">{latestNews[0].type === 'notice' ? 'NOTICE' : 'GALLERY'} · {new Date(latestNews[0].created_at).toLocaleDateString()}</p>
-                      {/* 🌍 getContent 적용 (뉴스/공지 제목) */}
-                      <h3 className="text-3xl font-bold mt-1 leading-tight group-hover:text-primary transition-colors">
+                    <img
+                      src={latestNews[0].thumbnail_url || '/images/logo.png'}
+                      alt={latestNews[0].title}
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+                    <div className="absolute inset-x-0 bottom-0 p-8 text-white">
+                      <p className="text-sm font-medium opacity-80 mb-2">{latestNews[0].type === 'notice' ? 'NOTICE' : 'GALLERY'} · {new Date(latestNews[0].created_at).toLocaleDateString()}</p>
+                      <h3 className="text-2xl md:text-3xl font-bold leading-tight mb-4 group-hover:text-primary-foreground transition-colors">
                         {getContent(latestNews[0], 'title')}
                       </h3>
-                      <p className="text-base text-muted-foreground mt-3 leading-relaxed flex-grow">
-                        {stripHtmlAndTruncate(getContent(latestNews[0], 'content'), 120)}...
+                      <p className="text-base md:text-lg opacity-90 line-clamp-2 max-w-xl">
+                        {stripHtmlAndTruncate(getContent(latestNews[0], 'content'), 150)}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex flex-col h-full space-y-4 lg:col-span-11 lg:col-start-14 mt-8 lg:mt-0">
-                    {latestNews.slice(1, 5).map(item => ( 
-                      <div key={`${item.id}-${item.type}`} className="flex-1 cursor-pointer group flex flex-col" onClick={() => onPageChange(item.type === 'notice' ? `/board/news/${item.id}` : `/board/gallery/${item.id}`)}>
-                        <div className="flex items-start gap-4 flex-grow">
-                          <div className="flex-grow">
-                            <p className="text-sm text-muted-foreground">{item.type === 'notice' ? 'NOTICE' : 'GALLERY'} · {new Date(item.created_at).toLocaleDateString()}</p>
-                            {/* 🌍 getContent 적용 */}
-                            <h4 className="text-lg font-semibold leading-snug group-hover:text-primary transition-colors">
-                              {getContent(item, 'title')}
-                            </h4>
-                          </div>
-                          <div className="w-32 flex-shrink-0 aspect-video overflow-hidden rounded-lg border">
-                            <img src={item.thumbnail_url || '/images/logo.png'} alt={item.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                          </div>
+                  {/* Side List */}
+                  <div className="flex flex-col gap-6">
+                    {latestNews.slice(1, 4).map(item => (
+                      <div
+                        key={`${item.id}-${item.type}`}
+                        className="flex gap-6 cursor-pointer group bg-card hover:bg-muted/50 p-4 rounded-xl transition-colors border border-transparent hover:border-border/50"
+                        onClick={() => onPageChange(item.type === 'notice' ? `/board/news/${item.id}` : `/board/gallery/${item.id}`)}
+                      >
+                        <div className="w-32 h-24 flex-shrink-0 overflow-hidden rounded-lg shadow-sm border border-border/10 order-first">
+                          <img src={item.thumbnail_url || '/images/logo.png'} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                         </div>
-                        <div className="border-b mt-4"></div>
+                        <div className="flex flex-col justify-center">
+                          <p className="text-xs font-medium text-primary mb-1 uppercase tracking-wider">{item.type === 'notice' ? 'NOTICE' : 'GALLERY'} · {new Date(item.created_at).toLocaleDateString()}</p>
+                          <h4 className="text-lg font-bold leading-snug group-hover:text-primary transition-colors mb-2 line-clamp-2 text-foreground/90">
+                            {getContent(item, 'title')}
+                          </h4>
+                          <p className="text-sm text-muted-foreground line-clamp-1">
+                            {stripHtmlAndTruncate(getContent(item, 'content'), 60)}
+                          </p>
+                        </div>
                       </div>
                     ))}
                   </div>

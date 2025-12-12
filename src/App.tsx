@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
+import { Loader2 } from 'lucide-react';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 import { Toaster } from '@/components/ui/toaster';
@@ -10,29 +11,30 @@ import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-
 import { useIdleTimer } from '@/hooks/useIdleTimer';
 import { SitePopup } from '@/components/SitePopup';
 
-import { HomePage } from '@/components/pages/HomePage';
-import { IntroductionPage } from '@/components/pages/IntroductionPage';
-import { ProfessorPage } from '@/components/pages/ProfessorPage';
-import { MembersPage } from '@/components/pages/MembersPage';
-import { AlumniPage } from '@/components/pages/AlumniPage';
-import { CastingAlloysPage } from '@/components/pages/CastingAlloysPage';
-import { ThinFilmsPage } from '@/components/pages/ThinFilmsPage';
-import { BiodegradableAlloysPage } from '@/components/pages/BiodegradableAlloysPage';
-import { PublicationsPage } from '@/components/pages/PublicationsPage';
-import { NoticeBoardPage } from '@/components/pages/NoticeBoardPage';
-import { GalleryBoardPage } from '@/components/pages/GalleryBoardPage';
-import { ContactPage } from '@/components/pages/ContactPage';
-import { AdminPage } from '@/components/pages/AdminPage';
-import { AdminPage2 } from '@/components/pages/AdminPage2';
-import { LoginPage } from '@/components/pages/LoginPage';
-import { ForgotPasswordPage } from '@/components/pages/ForgotPasswordPage';
-import { ResetPasswordPage } from '@/components/pages/ResetPasswordPage';
-import { NoticeDetailPage } from '@/components/pages/NoticeDetailPage';
-import { GalleryDetailPage } from '@/components/pages/GalleryDetailPage';
-import { EditNoticePage } from '@/components/pages/EditNoticePage';
-import { EditGalleryPage } from '@/components/pages/EditGalleryPage';
-import { SimulationPage } from '@/components/pages/SimulationPage'; 
-import { VtiViewerPage } from '@/components/pages/VtiViewerPage';
+// Lazy Load Pages
+const HomePage = lazy(() => import('@/components/pages/HomePage').then(m => ({ default: m.HomePage })));
+const IntroductionPage = lazy(() => import('@/components/pages/IntroductionPage').then(m => ({ default: m.IntroductionPage })));
+const ProfessorPage = lazy(() => import('@/components/pages/ProfessorPage').then(m => ({ default: m.ProfessorPage })));
+const MembersPage = lazy(() => import('@/components/pages/MembersPage').then(m => ({ default: m.MembersPage })));
+const AlumniPage = lazy(() => import('@/components/pages/AlumniPage').then(m => ({ default: m.AlumniPage })));
+const CastingAlloysPage = lazy(() => import('@/components/pages/CastingAlloysPage').then(m => ({ default: m.CastingAlloysPage })));
+const ThinFilmsPage = lazy(() => import('@/components/pages/ThinFilmsPage').then(m => ({ default: m.ThinFilmsPage })));
+const BiodegradableAlloysPage = lazy(() => import('@/components/pages/BiodegradableAlloysPage').then(m => ({ default: m.BiodegradableAlloysPage })));
+const PublicationsPage = lazy(() => import('@/components/pages/PublicationsPage').then(m => ({ default: m.PublicationsPage })));
+const NoticeBoardPage = lazy(() => import('@/components/pages/NoticeBoardPage').then(m => ({ default: m.NoticeBoardPage })));
+const GalleryBoardPage = lazy(() => import('@/components/pages/GalleryBoardPage').then(m => ({ default: m.GalleryBoardPage })));
+const ContactPage = lazy(() => import('@/components/pages/ContactPage').then(m => ({ default: m.ContactPage })));
+const AdminPage = lazy(() => import('@/components/pages/AdminPage').then(m => ({ default: m.AdminPage })));
+const AdminPage2 = lazy(() => import('@/components/pages/AdminPage2').then(m => ({ default: m.AdminPage2 })));
+const LoginPage = lazy(() => import('@/components/pages/LoginPage').then(m => ({ default: m.LoginPage })));
+const ForgotPasswordPage = lazy(() => import('@/components/pages/ForgotPasswordPage').then(m => ({ default: m.ForgotPasswordPage })));
+const ResetPasswordPage = lazy(() => import('@/components/pages/ResetPasswordPage').then(m => ({ default: m.ResetPasswordPage })));
+const NoticeDetailPage = lazy(() => import('@/components/pages/NoticeDetailPage').then(m => ({ default: m.NoticeDetailPage })));
+const GalleryDetailPage = lazy(() => import('@/components/pages/GalleryDetailPage').then(m => ({ default: m.GalleryDetailPage })));
+const EditNoticePage = lazy(() => import('@/components/pages/EditNoticePage').then(m => ({ default: m.EditNoticePage })));
+const EditGalleryPage = lazy(() => import('@/components/pages/EditGalleryPage').then(m => ({ default: m.EditGalleryPage })));
+const SimulationPage = lazy(() => import('@/components/pages/SimulationPage').then(m => ({ default: m.SimulationPage })));
+const VtiViewerPage = lazy(() => import('@/components/pages/VtiViewerPage').then(m => ({ default: m.VtiViewerPage })));
 
 import { Quill } from 'react-quill';
 import ImageResize from 'quill-image-resize-module-react';
@@ -68,34 +70,34 @@ function AppContent() {
     }
     navigate(path);
   };
-  
+
   const currentPage = location.pathname.split('/')[1] || 'home';
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex items-center justify-between h-16 sm:h-20 px-4 sm:px-0">
-          <div className="flex items-center gap-2 sm:gap-4">
-            <button onClick={() => handlePageChange('/')} className="flex-shrink-0">
-              <img 
-                src="/images/logo1.png" 
-                alt="CMSL Logo" 
-                className="h-12 sm:h-16 w-auto"
+    <div className="min-h-screen bg-background font-sans selection:bg-primary/10 selection:text-primary">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80 transition-all duration-200">
+        <div className="container flex items-center justify-between h-16 sm:h-20 px-4 xl:px-8">
+          <div className="flex items-center gap-4 sm:gap-8">
+            <button onClick={() => handlePageChange('/')} className="flex-shrink-0 group">
+              <img
+                src="/images/logo1.png"
+                alt="CMSL Logo"
+                className="h-10 sm:h-12 w-auto transition-transform group-hover:scale-105"
               />
             </button>
             <div className="hidden sm:flex flex-col items-start leading-tight">
-              {/* 🌍 헤더 텍스트 번역 적용 */}
-              <span className="font-bold text-sm lg:text-base text-muted-foreground">
+              {/* 🌍 Header Text Translation */}
+              <span className="font-semibold text-sm lg:text-[15px] text-foreground/80 tracking-tight">
                 {t('header.line1')}
               </span>
-              <span className="font-bold text-sm lg:text-base text-muted-foreground">
+              <span className="font-semibold text-sm lg:text-[15px] text-foreground/80 tracking-tight">
                 {t('header.line2')}
               </span>
             </div>
           </div>
-        
-          
-          <div className="hidden min-[1400px]:flex">
+
+
+          <div className="hidden min-[1280px]:flex">
             <Navigation currentPage={currentPage} onPageChange={handlePageChange} />
           </div>
         </div>
@@ -103,29 +105,39 @@ function AppContent() {
 
       <main>
         <Routes>
-          <Route path="/" element={<HomePage onPageChange={handlePageChange} />} />
-          <Route path="/viewer" element={<VtiViewerPage />} />
-          <Route path="/simulation" element={<SimulationPage />} /> 
-          <Route path="/introduction" element={<IntroductionPage />} />
-          <Route path="/people/professor" element={<ProfessorPage />} />
-          <Route path="/people/members" element={<MembersPage />} />
-          <Route path="/people/alumni" element={<AlumniPage />} />
-          <Route path="/research/casting" element={<CastingAlloysPage />} />
-          <Route path="/research/films" element={<ThinFilmsPage />} />
-          <Route path="/research/biodegradable" element={<BiodegradableAlloysPage />} />
-          <Route path="/publications" element={<PublicationsPage />} />
-          <Route path="/board/news" element={<NoticeBoardPage session={session} />} />
-          <Route path="/board/news/:id" element={<NoticeDetailPage session={session} />} /> 
-          <Route path="/board/news/:id/edit" element={<EditNoticePage />} />
-          <Route path="/board/gallery" element={<GalleryBoardPage session={session} />} />
-          <Route path="/board/gallery/:id" element={<GalleryDetailPage session={session} />} />
-          <Route path="/board/gallery/:id/edit" element={<EditGalleryPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/cmsl2004" element={session ? <AdminPage onNavigate={handlePageChange} /> : <LoginPage />} />
-          <Route path="/cmsl20042" element={session ? <AdminPage2 onNavigate={handlePageChange} /> : <LoginPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/" element={
+            <Suspense fallback={<div className="h-[80vh] w-full flex items-center justify-center"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>}>
+              <HomePage onPageChange={handlePageChange} />
+            </Suspense>
+          } />
+          <Route path="*" element={
+            <Suspense fallback={<div className="h-[80vh] w-full flex items-center justify-center"><Loader2 className="w-10 h-10 animate-spin text-primary" /></div>}>
+              <Routes>
+                <Route path="/viewer" element={<VtiViewerPage />} />
+                <Route path="/simulation" element={<SimulationPage />} />
+                <Route path="/introduction" element={<IntroductionPage />} />
+                <Route path="/people/professor" element={<ProfessorPage />} />
+                <Route path="/people/members" element={<MembersPage />} />
+                <Route path="/people/alumni" element={<AlumniPage />} />
+                <Route path="/research/casting" element={<CastingAlloysPage />} />
+                <Route path="/research/films" element={<ThinFilmsPage />} />
+                <Route path="/research/biodegradable" element={<BiodegradableAlloysPage />} />
+                <Route path="/publications" element={<PublicationsPage />} />
+                <Route path="/board/news" element={<NoticeBoardPage session={session} />} />
+                <Route path="/board/news/:id" element={<NoticeDetailPage session={session} />} />
+                <Route path="/board/news/:id/edit" element={<EditNoticePage />} />
+                <Route path="/board/gallery" element={<GalleryBoardPage session={session} />} />
+                <Route path="/board/gallery/:id" element={<GalleryDetailPage session={session} />} />
+                <Route path="/board/gallery/:id/edit" element={<EditGalleryPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/cmsl2004" element={session ? <AdminPage onNavigate={handlePageChange} /> : <LoginPage />} />
+                <Route path="/cmsl20042" element={session ? <AdminPage2 onNavigate={handlePageChange} /> : <LoginPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Suspense>
+          } />
         </Routes>
       </main>
 
@@ -137,15 +149,15 @@ function AppContent() {
                 <h3 className="text-lg font-semibold text-primary mb-2">CMSL</h3>
                 {/* 🌍 푸터 정보 번역 적용 */}
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  {t('footer.lab')}<br/>
-                  {t('footer.dept')}<br/>
+                  {t('footer.lab')}<br />
+                  {t('footer.dept')}<br />
                   {t('footer.univ')}
                 </p>
               </div>
               <a href="https://cms.kookmin.ac.kr/mse/index.do" target="_blank" rel="noopener noreferrer">
-                <img 
+                <img
                   src="/images/kmu-logo.png"
-                  alt="Kookmin University Logo" 
+                  alt="Kookmin University Logo"
                   className="h-14 sm:h-16 opacity-80"
                 />
               </a>
@@ -170,12 +182,12 @@ function AppContent() {
             </div>
           </div>
           <div className="border-t mt-8 pt-8 text-center text-xs sm:text-sm text-muted-foreground">
-              <p className="mb-2">{t('footer.address')}</p>
+            <p className="mb-2">{t('footer.address')}</p>
             <p>{t('footer.rights')}</p>
           </div>
         </div>
       </footer>
-      
+
       <div className="fixed top-4 right-4 min-[1400px]:hidden z-50">
         <MobileNavigation currentPage={currentPage} onPageChange={handlePageChange} />
       </div>

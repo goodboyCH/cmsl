@@ -7,14 +7,14 @@ import { componentTagger } from 'lovable-tagger';
 import path from "path";
 
 import { parse } from '@babel/parser';
-import _traverse from '@babel/traverse';
+import _traverse, { NodePath } from '@babel/traverse';
 import _generate from '@babel/generator';
 import * as t from '@babel/types';
 
 
 // CJS/ESM interop for Babel libs
-const traverse: typeof _traverse.default = ( (_traverse as any).default ?? _traverse ) as any;
-const generate: typeof _generate.default = ( (_generate as any).default ?? _generate ) as any;
+const traverse = ((_traverse as any).default ?? _traverse) as typeof _traverse;
+const generate = ((_generate as any).default ?? _generate) as typeof _generate;
 
 function cdnPrefixImages(): Plugin {
   const DEBUG = process.env.CDN_IMG_DEBUG === '1';
@@ -61,25 +61,25 @@ function cdnPrefixImages(): Plugin {
     // src / href
     html = html.replace(
       /(src|href)\s*=\s*(['"])([^'"]+)\2/g,
-      (_m, k, q, p) => `${k}=${q}${toCDN(p, cdn)}${q}`
+      (_m: string, k: string, q: string, p: string) => `${k}=${q}${toCDN(p, cdn)}${q}`
     );
     // srcset
     html = html.replace(
       /(srcset)\s*=\s*(['"])([^'"]+)\2/g,
-      (_m, k, q, list) => `${k}=${q}${rewriteSrcsetList(list, cdn)}${q}`
+      (_m: string, k: string, q: string, list: string) => `${k}=${q}${rewriteSrcsetList(list, cdn)}${q}`
     );
     return html;
   };
 
   const rewriteCssUrls = (code: string, cdn: string) =>
-    code.replace(/url\((['"]?)([^'")]+)\1\)/g, (_m, q, p) => `url(${q}${toCDN(p, cdn)}${q})`);
+    code.replace(/url\((['"]?)([^'")]+)\1\)/g, (_m: string, q: string, p: string) => `url(${q}${toCDN(p, cdn)}${q})`);
 
   const rewriteJsxAst = (code: string, id: string, cdn: string) => {
     const ast = parse(code, { sourceType: 'module', plugins: ['typescript', 'jsx'] });
     let rewrites = 0;
 
     traverse(ast, {
-      JSXAttribute(path) {
+      JSXAttribute(path: NodePath<t.JSXAttribute>) {
         const name = (path.node.name as t.JSXIdentifier).name;
         const isSrc = name === 'src' || name === 'href';
         const isSrcSet = name === 'srcSet' || name === 'srcset';
@@ -103,20 +103,20 @@ function cdnPrefixImages(): Plugin {
         }
       },
 
-      StringLiteral(path) {
+      StringLiteral(path: NodePath<t.StringLiteral>) {
         // skip object keys: { "image": "..." }
         if (t.isObjectProperty(path.parent) && path.parentKey === 'key' && !path.parent.computed) return;
         // skip import/export sources
         if (t.isImportDeclaration(path.parent) || t.isExportAllDeclaration(path.parent) || t.isExportNamedDeclaration(path.parent)) return;
         // skip inside JSX attribute (already handled)
-        if (path.findParent(p => p.isJSXAttribute())) return;
+        if (path.findParent((p: NodePath) => p.isJSXAttribute())) return;
 
         const before = path.node.value;
         const after = toCDN(before, cdn);
         if (after !== before) { path.node.value = after; rewrites++; }
       },
 
-      TemplateLiteral(path) {
+      TemplateLiteral(path: NodePath<t.TemplateLiteral>) {
         // handle `"/images/foo.png"` as template with NO expressions
         if (path.node.expressions.length) return;
         const raw = path.node.quasis.map(q => q.value.cooked ?? q.value.raw).join('');
@@ -217,6 +217,47 @@ export default defineConfig(({ mode }) => {
       componentTagger(),
       cdnPrefixImages(),
     ].filter(Boolean),
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+            'vendor-ui': ['framer-motion', 'lucide-react', 'sonner', 'clsx', 'tailwind-merge'],
+            'vendor-radix': [
+              '@radix-ui/react-accordion',
+              '@radix-ui/react-alert-dialog',
+              '@radix-ui/react-aspect-ratio',
+              '@radix-ui/react-avatar',
+              '@radix-ui/react-checkbox',
+              '@radix-ui/react-collapsible',
+              '@radix-ui/react-context-menu',
+              '@radix-ui/react-dialog',
+              '@radix-ui/react-dropdown-menu',
+              '@radix-ui/react-hover-card',
+              '@radix-ui/react-label',
+              '@radix-ui/react-menubar',
+              '@radix-ui/react-navigation-menu',
+              '@radix-ui/react-popover',
+              '@radix-ui/react-progress',
+              '@radix-ui/react-radio-group',
+              '@radix-ui/react-scroll-area',
+              '@radix-ui/react-select',
+              '@radix-ui/react-separator',
+              '@radix-ui/react-slider',
+              '@radix-ui/react-slot',
+              '@radix-ui/react-switch',
+              '@radix-ui/react-tabs',
+              '@radix-ui/react-toast',
+              '@radix-ui/react-toggle',
+              '@radix-ui/react-toggle-group',
+              '@radix-ui/react-tooltip'
+            ],
+            'vendor-3d': ['three', '@react-three/fiber', '@react-three/drei'],
+            'vendor-vtk': ['@kitware/vtk.js'],
+          }
+        }
+      }
+    },
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
