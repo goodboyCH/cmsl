@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-// 1. 언어 상태를 가져오기 위해 import
+import { ChevronLeft, ChevronRight, Pause, Play, ExternalLink } from 'lucide-react';
 import { useLanguage } from './LanguageProvider';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from '@/components/ui/button';
 
 interface ResearchHighlight {
   title: string;
@@ -12,7 +12,7 @@ interface ResearchHighlight {
   journal: string;
   year: string;
   description: string;
-  description_ko?: string; // 2. 한국어 설명 필드 추가 (Optional)
+  description_ko?: string;
   category: string;
   image?: string;
   doi: string;
@@ -23,43 +23,52 @@ interface SliderProps {
 }
 
 export function ResearchHighlightsSlider({ highlights }: SliderProps) {
-  const { language } = useLanguage(); // 3. 현재 언어 상태 가져오기
+  const { language } = useLanguage();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [direction, setDirection] = useState(0); // -1 for left, 1 for right
 
-  const slideTo = (index: number) => {
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setCurrentIndex(index);
-      setIsTransitioning(false);
-    }, 300);
-  };
-
+  // Auto-play logic
   useEffect(() => {
     if (!isAutoPlaying) return;
     const interval = setInterval(() => {
-      slideTo((currentIndex + 1) % highlights.length);
-    }, 5000);
+      handleNext();
+    }, 6000); // Slightly longer duration for better readability
     return () => clearInterval(interval);
-  }, [isAutoPlaying, currentIndex, highlights.length]); // highlights.length 의존성 추가
+  }, [isAutoPlaying, currentIndex]);
 
-  const goToPrevious = () => { slideTo((currentIndex - 1 + highlights.length) % highlights.length); setIsAutoPlaying(false); };
-  const goToNext = () => { slideTo((currentIndex + 1) % highlights.length); setIsAutoPlaying(false); };
-  
-  const handleCardClick = () => { if (highlights[currentIndex].doi) window.open(highlights[currentIndex].doi, '_blank'); };
+  const handleNext = useCallback(() => {
+    setDirection(1);
+    setCurrentIndex((prev) => (prev + 1) % highlights.length);
+  }, [highlights.length]);
+
+  const handlePrev = useCallback(() => {
+    setDirection(-1);
+    setCurrentIndex((prev) => (prev - 1 + highlights.length) % highlights.length);
+  }, [highlights.length]);
+
+  const handleDotClick = (index: number) => {
+    setDirection(index > currentIndex ? 1 : -1);
+    setCurrentIndex(index);
+    setIsAutoPlaying(false);
+  };
+
+  const handleCardClick = () => {
+    if (highlights[currentIndex].doi) {
+      window.open(highlights[currentIndex].doi, '_blank');
+    }
+  };
 
   if (!highlights || highlights.length === 0) {
     return (
-      <Card className="bg-white/10 backdrop-blur-sm border-white/20 text-white text-center p-8">
-        <p>No highlights to display.</p>
-      </Card>
+      <div className="flex justify-center items-center h-64 text-white/50">
+        No highlights available.
+      </div>
     );
   }
-  
+
   const currentHighlight = highlights[currentIndex];
 
-  // 4. 언어에 따른 설명 선택 로직
   const getDescription = () => {
     if (language === 'ko' && currentHighlight.description_ko) {
       return currentHighlight.description_ko;
@@ -67,47 +76,188 @@ export function ResearchHighlightsSlider({ highlights }: SliderProps) {
     return currentHighlight.description;
   };
 
+  // Animation Variants
+  const slideVariants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? 50 : -50,
+      opacity: 0,
+      scale: 0.95,
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1,
+      scale: 1,
+      transition: {
+        x: { type: "spring" as const, stiffness: 300, damping: 30 },
+        opacity: { duration: 0.4 },
+        scale: { duration: 0.4 }
+      }
+    },
+    exit: (direction: number) => ({
+      zIndex: 0,
+      x: direction < 0 ? 50 : -50,
+      opacity: 0,
+      scale: 0.95,
+      transition: {
+        x: { type: "spring" as const, stiffness: 300, damping: 30 },
+        opacity: { duration: 0.3 },
+        scale: { duration: 0.3 }
+      }
+    })
+  };
+
+  const contentVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { delay: 0.2, duration: 0.5, staggerChildren: 0.1 }
+    }
+  };
+
   return (
-    <div className="relative">
-      <div onClick={handleCardClick} className="cursor-pointer group">
-        <Card className="bg-white/10 backdrop-blur-sm border-white/20 text-white overflow-hidden transition-shadow duration-300 group-hover:shadow-lg">
-          <CardContent className="p-0">
-            <div className={`transition-opacity duration-300 ${isTransitioning ? 'opacity-0' : 'opacity-100'}`}>
-              <div className="grid md:grid-cols-5 gap-0 items-center">
-                <div className="relative h-64 md:h-96 overflow-hidden md:col-span-2">
-                  {currentHighlight.image && (
-                    <img src={currentHighlight.image} alt={currentHighlight.title} className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105 rounded-lg"/>
-                  )}
-                </div>
-                <div className="p-8 flex flex-col justify-center space-y-4 md:col-span-3">
-                  <div className="space-y-3">
-                    <Badge variant="secondary" className="w-fit bg-white/20 text-white border-white/30">{currentHighlight.category}</Badge>
-                    <h3 className="text-2xl font-bold leading-tight">{currentHighlight.title}</h3>
-                    
-                    {/* 5. 선택된 설명 렌더링 */}
-                    <p className="text-white/90 leading-relaxed">
-                      {getDescription()}
-                    </p>
-                  </div>
-                  <div className="space-y-2 pt-4 border-t border-white/20">
-                    <p className="text-sm text-white/80"><span className="font-medium">Authors:</span> {currentHighlight.authors}</p>
-                    <p className="text-sm text-white/80"><span className="font-medium">Published in:</span> {currentHighlight.journal} ({currentHighlight.year})</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+    <div className="relative w-full max-w-6xl mx-auto py-8">
+      {/* Background Ambience */}
+      <div className="absolute inset-0 overflow-hidden rounded-3xl -z-10">
+        <AnimatePresence mode='wait'>
+          <motion.div
+            key={currentIndex}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.4 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1 }}
+            className="absolute inset-0 bg-cover bg-center blur-3xl opacity-30 transform scale-125"
+            style={{ backgroundImage: `url(${currentHighlight.image})` }}
+          />
+        </AnimatePresence>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/80" />
       </div>
-      <Button variant="ghost" size="icon" onClick={goToPrevious} className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm z-10"><ChevronLeft className="h-6 w-6" /></Button>
-      <Button variant="ghost" size="icon" onClick={goToNext} className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm z-10"><ChevronRight className="h-6 w-6" /></Button>
-      <div className="flex justify-center space-x-2 mt-6">
-        {highlights.map((_, index) => (
-          <button key={index} onClick={() => { slideTo(index); setIsAutoPlaying(false); }} className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentIndex ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/70'}`} />
-        ))}
-      </div>
-      <div className="absolute top-4 right-4 z-10">
-        <button onClick={() => setIsAutoPlaying(!isAutoPlaying)} className="text-xs text-white/70 hover:text-white transition-colors">{isAutoPlaying ? '⏸️ Auto' : '▶️ Manual'}</button>
+
+      <div className="relative px-4 md:px-12">
+        <div className="relative min-h-[500px] md:min-h-[450px] flex items-center">
+
+          {/* Navigation Buttons (Left) */}
+          <button
+            onClick={() => { handlePrev(); setIsAutoPlaying(false); }}
+            className="absolute left-0 z-20 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-all hover:scale-110 hidden md:flex"
+            aria-label="Previous slide"
+          >
+            <ChevronLeft size={32} />
+          </button>
+
+          {/* Navigation Buttons (Right) */}
+          <button
+            onClick={() => { handleNext(); setIsAutoPlaying(false); }}
+            className="absolute right-0 z-20 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-all hover:scale-110 hidden md:flex"
+            aria-label="Next slide"
+          >
+            <ChevronRight size={32} />
+          </button>
+
+          <div className="w-full overflow-hidden">
+            <AnimatePresence initial={false} custom={direction} mode="wait">
+              <motion.div
+                key={currentIndex}
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                className="w-full"
+              >
+                <Card className="bg-white/10 backdrop-blur-md border border-white/20 overflow-hidden shadow-2xl rounded-2xl mx-auto">
+                  <div className="flex flex-col md:flex-row h-full">
+
+                    {/* Image Section */}
+                    <div className="md:w-2/5 relative h-64 md:h-auto overflow-hidden bg-black/20 group cursor-pointer" onClick={handleCardClick}>
+                      <motion.img
+                        src={currentHighlight.image}
+                        alt={currentHighlight.title}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        initial={{ scale: 1.1 }}
+                        animate={{ scale: 1 }}
+                        transition={{ duration: 5 }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <span className="text-white flex items-center gap-2 font-medium px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm">
+                          Read Paper <ExternalLink size={16} />
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Content Section */}
+                    <div className="md:w-3/5 p-6 md:p-10 flex flex-col justify-center text-white relative">
+                      <motion.div
+                        variants={contentVariants}
+                        initial="hidden"
+                        animate="visible"
+                        className="space-y-6"
+                      >
+                        <div className="flex items-center justify-between">
+                          <Badge className="bg-primary/80 hover:bg-primary text-white border-none px-3 py-1 text-sm font-medium shadow-lg shadow-primary/20 backdrop-blur-sm">
+                            {currentHighlight.category}
+                          </Badge>
+                          <span className="text-white/40 text-sm font-mono">{currentHighlight.year}</span>
+                        </div>
+
+                        <h3
+                          className="text-2xl md:text-3xl lg:text-4xl font-bold leading-tight tracking-tight cursor-pointer hover:text-primary-foreground transition-colors"
+                          onClick={handleCardClick}
+                        >
+                          {currentHighlight.title}
+                        </h3>
+
+                        <p className="text-base md:text-lg text-white/80 leading-relaxed line-clamp-4 md:line-clamp-none font-light">
+                          {getDescription()}
+                        </p>
+
+                        <div className="pt-6 border-t border-white/10 space-y-2">
+                          <div className="flex items-start gap-2 text-sm text-white/60">
+                            <span className="font-semibold text-white/80 shrink-0">Authors:</span>
+                            <span className="line-clamp-1">{currentHighlight.authors}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-white/60">
+                            <span className="font-semibold text-white/80">Published in:</span>
+                            <span className="italic">{currentHighlight.journal}</span>
+                          </div>
+                        </div>
+                      </motion.div>
+                    </div>
+
+                  </div>
+                </Card>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
+
+        {/* Controls */}
+        <div className="mt-8 flex items-center justify-between px-4">
+          {/* Autoplay Toggle */}
+          <button
+            onClick={() => setIsAutoPlaying(!isAutoPlaying)}
+            className="flex items-center gap-2 text-white/60 hover:text-white transition-colors text-xs font-medium uppercase tracking-wider"
+          >
+            {isAutoPlaying ? <Pause size={14} /> : <Play size={14} />}
+            {isAutoPlaying ? 'Pause' : 'Play'}
+          </button>
+
+          {/* Dots */}
+          <div className="flex space-x-3">
+            {highlights.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => handleDotClick(index)}
+                className={`h-1.5 rounded-full transition-all duration-300 ${index === currentIndex ? 'w-8 bg-primary shadow-[0_0_10px_rgba(255,255,255,0.5)]' : 'w-2 bg-white/20 hover:bg-white/40'
+                  }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
+
+          <div className="w-16"></div> {/* Spacer for balance */}
+        </div>
       </div>
     </div>
   );
