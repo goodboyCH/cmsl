@@ -1,3 +1,8 @@
+/* 
+  NOTE: This file uses Tailwind CSS directives (@tailwind, @apply, etc.)
+  If your editor shows warnings like "Unknown at rule @tailwind", it is because
+  it treats this as standard CSS. These are valid in this project context.
+*/
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -12,6 +17,7 @@ All colors MUST be HSL.
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'Presentation';
   src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-2ExtraLight.woff2') format('woff2');
@@ -19,6 +25,7 @@ All colors MUST be HSL.
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'Presentation';
   src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-3Light.woff2') format('woff2');
@@ -26,6 +33,7 @@ All colors MUST be HSL.
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'Presentation';
   src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-4Regular.woff2') format('woff2');
@@ -33,6 +41,7 @@ All colors MUST be HSL.
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'Presentation';
   src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-5Medium.woff2') format('woff2');
@@ -40,6 +49,7 @@ All colors MUST be HSL.
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'Presentation';
   src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-6SemiBold.woff2') format('woff2');
@@ -47,6 +57,7 @@ All colors MUST be HSL.
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'Presentation';
   src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-7Bold.woff2') format('woff2');
@@ -54,6 +65,7 @@ All colors MUST be HSL.
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'Presentation';
   src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-8ExtraBold.woff2') format('woff2');
@@ -61,6 +73,7 @@ All colors MUST be HSL.
   font-style: normal;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'Presentation';
   src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-9Black.woff2') format('woff2');
@@ -72,46 +85,59 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* Google-like Background & Foreground */
-    --background: 210 20% 98%; /* Softer off-white (#f8f9fa equivalent in HSL) */
-    --foreground: 220 10% 20%; /* Softer black for text */
+    --background: 210 20% 98%;
+    /* Softer off-white (#f8f9fa equivalent in HSL) */
+    --foreground: 220 10% 20%;
+    /* Softer black for text */
 
-    --card: 0 0% 100%; /* Pure white cards */
+    --card: 0 0% 100%;
+    /* Pure white cards */
     --card-foreground: 222.2 84% 4.9%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    /* Updated Promary (More vivid/Google Blue-ish) */
-    --primary: 217 91% 60%; /* Google Blue-like #4285F4 */
+    /* Updated Primary: Reverted to Original Navy but clearer */
+    --primary: 214 100% 27%;
+    /* Original Navy */
     --primary-foreground: 210 40% 98%;
-    --primary-glow: 217 91% 70%;
+    --primary-glow: 214 100% 35%;
+    /* Slightly lighter for glow effects */
 
-    --secondary: 210 40% 96.1%;
+    --secondary: 210 20% 96%;
+    /* Neutral cool grey */
     --secondary-foreground: 222.2 47.4% 11.2%;
 
     --muted: 220 14% 96%;
-    --muted-foreground: 220 10% 40%; /* Grey 700-like */
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 217 91% 95%; /* Very light blue for accents */
-    --accent-foreground: 217 90% 40%;
+    --accent: 214 100% 95%;
+    /* Very light navy tint */
+    --accent-foreground: 214 100% 27%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 217 91% 60%;
+    --border: 220 13% 90%;
+    --input: 220 13% 90%;
+    --ring: 214 100% 27%;
 
-    --radius: 1rem; /* More rounded corners (16px) for friendliness */
-    
-    /* Academic design tokens */
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 70%));
+    --radius: 0.75rem;
+    /* Balanced rounded corners (12px) - not too round, not too sharp */
+
+    /* Sophisticated Design Tokens */
+    --gradient-primary: linear-gradient(135deg, hsl(214 100% 27%), hsl(220 80% 40%));
+    /* Deep Navy Gradient */
     --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 20% 98%));
-    
-    /* Material Design Elevations */
-    --shadow-elegant: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-    --shadow-glow: 0 0 40px hsl(217 91% 60% / 0.2);
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Refined Shadows for "Sophistication" */
+    /* Soft, diffused shadow for depth */
+    --shadow-elegant: 0 10px 40px -10px rgba(0, 30, 80, 0.1);
+    --shadow-card: 0 2px 8px -2px rgba(0, 30, 80, 0.08);
+    --shadow-glow: 0 0 40px hsl(214 100% 27% / 0.15);
+
+    --transition-smooth: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    /* Silkier transition */
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -123,6 +149,7 @@ All colors MUST be HSL.
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
+  /* ...dark mode settings mostly kept same or auto-adjusted... */
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
@@ -133,7 +160,7 @@ All colors MUST be HSL.
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 217 91% 60%;
+    --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -168,45 +195,47 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground font-presentation; /* 수정된 부분 */
+    @apply bg-background text-foreground font-presentation;
+    /* 수정된 부분 */
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
-  
+
   .font-mono {
     font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace;
   }
 }
+
 @layer components {
   .academic-gradient {
     background: var(--gradient-primary);
   }
-  
+
   .elegant-shadow {
     box-shadow: var(--shadow-elegant);
   }
-  
+
   .smooth-transition {
     transition: var(--transition-smooth);
   }
 
   /* Geometric Patterns */
   .hexagon-pattern {
-    background-image: 
+    background-image:
       radial-gradient(circle at 25px 25px, hsl(var(--primary) / 0.1) 2px, transparent 2px),
       radial-gradient(circle at 75px 75px, hsl(var(--primary) / 0.05) 2px, transparent 2px);
     background-size: 100px 100px;
   }
 
   .geometric-grid {
-    background-image: 
+    background-image:
       linear-gradient(hsl(var(--primary) / 0.05) 1px, transparent 1px),
       linear-gradient(90deg, hsl(var(--primary) / 0.05) 1px, transparent 1px);
     background-size: 20px 20px;
   }
 
   .scientific-pattern {
-    background-image: 
+    background-image:
       radial-gradient(circle at 50% 50%, hsl(var(--primary) / 0.1) 1px, transparent 1px),
       linear-gradient(45deg, hsl(var(--accent) / 0.05) 25%, transparent 25%),
       linear-gradient(-45deg, hsl(var(--accent) / 0.05) 25%, transparent 25%);
@@ -235,16 +264,16 @@ All colors MUST be HSL.
   }
 
   .gradient-diagonal {
-    background: linear-gradient(45deg, 
-      hsl(var(--primary) / 0.1) 0%, 
-      transparent 25%, 
-      hsl(var(--accent) / 0.1) 50%, 
-      transparent 75%, 
-      hsl(var(--secondary) / 0.1) 100%);
+    background: linear-gradient(45deg,
+        hsl(var(--primary) / 0.1) 0%,
+        transparent 25%,
+        hsl(var(--accent) / 0.1) 50%,
+        transparent 75%,
+        hsl(var(--secondary) / 0.1) 100%);
   }
 
   .gradient-mesh {
-    background: 
+    background:
       radial-gradient(at 40% 20%, hsl(var(--primary) / 0.3) 0px, transparent 50%),
       radial-gradient(at 80% 0%, hsl(var(--accent) / 0.2) 0px, transparent 50%),
       radial-gradient(at 0% 50%, hsl(var(--secondary) / 0.2) 0px, transparent 50%),
@@ -258,7 +287,7 @@ All colors MUST be HSL.
 /* Quill 에디터 내부의 이미지 스타일 수정 */
 .ql-editor img {
   /* 이미지를 텍스트처럼 한 줄에 표시되도록 변경 */
-  display: inline-block; 
+  display: inline-block;
   /* 텍스트와 이미지의 세로 정렬을 맞춤 (baseline, top, middle, bottom 등) */
   vertical-align: middle;
   /* 텍스트와의 간격을 위해 약간의 여백 추가 */
@@ -266,13 +295,13 @@ All colors MUST be HSL.
 }
 
 
-img[src=""], 
+img[src=""],
 img:error {
   display: inline-block;
   position: relative;
   width: 100%;
   height: 100%;
-  
+
   /* 기존의 깨진 이미지 아이콘과 텍스트를 숨깁니다. */
   text-indent: -9999px;
   color: transparent;

@@ -144,20 +144,20 @@ export function HomePage({ onPageChange }: HomePageProps) {
                       key={cap.id}
                       layoutId={`capability-card-${cap.id}`}
                       onMouseEnter={() => setSelectedCapabilityId(cap.id)}
-                      className="relative h-full rounded-2xl overflow-hidden cursor-pointer shadow-sm hover:shadow-xl transition-shadow duration-300 group bg-card border border-border/50"
+                      className="relative h-full rounded-2xl overflow-hidden cursor-pointer elegant-shadow smooth-transition group bg-card border border-border/50 hover:-translate-y-1"
                     >
                       <motion.img
                         layoutId={`capability-img-${cap.id}`}
                         src={cap.bgImage}
                         alt={cap.title}
-                        className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 scale-100 group-hover:scale-110"
+                        className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 smooth-transition scale-100 group-hover:scale-110"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 group-hover:opacity-60 smooth-transition" />
 
                       <motion.div layout="position" className="relative z-10 flex flex-col items-center justify-end h-full p-8 pb-12 text-center">
-                        <div className="w-12 h-1 bg-primary mb-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="w-12 h-1 bg-primary mb-6 rounded-full opacity-0 group-hover:opacity-100 smooth-transition" />
                         {/* 🌍 getContent 적용 */}
-                        <h3 className={`font-bold text-white text-2xl transition-all duration-300 ${selectedCapabilityId !== null ? 'opacity-0' : 'opacity-100'}`}>
+                        <h3 className={`font-bold text-white text-2xl smooth-transition ${selectedCapabilityId !== null ? 'opacity-0' : 'opacity-100'}`}>
                           {getContent(cap, 'title')}
                         </h3>
                       </motion.div>
@@ -215,26 +215,26 @@ export function HomePage({ onPageChange }: HomePageProps) {
                 {(pageContent.research_topics || []).map((topic: any) => (
                   <div
                     key={topic.title}
-                    className="group cursor-pointer relative overflow-hidden h-[28rem] rounded-2xl shadow-sm hover:shadow-2xl transition-all duration-500 bg-white"
+                    className="group cursor-pointer relative overflow-hidden h-[28rem] rounded-2xl elegant-shadow hover:shadow-2xl smooth-transition bg-white"
                     onClick={() => onPageChange(topic.path)}
                   >
                     <div className="absolute inset-0 z-0">
                       <img
                         src={topic.bgImage}
                         alt={topic.title}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        className="w-full h-full object-cover smooth-transition duration-700 group-hover:scale-105"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90 transition-opacity duration-300 group-hover:opacity-80"></div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90 smooth-transition group-hover:opacity-80"></div>
                     </div>
 
                     <div className="relative z-10 p-8 h-full flex flex-col justify-end text-white">
-                      <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                      <div className="transform translate-y-4 group-hover:translate-y-0 smooth-transition">
                         {/* 🌍 getContent 적용 */}
                         <h3 className="text-2xl font-bold mb-4">{getContent(topic, 'title')}</h3>
-                        <p className="text-base text-gray-200 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100 line-clamp-3 leading-relaxed">
+                        <p className="text-base text-gray-200 opacity-0 group-hover:opacity-100 smooth-transition delay-100 line-clamp-3 leading-relaxed">
                           {getContent(topic, 'description')}
                         </p>
-                        <div className="mt-6 flex items-center text-sm font-medium text-primary-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-200">
+                        <div className="mt-6 flex items-center text-sm font-medium text-primary-foreground opacity-0 group-hover:opacity-100 smooth-transition delay-200">
                           Explore Topic <span className="ml-2">→</span>
                         </div>
                       </div>
