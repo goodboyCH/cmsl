@@ -22,7 +22,18 @@ export function SimulationPage() {
   const [selectedSim, setSelectedSim] = useState<SimulationType>('grain_shrinkage');
   const wsRef = useRef<WebSocket | null>(null);
 
-  const [gsParams, setGsParams] = useState({ im: 100, nnn_ed: 2000, Nout: 100, driv: 0.1 });
+  const [gsParams, setGsParams] = useState({ 
+    im: 100, 
+    nnn_ed: 2000, 
+    Nout: 100, 
+    driv: 0.1,
+    mobility: 1.0,      // 추가
+    gb_energy: 1.0,     // 추가
+    init_radius: 25.0,  // 추가
+    noise_level: 0.0,   // 추가
+    aniso_strength: 0.0,// 추가
+    symmetry_mode: 4    // 추가
+  });
   const [dgParams, setDgParams] = useState({ n: 512, steps: 3000, n_fold_symmetry: 4, aniso_magnitude: 0.12, latent_heat_coef: 1.5 });
   const handleAIUpdate = (type: string, params: any) => {
     if (type === 'grain_shrinkage' || type === 'dendrite_growth') {
@@ -128,10 +139,41 @@ export function SimulationPage() {
                   
                   <TabsContent value="grain_shrinkage" className="space-y-4 mt-4">
                     <p className="text-sm text-muted-foreground">{t('sim.desc.gs')}</p>
-                    <div><Label htmlFor="gs_im">{t('sim.label.grid')} (im/jm)</Label><Input id="gs_im" type="number" value={gsParams.im} max="1024" onChange={e => setGsParams({...gsParams, im: parseInt(e.target.value) || 0})} /></div>
-                    <div><Label htmlFor="gs_nnn_ed">{t('sim.label.steps')} (nnn_ed)</Label><Input id="gs_nnn_ed" type="number" value={gsParams.nnn_ed} max="5000" onChange={e => setGsParams({...gsParams, nnn_ed: parseInt(e.target.value) || 0})}/></div>
-                    <div><Label htmlFor="gs_Nout">{t('sim.label.interval')} (Nout)</Label><Input id="gs_Nout" type="number" value={gsParams.Nout} onChange={e => setGsParams({...gsParams, Nout: parseInt(e.target.value) || 0})}/></div>
-                    <div><Label htmlFor="gs_driv">{t('sim.label.drive')} (driv)</Label><Input id="gs_driv" type="number" step="0.01" value={gsParams.driv} onChange={e => setGsParams({...gsParams, driv: parseFloat(e.target.value) || 0})}/></div>
+                    
+                    {/* 기존 파라미터 */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div><Label htmlFor="gs_im">Grid Size (im)</Label><Input id="gs_im" type="number" value={gsParams.im} max="512" onChange={e => setGsParams({...gsParams, im: parseInt(e.target.value) || 0})} /></div>
+                      <div><Label htmlFor="gs_steps">Steps</Label><Input id="gs_steps" type="number" value={gsParams.nnn_ed} max="5000" onChange={e => setGsParams({...gsParams, nnn_ed: parseInt(e.target.value) || 0})}/></div>
+                    </div>
+                    
+                    {/* ✨ 새로 추가된 고급 파라미터 UI */}
+                    <div className="p-3 border rounded-md bg-slate-50 dark:bg-slate-900 space-y-3">
+                      <p className="text-xs font-semibold text-slate-500">Advanced Physics</p>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div><Label className="text-xs">Mobility</Label><Input type="number" step="0.1" value={gsParams.mobility} onChange={e => setGsParams({...gsParams, mobility: parseFloat(e.target.value)||0})}/></div>
+                        <div><Label className="text-xs">Interface Energy</Label><Input type="number" step="0.1" value={gsParams.gb_energy} onChange={e => setGsParams({...gsParams, gb_energy: parseFloat(e.target.value)||0})}/></div>
+                        <div><Label className="text-xs">Init Radius</Label><Input type="number" value={gsParams.init_radius} onChange={e => setGsParams({...gsParams, init_radius: parseFloat(e.target.value)||0})}/></div>
+                        <div><Label className="text-xs">Noise Level</Label><Input type="number" step="0.01" value={gsParams.noise_level} onChange={e => setGsParams({...gsParams, noise_level: parseFloat(e.target.value)||0})}/></div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 pt-2 border-t">
+                        <div><Label className="text-xs">Aniso Strength (0-0.5)</Label><Input type="number" step="0.05" max="0.5" value={gsParams.aniso_strength} onChange={e => setGsParams({...gsParams, aniso_strength: parseFloat(e.target.value)||0})}/></div>
+                        <div>
+                          <Label className="text-xs">Symmetry Mode</Label>
+                          <select 
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                            value={gsParams.symmetry_mode}
+                            onChange={e => setGsParams({...gsParams, symmetry_mode: parseInt(e.target.value)})}
+                          >
+                            <option value={4}>4-Fold (Square)</option>
+                            <option value={6}>6-Fold (Hexagon)</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div><Label htmlFor="gs_driv">Driving Force</Label><Input id="gs_driv" type="number" step="0.01" value={gsParams.driv} onChange={e => setGsParams({...gsParams, driv: parseFloat(e.target.value) || 0})}/></div>
                   </TabsContent>
 
                   <TabsContent value="dendrite_growth" className="space-y-4 mt-4">
