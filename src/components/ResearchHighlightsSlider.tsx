@@ -166,11 +166,11 @@ export function ResearchHighlightsSlider({ highlights }: SliderProps) {
                 exit="exit"
                 className="w-full"
               >
-                <Card className="bg-white/10 backdrop-blur-md border border-white/20 overflow-hidden shadow-2xl rounded-2xl mx-auto">
+                <Card className="bg-black/80 backdrop-blur-xl border border-white/10 overflow-hidden shadow-2xl rounded-3xl mx-auto">
                   <div className="flex flex-col md:flex-row h-full">
 
-                    {/* Image Section */}
-                    <div className="md:w-2/5 relative h-64 md:h-auto overflow-hidden bg-black/20 group cursor-pointer" onClick={handleCardClick}>
+                    {/* Image Section - Adjusted for 16:9 approximation */}
+                    <div className="md:w-3/5 relative aspect-video md:aspect-auto md:h-auto overflow-hidden bg-black/50 group cursor-pointer" onClick={handleCardClick}>
                       <motion.img
                         src={currentHighlight.image}
                         alt={currentHighlight.title}
@@ -179,7 +179,7 @@ export function ResearchHighlightsSlider({ highlights }: SliderProps) {
                         animate={{ scale: 1 }}
                         transition={{ duration: 5 }}
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                         <span className="text-white flex items-center gap-2 font-medium px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm">
                           Read Paper <ExternalLink size={16} />
                         </span>
@@ -187,7 +187,7 @@ export function ResearchHighlightsSlider({ highlights }: SliderProps) {
                     </div>
 
                     {/* Content Section */}
-                    <div className="md:w-3/5 p-6 md:p-10 flex flex-col justify-center text-white relative">
+                    <div className="md:w-2/5 p-6 md:p-8 flex flex-col justify-center text-white relative bg-gradient-to-l from-transparent to-black/20">
                       <motion.div
                         variants={contentVariants}
                         initial="hidden"
