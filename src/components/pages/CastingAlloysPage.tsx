@@ -7,7 +7,7 @@ const defaultContent: Partial<ResearchPageContent> = {
   representative_media: { url: '', type: 'image' },
   gallery_images: [],
   related_publications_title: "Key Publications",
-  publication_keywords: ["casting", "aluminum", "magnesium", "alloy", "microstructure"]
+  related_publication_ids: []
 };
 
 export function CastingAlloysPage() {

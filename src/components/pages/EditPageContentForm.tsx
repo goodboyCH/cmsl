@@ -21,6 +21,7 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
   const [content, setContent] = useState<Record<string, any> | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
+  const [allPublications, setAllPublications] = useState<any[]>([]);
 
   const [newImage, setNewImage] = useState<File | null>(null);
 
@@ -424,27 +425,81 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
                     </Tabs>
                   </div>
 
-                  {/* 5. 키워드 입력 */}
+                  {/* 5. 관련 논문 수동 선택 (최대 5개) */}
                   <div className="p-4 border rounded-md space-y-4 bg-muted/10">
                     <div className="space-y-2">
-                      <Label className="font-bold text-primary">Publication Keywords</Label>
+                      <Label className="font-bold text-primary">Select Related Publications (Max 5)</Label>
                       <p className="text-sm text-muted-foreground">
-                        Enter keywords separated by commas. Publications containing these keywords in their title or abstract will be automatically displayed on the page.
-                        <br />(e.g., "casting, aluminum, magnesium")
+                        Please select up to 5 publications to display on this research page.
                       </p>
-                      <Textarea
-                        name="publication_keywords"
-                        value={Array.isArray(content?.publication_keywords) ? content?.publication_keywords.join(', ') : (content?.publication_keywords || '')}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          // Store momentarily as string, will be processed on submit
-                          setContent(prev => (prev ? { ...prev, publication_keywords: val } : { publication_keywords: val }));
-                        }}
-                        rows={3}
-                        placeholder="casting, alloy, microstructure..."
-                      />
+
+                      {/* Selector */}
+                      <div className="flex gap-2">
+                        <Select onValueChange={(val) => {
+                          const newId = parseInt(val);
+                          const currentIds = content?.related_publication_ids || [];
+                          if (currentIds.length >= 5) {
+                            alert("You can only select up to 5 publications.");
+                            return;
+                          }
+                          if (!currentIds.includes(newId)) {
+                            setContent(prev => ({
+                              ...prev,
+                              related_publication_ids: [...currentIds, newId]
+                            }));
+                          }
+                        }}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select a publication to add..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {allPublications.map(pub => (
+                              <SelectItem key={pub.id} value={pub.id.toString()}>
+                                [{pub.year}] {pub.title.substring(0, 50)}...
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Selected List */}
+                      <div className="space-y-2 mt-4">
+                        <Label className="text-sm font-semibold">Selected Publications:</Label>
+                        {(!content?.related_publication_ids || content?.related_publication_ids.length === 0) && (
+                          <p className="text-sm text-muted-foreground italic">No publications selected.</p>
+                        )}
+                        <div className="space-y-2">
+                          {(content?.related_publication_ids || []).map((id: number) => {
+                            const pub = allPublications.find(p => p.id === id);
+                            if (!pub) return null;
+                            return (
+                              <div key={id} className="flex items-center justify-between p-3 bg-background border rounded-md shadow-sm">
+                                <div className="text-sm">
+                                  <span className="font-bold mr-2 text-primary">{pub.year}</span>
+                                  <span className="line-clamp-1">{pub.title}</span>
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 text-destructive hover:text-destructive/90"
+                                  onClick={() => {
+                                    setContent(prev => ({
+                                      ...prev,
+                                      related_publication_ids: prev?.related_publication_ids.filter((pid: number) => pid !== id)
+                                    }));
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
                     </div>
-                  </div>
+
+                  </div> {/* Closing div for line 428 */}
 
                 </AccordionContent>
               </AccordionItem>

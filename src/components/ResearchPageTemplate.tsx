@@ -16,7 +16,7 @@ export interface ResearchPageContent {
     representative_media: { url: string, type: 'image' | 'video', alt?: string, alt_ko?: string };
     gallery_images: { url: string, type: 'image' | 'video', alt?: string, alt_ko?: string }[];
     related_publications_title: string; related_publications_title_ko?: string;
-    publication_keywords: string[]; // Keywords to filter publications by
+    related_publication_ids: number[]; // IDs of publications to display
 }
 
 interface Publication {
@@ -90,19 +90,14 @@ export function ResearchPageTemplate({ pageKey, defaultContent }: ResearchPageTe
                 .order('year', { ascending: false });
 
             if (pubData) {
-                const keywords = Array.isArray(currentContent.publication_keywords)
-                    ? currentContent.publication_keywords
+                const targetIds = Array.isArray(currentContent.related_publication_ids)
+                    ? currentContent.related_publication_ids
                     : [];
 
-                if (keywords.length > 0) {
-                    const filtered = pubData.filter(pub => {
-                        const title = pub.title ? pub.title.toLowerCase() : '';
-                        const abstract = pub.abstract ? pub.abstract.toLowerCase() : '';
-                        const textToSearch = `${title} ${abstract}`;
-
-                        return keywords.some(keyword => textToSearch.includes(keyword.toLowerCase().trim()));
-                    });
-                    setPublications(filtered.slice(0, 5)); // Limit to 5 items
+                if (targetIds.length > 0) {
+                    // Filter by ID
+                    const filtered = pubData.filter(pub => targetIds.includes(pub.id));
+                    setPublications(filtered);
                 } else {
                     setPublications([]);
                 }
@@ -232,7 +227,7 @@ export function ResearchPageTemplate({ pageKey, defaultContent }: ResearchPageTe
 
                         {publications.length === 0 ? (
                             <div className="text-center py-12 bg-muted/20 rounded-2xl border border-dashed border-border text-muted-foreground">
-                                No related publications found for keywords: {content.publication_keywords?.join(', ')}
+                                No related publications selected.
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 gap-4">

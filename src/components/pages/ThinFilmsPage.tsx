@@ -7,7 +7,7 @@ const defaultContent: Partial<ResearchPageContent> = {
   representative_media: { url: '', type: 'image' },
   gallery_images: [],
   related_publications_title: "Key Publications",
-  publication_keywords: ["thin film", "coating", "sputtering", "deposition", "surface"]
+  related_publication_ids: []
 };
 
 export function ThinFilmsPage() {
