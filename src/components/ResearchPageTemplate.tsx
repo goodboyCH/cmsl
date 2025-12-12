@@ -90,13 +90,19 @@ export function ResearchPageTemplate({ pageKey, defaultContent }: ResearchPageTe
                 .order('year', { ascending: false });
 
             if (pubData) {
-                const keywords = currentContent.publication_keywords || [];
+                const keywords = Array.isArray(currentContent.publication_keywords)
+                    ? currentContent.publication_keywords
+                    : [];
+
                 if (keywords.length > 0) {
                     const filtered = pubData.filter(pub => {
-                        const textToSearch = `${pub.title} ${pub.abstract || ''}`.toLowerCase();
-                        return keywords.some(keyword => textToSearch.includes(keyword.toLowerCase()));
+                        const title = pub.title ? pub.title.toLowerCase() : '';
+                        const abstract = pub.abstract ? pub.abstract.toLowerCase() : '';
+                        const textToSearch = `${title} ${abstract}`;
+
+                        return keywords.some(keyword => textToSearch.includes(keyword.toLowerCase().trim()));
                     });
-                    setPublications(filtered);
+                    setPublications(filtered.slice(0, 5)); // Limit to 5 items
                 } else {
                     setPublications([]);
                 }
