@@ -36,6 +36,16 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
   useEffect(() => {
     const fetchContent = async () => {
       setLoading(true);
+
+      // Fetch all publications for the selector (if not professor page)
+      if (pageKey !== 'professor') {
+        const { data: pubData } = await supabase
+          .from('publications')
+          .select('id, title, year, journal')
+          .order('year', { ascending: false });
+        if (pubData) setAllPublications(pubData);
+      }
+
       const { data } = await supabase.from('pages').select('content').eq('page_key', pageKey).single();
 
       if (data?.content) {
