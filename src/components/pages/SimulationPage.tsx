@@ -32,7 +32,9 @@ export function SimulationPage() {
     init_radius: 25.0,  // 추가
     noise_level: 0.0,   // 추가
     aniso_strength: 0.0,// 추가
-    symmetry_mode: 4    // 추가
+    symmetry_mode: 4,
+    nuclei_count: 1, 
+    nucleation_mode: 'center'    // 추가
   });
 
   const [dgParams, setDgParams] = useState({ 
@@ -41,7 +43,9 @@ export function SimulationPage() {
     n_fold_symmetry: 6, 
     aniso_magnitude: 0.12, 
     latent_heat_coef: 1.5,
-    noise_level: 0.0 // ✨ 추가
+    noise_level: 0.0,
+    nuclei_count: 1, 
+    nucleation_mode: 'center' // ✨ 추가
   });
 
   const handleAIUpdate = (type: string, params: any) => {
@@ -177,12 +181,35 @@ export function SimulationPage() {
                           >
                             <option value={4}>4-Fold (Square)</option>
                             <option value={6}>6-Fold (Hexagon)</option>
+                      
                           </select>
                         </div>
                       </div>
                     </div>
 
                     <div><Label htmlFor="gs_driv">Driving Force</Label><Input id="gs_driv" type="number" step="0.01" value={gsParams.driv} onChange={e => setGsParams({...gsParams, driv: parseFloat(e.target.value) || 0})}/></div>
+                    <div className="p-3 border rounded-md bg-yellow-50 dark:bg-yellow-900/10 space-y-3">
+                        <p className="text-xs font-semibold text-yellow-600">Nucleation Control</p>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label className="text-xs">Count</Label>
+                                <Input type="number" min="1" max="20" value={gsParams.nuclei_count} onChange={e => setGsParams({...gsParams, nuclei_count: parseInt(e.target.value)||1})}/>
+                            </div>
+                            <div>
+                                <Label className="text-xs">Position</Label>
+                                <select 
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                    value={gsParams.nucleation_mode}
+                                    onChange={e => setGsParams({...gsParams, nucleation_mode: e.target.value})}
+                                >
+                                    <option value="center">Center (Single)</option>
+                                    <option value="random">Random</option>
+                                    <option value="circular">Circular Ring</option>
+                                    <option value="bottom">Bottom Line</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                   </TabsContent>
 
                   <TabsContent value="dendrite_growth" className="space-y-4 mt-4">
@@ -211,6 +238,27 @@ export function SimulationPage() {
                                     className="border-blue-200 focus-visible:ring-blue-400"
                                 />
                                 <p className="text-[10px] text-muted-foreground mt-1">Rec: 0.0 (Smooth) ~ 0.05 (Rough)</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="p-3 border rounded-md bg-yellow-50 dark:bg-yellow-900/10 space-y-3">
+                        <p className="text-xs font-semibold text-yellow-600">Nucleation Control</p>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label className="text-xs">Count</Label>
+                                <Input type="number" min="1" max="10" value={dgParams.nuclei_count} onChange={e => setDgParams({...dgParams, nuclei_count: parseInt(e.target.value)||1})}/>
+                            </div>
+                            <div>
+                                <Label className="text-xs">Position</Label>
+                                <select 
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                                    value={dgParams.nucleation_mode}
+                                    onChange={e => setDgParams({...dgParams, nucleation_mode: e.target.value})}
+                                >
+                                    <option value="center">Center (Single)</option>
+                                    <option value="random">Random</option>
+                                    <option value="bottom">Bottom Line</option>
+                                </select>
                             </div>
                         </div>
                     </div>
