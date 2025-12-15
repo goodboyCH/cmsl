@@ -19,6 +19,8 @@ const SYSTEM_PROMPT = `
 - noise_level (float): 열적 노이즈 강도 (0.0~0.1). 0이 아니면 표면이 거칠어짐.
 - aniso_strength (float): 이방성 강도 (0.0~0.5). 0이면 원형, 값이 크면 각진 모양(사각형/육각형).
 - symmetry_mode (int): 대칭성 모드 (4 또는 6). aniso_strength > 0 일 때 작동.
+- nuclei_count (int): 초기 입자 개수 (1~20).
+- nucleation_mode (string): 배치 방식 ("center", "random", "bottom", "circular").
 
 ## 2. Dendrite Growth (수지상 성장)
 - simulation_type: "dendrite_growth"
@@ -30,6 +32,8 @@ const SYSTEM_PROMPT = `
 - noise_level (float): 곁가지를 생성하는 노이즈 (0.0~0.1). 
   - 0.0: 매끄러운 기하학적 결정.
   - 0.02~0.05: 실제 눈송이 같은 불규칙한 가지(Side-branching) 생성.
+- nuclei_count (int): 초기 시드 개수 (1~10).
+- nucleation_mode (string): 배치 방식 ("center", "random", "bottom").
 
 # Response Rules
 1. 반드시 유효한 JSON 포맷으로만 응답할 것.
