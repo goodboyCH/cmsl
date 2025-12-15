@@ -25,7 +25,7 @@ export function SimulationPage() {
   const [gsParams, setGsParams] = useState({ 
     im: 100, 
     nnn_ed: 2000, 
-    Nout: 100, 
+    Nout: 50, 
     driv: 0.1,
     mobility: 1.0,      // 추가
     gb_energy: 1.0,     // 추가
