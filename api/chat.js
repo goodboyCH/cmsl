@@ -21,7 +21,15 @@ const SYSTEM_PROMPT = `
 - symmetry_mode (int): 대칭성 모드 (4 또는 6). aniso_strength > 0 일 때 작동.
 
 ## 2. Dendrite Growth (수지상 성장)
-# ... (기존 유지)
+- simulation_type: "dendrite_growth"
+- n (int): 격자 크기 (200~512).
+- steps (int): 시간 스텝 (1000~5000).
+- n_fold_symmetry (int): 대칭성 (4 or 6).
+- aniso_magnitude (float): 이방성 강도 (0.05~0.4).
+- latent_heat_coef (float): 잠열 계수 (0.8~2.0).
+- noise_level (float): 곁가지를 생성하는 노이즈 (0.0~0.1). 
+  - 0.0: 매끄러운 기하학적 결정.
+  - 0.02~0.05: 실제 눈송이 같은 불규칙한 가지(Side-branching) 생성.
 
 # Response Rules
 1. 반드시 유효한 JSON 포맷으로만 응답할 것.

@@ -34,7 +34,16 @@ export function SimulationPage() {
     aniso_strength: 0.0,// 추가
     symmetry_mode: 4    // 추가
   });
-  const [dgParams, setDgParams] = useState({ n: 512, steps: 3000, n_fold_symmetry: 4, aniso_magnitude: 0.12, latent_heat_coef: 1.5 });
+
+  const [dgParams, setDgParams] = useState({ 
+    n: 512, 
+    steps: 3000, 
+    n_fold_symmetry: 6, 
+    aniso_magnitude: 0.12, 
+    latent_heat_coef: 1.5,
+    noise_level: 0.0 // ✨ 추가
+  });
+
   const handleAIUpdate = (type: string, params: any) => {
     if (type === 'grain_shrinkage' || type === 'dendrite_growth') {
       setSelectedSim(type as SimulationType);
@@ -178,11 +187,33 @@ export function SimulationPage() {
 
                   <TabsContent value="dendrite_growth" className="space-y-4 mt-4">
                     <p className="text-sm text-muted-foreground">{t('sim.desc.dg')}</p>
-                    <div><Label htmlFor="dg_n">{t('sim.label.grid')} (n x n)</Label><Input id="dg_n" type="number" value={dgParams.n} max="1024" onChange={e => setDgParams({...dgParams, n: parseInt(e.target.value) || 0})} /></div>
-                    <div><Label htmlFor="dg_steps">{t('sim.label.steps')}</Label><Input id="dg_steps" type="number" value={dgParams.steps} max="5000" onChange={e => setDgParams({...dgParams, steps: parseInt(e.target.value) || 0})}/></div>
-                    <div><Label htmlFor="dg_n_fold">{t('sim.label.symmetry')}</Label><Input id="dg_n_fold" type="number" value={dgParams.n_fold_symmetry} onChange={e => setDgParams({...dgParams, n_fold_symmetry: parseInt(e.target.value) || 0})}/></div>
-                    <div><Label htmlFor="dg_aniso">{t('sim.label.aniso')}</Label><Input id="dg_aniso" type="number" step="0.01" value={dgParams.aniso_magnitude} onChange={e => setDgParams({...dgParams, aniso_magnitude: parseFloat(e.target.value) || 0})}/></div>
-                    <div><Label htmlFor="dg_latent_heat">{t('sim.label.latent')}</Label><Input id="dg_latent_heat" type="number" step="0.1" value={dgParams.latent_heat_coef} onChange={e => setDgParams({...dgParams, latent_heat_coef: parseFloat(e.target.value) || 0})}/></div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                        <div><Label htmlFor="dg_n">Grid Size (n)</Label><Input id="dg_n" type="number" value={dgParams.n} max="512" onChange={e => setDgParams({...dgParams, n: parseInt(e.target.value) || 0})} /></div>
+                        <div><Label htmlFor="dg_steps">Steps</Label><Input id="dg_steps" type="number" value={dgParams.steps} max="5000" onChange={e => setDgParams({...dgParams, steps: parseInt(e.target.value) || 0})}/></div>
+                    </div>
+
+                    <div className="p-3 border rounded-md bg-slate-50 dark:bg-slate-900 space-y-3">
+                        <p className="text-xs font-semibold text-slate-500">Physics Parameters</p>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div><Label className="text-xs">Symmetry (4 or 6)</Label><Input type="number" value={dgParams.n_fold_symmetry} onChange={e => setDgParams({...dgParams, n_fold_symmetry: parseInt(e.target.value) || 0})}/></div>
+                            <div><Label className="text-xs">Anisotropy (0.1~0.4)</Label><Input type="number" step="0.01" value={dgParams.aniso_magnitude} onChange={e => setDgParams({...dgParams, aniso_magnitude: parseFloat(e.target.value) || 0})}/></div>
+                            <div><Label className="text-xs">Latent Heat (0.8~2.0)</Label><Input type="number" step="0.1" value={dgParams.latent_heat_coef} onChange={e => setDgParams({...dgParams, latent_heat_coef: parseFloat(e.target.value) || 0})}/></div>
+                            {/* ✨ 노이즈 입력 추가 */}
+                            <div>
+                                <Label className="text-xs text-blue-600 font-bold">Noise Level (Realism)</Label>
+                                <Input 
+                                    type="number" 
+                                    step="0.01" 
+                                    max="0.2"
+                                    value={dgParams.noise_level} 
+                                    onChange={e => setDgParams({...dgParams, noise_level: parseFloat(e.target.value) || 0})}
+                                    className="border-blue-200 focus-visible:ring-blue-400"
+                                />
+                                <p className="text-[10px] text-muted-foreground mt-1">Rec: 0.0 (Smooth) ~ 0.05 (Rough)</p>
+                            </div>
+                        </div>
+                    </div>
                   </TabsContent>
                 </Tabs>
                 <Button type="submit" className="w-full mt-6" disabled={isRunning}>
