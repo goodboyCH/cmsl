@@ -311,23 +311,55 @@ export function EditPageContentForm({ pageKey, onBack }: EditPageContentFormProp
                         <Label className="font-semibold block">Images for this Section (Carousel)</Label>
                         {(section.images || []).map((img: any, imgIdx: number) => (
                           <div key={imgIdx} className="flex gap-2 items-end border-b pb-2 mb-2">
-                             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 flex-1">
-                                <div className="space-y-1">
+                              <div className="grid grid-cols-12 gap-2 flex-1">
+                                
+                                {/* 1. 타입 선택 (Image / Video) - 🆕 추가된 부분 */}
+                                <div className="col-span-3 space-y-1">
+                                    <span className="text-xs text-muted-foreground">Type</span>
+                                    <Select 
+                                      value={img.type || 'image'} 
+                                      onValueChange={(val) => handleSectionImageChange(idx, imgIdx, 'type', val)}
+                                    >
+                                      <SelectTrigger className="h-8 bg-background"><SelectValue /></SelectTrigger>
+                                      <SelectContent>
+                                          <SelectItem value="image">Image</SelectItem>
+                                          <SelectItem value="video">Video</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {/* 2. URL 입력 */}
+                                <div className="col-span-5 space-y-1">
                                     <span className="text-xs text-muted-foreground">URL</span>
-                                    <Input value={img.url} onChange={(e) => handleSectionImageChange(idx, imgIdx, 'url', e.target.value)} className="h-8" />
+                                    <Input 
+                                      value={img.url} 
+                                      onChange={(e) => handleSectionImageChange(idx, imgIdx, 'url', e.target.value)} 
+                                      className="h-8 bg-background" 
+                                      placeholder="https://..."
+                                    />
                                 </div>
-                                <div className="space-y-1">
+
+                                {/* 3. Alt Text 입력 */}
+                                <div className="col-span-4 space-y-1">
                                     <span className="text-xs text-muted-foreground">Alt Text</span>
-                                    <Input value={img.alt} onChange={(e) => handleSectionImageChange(idx, imgIdx, 'alt', e.target.value)} className="h-8" />
+                                    <Input 
+                                      value={img.alt} 
+                                      onChange={(e) => handleSectionImageChange(idx, imgIdx, 'alt', e.target.value)} 
+                                      className="h-8 bg-background" 
+                                      placeholder="Description"
+                                    />
                                 </div>
-                             </div>
-                             <Button type="button" variant="ghost" size="icon" className="text-destructive h-8 w-8" onClick={() => removeImageFromSection(idx, imgIdx)}>
-                               <Trash2 className="w-4 h-4"/>
-                             </Button>
+                              </div>
+
+                              {/* 삭제 버튼 */}
+                              <Button type="button" variant="ghost" size="icon" className="text-destructive h-8 w-8 mb-0.5" onClick={() => removeImageFromSection(idx, imgIdx)}>
+                                <Trash2 className="w-4 h-4"/>
+                              </Button>
                           </div>
                         ))}
+                        
                         <Button type="button" variant="outline" size="sm" onClick={() => addImageToSection(idx)} className="w-full">
-                          + Add Image to Carousel
+                          + Add Media Item
                         </Button>
                       </div>
                     </div>
