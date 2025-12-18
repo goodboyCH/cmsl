@@ -11,18 +11,18 @@ export function Section2_CoreCapabilites({ items }: { items: any[] }) {
       <div className="container mx-auto max-w-7xl z-10 relative">
         
         {/* --- 헤더 영역 --- */}
-        {/* 1. mb-24 -> mb-32: 카드와의 간격을 더 넓혔습니다. */}
-        <div className="mb-32 text-center md:text-left">
+        {/* 1. 간격 대폭 증가: mb-24 -> mb-48 (약 12rem = 192px) */}
+        <div className="mb-48 text-center md:text-left">
           <h2 className="text-sm font-bold text-cyan-500 uppercase mb-4 tracking-[0.2em] pl-1">
             Our Core Capabilities
           </h2>
           
-          {/* 2. 폰트 사이즈 조정: text-4xl md:text-6xl -> text-3xl md:text-5xl lg:text-6xl
-                (화면이 줄어들면 글자도 작아져서 '한 줄'을 유지하도록 함)
-             3. leading-[1.1] -> leading-normal: 줄 간격을 넉넉하게 풀어 글자 겹침 방지
-             4. pb-4: 그라데이션 텍스트 하단(g, p 등)이 잘리지 않도록 하단 여백 추가
+          {/* 2. 폰트 크기 축소: text-3xl/5xl/6xl -> text-2xl/4xl/5xl
+                (이제 PC에서도 너무 크지 않아 한 줄에 쏙 들어옵니다.)
+             3. leading-relaxed: 줄 간격을 넉넉하게 줌
+             4. pb-6: 그라데이션 텍스트의 하단(g, p, j)이 잘리지 않도록 충분한 패딩 확보
           */}
-          <div className="text-3xl md:text-5xl lg:text-6xl font-bold leading-normal pb-4">
+          <div className="text-2xl md:text-4xl lg:text-5xl font-bold leading-relaxed pb-6">
             <GradientText
               colors={["#06b6d4", "#ffffff", "#06b6d4", "#ffffff", "#06b6d4"]}
               animationSpeed={5}
@@ -31,8 +31,6 @@ export function Section2_CoreCapabilites({ items }: { items: any[] }) {
             >
               Advanced Simulation & Data-Driven Design
             </GradientText>
-            
-            <div></div>
           </div>
         </div>
 
