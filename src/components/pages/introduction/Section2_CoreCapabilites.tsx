@@ -31,6 +31,7 @@ export function Section2_CoreCapabilites({ items }: { items: any[] }) {
                 className="block"
               >
                 Advanced Simulation & Data-Driven Design
+                
               </GradientText>
             </div>
 
