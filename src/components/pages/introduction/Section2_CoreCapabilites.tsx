@@ -11,18 +11,17 @@ export function Section2_CoreCapabilites({ items }: { items: any[] }) {
       <div className="container mx-auto max-w-7xl z-10 relative">
         
         {/* --- 헤더 영역 --- */}
-        {/* 1. 간격 대폭 증가: mb-24 -> mb-48 (약 12rem = 192px) */}
         <div className="mb-48 text-center md:text-left">
           <h2 className="text-sm font-bold text-cyan-500 uppercase mb-4 tracking-[0.2em] pl-1">
             Our Core Capabilities
           </h2>
           
-          {/* 2. 폰트 크기 축소: text-3xl/5xl/6xl -> text-2xl/4xl/5xl
-                (이제 PC에서도 너무 크지 않아 한 줄에 쏙 들어옵니다.)
-             3. leading-relaxed: 줄 간격을 넉넉하게 줌
-             4. pb-6: 그라데이션 텍스트의 하단(g, p, j)이 잘리지 않도록 충분한 패딩 확보
+          {/* 1. 폰트 크기 조절: text-[28px] 
+               - 2xl(24px)와 3xl(30px)의 중간 정도 크기입니다.
+               - md(태블릿) 이상에서는 text-4xl, lg(PC)에서는 text-5xl로 커지게 반응형 유지
+            2. leading-relaxed: 줄 간격 넉넉하게
           */}
-          <div className="text-2xl md:text-4xl lg:text-5xl font-bold leading-relaxed pb-6">
+          <div className="text-[28px] md:text-4xl lg:text-5xl font-bold leading-relaxed">
             <GradientText
               colors={["#06b6d4", "#ffffff", "#06b6d4", "#ffffff", "#06b6d4"]}
               animationSpeed={5}
@@ -31,6 +30,12 @@ export function Section2_CoreCapabilites({ items }: { items: any[] }) {
             >
               Advanced Simulation & Data-Driven Design
             </GradientText>
+            
+            {/* 3. [요청하신 부분] 텍스트 잘림 방지용 '빈 줄' 추가 
+               - 패딩 대신 물리적인 공간을 차지하는 투명한 줄을 넣어 
+                 그라데이션 텍스트의 하단(g, p 등)이 잘리지 않게 합니다.
+            */}
+            <div className="h-4 select-none">&nbsp;</div>
           </div>
         </div>
 
