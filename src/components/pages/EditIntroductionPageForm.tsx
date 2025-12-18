@@ -80,6 +80,7 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
             {/* --- 다른 섹션들은 생략하거나 기존 유지 --- */}
 
             {/* Research Areas 섹션 수정됨 */}
+            {/* Research Areas 섹션 수정됨 */}
             <AccordionItem value="item-3">
               <AccordionTrigger>Section 3: Research Areas</AccordionTrigger>
               <AccordionContent className="space-y-4 pt-2">
@@ -99,9 +100,35 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
                       <Input value={item.title} onChange={(e) => handleArrayItemChange('research', 'items', index, 'title', e.target.value)} />
                     </div>
                     
-                    <div className="space-y-2">
-                      <Label>Description</Label>
-                      <Textarea value={item.description} onChange={(e) => handleArrayItemChange('research', 'items', index, 'description', e.target.value)} />
+                    {/* 🟢 [수정됨] Description을 한/영 두 개로 분리 */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Description (Korean)</Label>
+                        <Textarea 
+                          // 기존 데이터가 문자열일 경우를 대비해 안전하게 처리
+                          value={typeof item.description === 'string' ? item.description : (item.description?.ko || '')} 
+                          onChange={(e) => {
+                            // 기존 값이 객체가 아니면 새로 만들고, 객체면 유지하면서 ko 업데이트
+                            const currentDesc = typeof item.description === 'object' ? item.description : { ko: item.description, en: '' };
+                            handleArrayItemChange('research', 'items', index, 'description', { ...currentDesc, ko: e.target.value });
+                          }} 
+                          placeholder="한글 설명을 입력하세요"
+                          className="min-h-[100px]"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label>Description (English)</Label>
+                        <Textarea 
+                          value={typeof item.description === 'string' ? '' : (item.description?.en || '')} 
+                          onChange={(e) => {
+                            const currentDesc = typeof item.description === 'object' ? item.description : { ko: item.description, en: '' };
+                            handleArrayItemChange('research', 'items', index, 'description', { ...currentDesc, en: e.target.value });
+                          }} 
+                          placeholder="Enter English description"
+                          className="min-h-[100px]"
+                        />
+                      </div>
                     </div>
                     
                     <div className="space-y-2">
@@ -109,7 +136,6 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
                       <Input value={item.imageUrl} onChange={(e) => handleArrayItemChange('research', 'items', index, 'imageUrl', e.target.value)} />
                     </div>
 
-                    {/* 🟢 [추가됨] Link URL 입력 필드 */}
                     <div className="space-y-2">
                       <Label>Link URL (페이지 이동 주소)</Label>
                       <Input 
@@ -126,12 +152,13 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
                   type="button" 
                   variant="outline" 
                   size="sm" 
+                  // 🟢 [수정됨] 새 항목 추가 시 description을 객체 { ko, en } 형태로 초기화
                   onClick={() => addItemToArray('research', 'items', {
                     icon: 'Car', 
                     title: '', 
-                    description: '', 
+                    description: { ko: '', en: '' }, 
                     imageUrl: '', 
-                    link: '' // 새 항목 추가 시 link 필드도 초기화
+                    link: ''
                   })}
                 >
                   Add Research Area

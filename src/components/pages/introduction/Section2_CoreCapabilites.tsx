@@ -5,8 +5,6 @@ import React from 'react';
 import GradientText from '@/components/reactbits/GradientText';
 import TiltedCard from '@/components/reactbits/TiltedCard';
 
-// UI Components
-import { MagneticButton } from '@/components/ui/MagneticButton';
 
 export function Section2_CoreCapabilites({ items }: { items: any[] }) {
   return (
@@ -19,7 +17,7 @@ export function Section2_CoreCapabilites({ items }: { items: any[] }) {
             Our Core Capabilities
           </h2>
           
-          <div className="text-4xl md:text-6xl font-bold leading-[1.1]">
+          <div className="text-3xl md:text-6xl font-bold leading-[1.1]">
             {/* GradientText 적용: Cyan <-> White 순환 */}
             <GradientText
               colors={["#06b6d4", "#ffffff", "#06b6d4", "#ffffff", "#06b6d4"]}
@@ -82,16 +80,8 @@ export function Section2_CoreCapabilites({ items }: { items: any[] }) {
                       </p>
                     </div>
 
-                    {/* 하단 버튼 (Magnetic) */}
-                    <div className="mt-6 pt-6 border-t border-white/5">
-                      <MagneticButton>
-                        <button className="text-xs font-bold text-white flex items-center gap-2 group hover:text-cyan-400 transition-colors">
-                          LEARN MORE 
-                          <span className="group-hover:translate-x-1 transition-transform">→</span>
-                        </button>
-                      </MagneticButton>
-                    </div>
-                  </div>
+                    
+                </div>
                 }
               />
             </div>
