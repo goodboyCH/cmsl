@@ -12,7 +12,7 @@ export function Section2_CoreCapabilites({ items }: { items: any[] }) {
         
         {/* --- 헤더 영역 --- */}
         {/* 1. mb-48: 카드와의 간격을 아주 넓게(약 12rem) 벌렸습니다. */}
-        <div className="mb-48 text-center md:text-left">
+        <div className="mb-24 text-center md:text-left">
           <h2 className="text-sm font-bold text-cyan-500 uppercase mb-4 tracking-[0.2em] pl-1">
             Our Core Capabilities
           </h2>
@@ -23,7 +23,7 @@ export function Section2_CoreCapabilites({ items }: { items: any[] }) {
           */}
           <div className="relative font-bold leading-relaxed whitespace-nowrap">
             {/* 폰트 크기: 모바일(2xl) -> 태블릿(4xl) -> PC(5xl) */}
-            <div className="text-2xl md:text-4xl lg:text-5xl inline-block">
+            <div className="text-3xl md:text-5xl lg:text-6xl inline-block">
               <GradientText
                 colors={["#06b6d4", "#ffffff", "#06b6d4", "#ffffff", "#06b6d4"]}
                 animationSpeed={5}
