@@ -83,8 +83,8 @@ export default {
 				'accordion-up': 'accordion-up 0.2s ease-out'
 			},
 			fontFamily: {
-				sans: ['Inter', 'sans-serif'],
-				presentation: ['Presentation', 'sans-serif'],
+				sans: ['Inter', 'Pretendard', 'sans-serif'],
+				presentation: ['Presentation', 'Pretendard', 'sans-serif'],
 			},
 			// ⬇️ 24칸 그리드를 사용하기 위해 추가된 부분입니다. ⬇️
 			gridTemplateColumns: {
