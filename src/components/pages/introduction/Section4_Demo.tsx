@@ -11,7 +11,6 @@ gsap.registerPlugin(ScrollTrigger);
 const VIDEO_SRC = "/videos/demo2.mp4"; 
 const FPS = 30; 
 
-// [추가] Props 인터페이스 정의
 interface Section4Props {
   title: string;
   description: string;
@@ -68,27 +67,34 @@ export function Section4_Demo({ title, description }: Section4Props) {
 
   return (
     <section ref={sectionRef} className="relative py-32 bg-black border-b border-white/10 overflow-hidden">
-      {/* 너비 확장 */}
-      <div className="container mx-auto px-6 md:px-12 h-full flex flex-col justify-center">
+      {/* ✅ [수정 1] items-start: Flex 아이템들을 왼쪽(시작점)으로 강제 정렬 
+         justify-center는 수직 중앙 정렬, items-start는 수평 좌측 정렬 역할을 합니다.
+      */}
+      <div className="container mx-auto px-6 md:px-12 h-full flex flex-col justify-center items-start">
         
-        {/* --- 1. 헤더 (좌측 정렬 유지) --- */}
-        <div className="mb-12 text-left">
+        {/* ✅ [수정 2] w-full: items-start 적용 시 너비가 컨텐츠만큼만 잡힐 수 있으므로, 
+           부모 너비를 꽉 채우도록 설정하여 text-left가 확실히 먹히도록 함 
+        */}
+        <div className="w-full mb-12 text-left">
           <h2 className="text-4xl md:text-6xl font-bold mb-4">
             <GradientText
               colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
               animationSpeed={5}
               showBorder={false}
             >
-              {title} {/* [수정] Props로 받은 title 사용 */}
+              {title}
             </GradientText>
           </h2>
           
-          <p className="text-gray-400 text-lg md:text-xl max-w-3xl leading-relaxed">
-            {description} {/* [수정] Props로 받은 description 사용 */}
+          {/* ✅ [수정 3] break-keep: 한글 단어 중간 끊김 방지
+             ✅ [수정 4] whitespace-pre-wrap: 텍스트 내 줄바꿈(\n) 적용
+          */}
+          <p className="text-gray-400 text-lg md:text-xl max-w-3xl leading-relaxed break-keep whitespace-pre-wrap">
+            {description}
           </p>
         </div>
 
-        {/* --- 2. 비디오 컨테이너 --- */}
+        {/* --- 비디오 컨테이너 --- */}
         <div 
           ref={containerRef}
           className="relative w-full aspect-video bg-zinc-900 rounded-3xl border border-white/10 shadow-2xl overflow-hidden ring-1 ring-white/5"
