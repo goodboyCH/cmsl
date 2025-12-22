@@ -23,12 +23,21 @@ export function Section3_ResearchAreas({ content, loading }: { content: any, loa
 
     return {
       title: item.title,
-      // ✅ [수정] 텍스트를 span으로 감싸서 화면 크기에 따른 폰트 사이즈 클래스 적용
-      // 모바일: text-xs (12px), 태블릿: text-sm (14px), PC: text-base (16px)
+      // ✅ [수정] 텍스트 영역에 스크롤바 적용
       description: (
-        <span className="block text-xs sm:text-sm md:text-base leading-relaxed text-gray-400 max-w-[90%] mx-auto">
+        <div 
+          className="
+            block text-xs sm:text-sm md:text-base leading-relaxed text-gray-400 
+            max-w-[95%] mx-auto 
+            max-h-[80px] md:max-h-[100px] /* ↕️ 높이 제한 (모바일 80px, PC 100px) */
+            overflow-y-auto               /* ↕️ 내용 넘치면 세로 스크롤 허용 */
+            pr-2                          /* 스크롤바와 글자 사이 간격 */
+          "
+          // 스크롤바 디자인 (파이어폭스 및 웹킷 브라우저용)
+          style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 transparent' }}
+        >
           {descriptionText}
-        </span>
+        </div>
       ),
       image: item.imageUrl || "https://placehold.co/600x400/18181b/FFF?text=No+Image",
       link: item.link || item.url || "" 
