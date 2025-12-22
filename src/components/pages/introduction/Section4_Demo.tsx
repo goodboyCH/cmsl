@@ -14,7 +14,7 @@ const FPS = 30;
 export function Section4_Demo() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null); // 비디오 컨테이너 참조
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
@@ -29,31 +29,24 @@ export function Section4_Demo() {
 
         const tl = gsap.timeline({
           scrollTrigger: {
-            trigger: sectionRef.current, // 섹션을 트리거로 잡음
-            // ✅ [수정] start/end 지점 조정
-            // 화면 중앙(center)에 비디오 박스의 중앙(center)이 오면 고정 시작
+            trigger: sectionRef.current,
             start: "center center", 
-            end: "+=300%", // 스크롤 길이 (길수록 천천히 재생됨)
-            pin: true,     // 섹션 고정
-            scrub: 1,      // 부드러운 스크러빙
+            end: "+=300%", 
+            pin: true,     
+            scrub: 1,      
           }
         });
 
-        // 비디오 프레임 재생 애니메이션
         tl.to(videoState, {
           frame: totalFrames,
           duration: duration,
           ease: "none",
           onUpdate: () => {
-            if (video) {
-                // 비디오가 로드된 상태에서만 시간 업데이트
-                if (Number.isFinite(videoState.frame)) {
-                   video.currentTime = videoState.frame / FPS;
-                }
+            if (video && Number.isFinite(videoState.frame)) {
+                video.currentTime = videoState.frame / FPS;
             }
           }
         }, 0); 
-
       };
 
       if (video.readyState >= 1) {
@@ -68,12 +61,13 @@ export function Section4_Demo() {
   }, []);
 
   return (
-    // ✅ [레이아웃] 전체 화면(h-screen) 대신 패딩이 있는 섹션으로 변경
     <section ref={sectionRef} className="relative py-32 bg-black border-b border-white/10 overflow-hidden">
-      <div className="container mx-auto px-6 md:px-12 max-w-7xl h-full flex flex-col justify-center">
+      {/* ✅ [수정] max-w-7xl 제거 -> Section 3와 동일하게 너비 확장 */}
+      <div className="container mx-auto px-6 md:px-12 h-full flex flex-col justify-center">
         
-        {/* --- 1. 헤더 (다른 섹션과 통일된 스타일) --- */}
-        <div className="mb-12 text-center md:text-left">
+        {/* --- 1. 헤더 (좌측 정렬 고정) --- */}
+        {/* ✅ [수정] text-center 제거 -> text-left로 고정 */}
+        <div className="mb-12 text-left">
           <h2 className="text-4xl md:text-6xl font-bold mb-4">
             <GradientText
               colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
@@ -83,14 +77,15 @@ export function Section4_Demo() {
               Simulation Demo
             </GradientText>
           </h2>
-          <p className="text-gray-400 text-lg md:text-xl max-w-2xl">
+          
+          {/* ✅ [수정] <br> 제거 및 max-w 조절로 자연스러운 줄바꿈 유도 */}
+          <p className="text-gray-400 text-lg md:text-xl max-w-3xl leading-relaxed">
             Experience the microstructure evolution predicted by our Full-Stack PFM engine.
-            <br className="hidden md:block"/>
             Scroll down to control the simulation time-lapse.
           </p>
         </div>
 
-        {/* --- 2. 비디오 컨테이너 (16:9 비율) --- */}
+        {/* --- 2. 비디오 컨테이너 (16:9 비율, 꽉 찬 너비) --- */}
         <div 
           ref={containerRef}
           className="relative w-full aspect-video bg-zinc-900 rounded-3xl border border-white/10 shadow-2xl overflow-hidden ring-1 ring-white/5"
@@ -104,10 +99,8 @@ export function Section4_Demo() {
             preload="auto"
           />
           
-          {/* 장식용: 비디오 위에 살짝 그라데이션 오버레이 (선택사항) */}
           <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
           
-          {/* 우측 하단 라벨 */}
           <div className="absolute bottom-6 right-6 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-xs md:text-sm text-cyan-400 font-mono">
              ● AI-Accelerated PFM
           </div>
