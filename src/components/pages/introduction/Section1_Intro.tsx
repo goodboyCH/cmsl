@@ -41,7 +41,7 @@ export function Section1_Intro({ missionKor, missionEng }: { missionKor: string,
              delay={50}
              animateBy="words"
              direction="bottom"
-             className="text-4xl md:text-7xl lg:text-8xl font-bold tracking-tight text-white leading-tight"
+             className="text-4xl md:text-7xl lg:text-8xl font-bold tracking-tight text-white leading-tight whitespace-pre-line"
            />
         </div>
           

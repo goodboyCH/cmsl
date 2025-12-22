@@ -18,9 +18,8 @@ import { Cpu, Atom, BrainCircuit, Boxes, Network, Zap, Globe, ShieldCheck } from
 // Static Data (Updated based on Research Proposal)
 const STATIC_CONTENT = {
   mission: {
-    // 연구계획서의 비전: "다차원 복합 소재 개발의 초격차 가속화" & "자율 진화형 전주기 디지털 트윈"
-    ko: "물리학과 AI의 공생: 자율 진화형 소재 디지털 트윈을 완성하다", 
-    en: "Physics-AI Symbiosis: Realizing Autonomous Evolutionary Material Digital Twins", 
+    ko: "물리 법칙과 인공지능의 완벽한 융합:\n예측 가능한 미래 소재를 설계하다", 
+    en: "The Perfect Convergence of Physics and AI: Designing Predictable Future Materials", 
   },
   capabilities: [
     {
