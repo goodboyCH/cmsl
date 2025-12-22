@@ -67,17 +67,21 @@ export function Section4_Demo({ title, description }: Section4Props) {
 
   return (
     <section ref={sectionRef} className="relative py-32 bg-black border-b border-white/10 overflow-hidden">
-      {/* ✅ [수정 1] items-start: Flex 아이템들을 왼쪽(시작점)으로 강제 정렬 
-         justify-center는 수직 중앙 정렬, items-start는 수평 좌측 정렬 역할을 합니다.
+      
+      {/* ✅ [수정 1] items-start -> items-center 
+         Flex 컨테이너 내부 요소들을 수평 중앙으로 정렬합니다.
       */}
-      <div className="container mx-auto px-6 md:px-12 h-full flex flex-col justify-center items-start">
+      <div className="container mx-auto px-6 md:px-12 h-full flex flex-col justify-center items-center">
         
-        {/* ✅ [수정 2] w-full: items-start 적용 시 너비가 컨텐츠만큼만 잡힐 수 있으므로, 
-           부모 너비를 꽉 채우도록 설정하여 text-left가 확실히 먹히도록 함 
+        {/* ✅ [수정 2] text-left -> text-center 
+           내부 텍스트들이 가운데로 정렬되도록 변경했습니다.
         */}
-       <div className="w-full mb-12 text-left">
-          {/* [수정] flex와 justify-start를 추가하여 내부의 GradientText를 강제로 왼쪽으로 당김 */}
-          <h2 className="text-4xl md:text-6xl font-bold mb-4 flex justify-start">
+       <div className="w-full mb-12 text-center">
+          
+          {/* ✅ [수정 3] justify-start -> justify-center 
+             GradientText 컴포넌트가 화면 중앙에 위치하도록 Flex 정렬을 수정했습니다.
+          */}
+          <h2 className="text-4xl md:text-6xl font-bold mb-4 flex justify-center">
             <GradientText
               colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
               animationSpeed={5}
@@ -87,10 +91,10 @@ export function Section4_Demo({ title, description }: Section4Props) {
             </GradientText>
           </h2>
           
-          {/* ✅ [수정 3] break-keep: 한글 단어 중간 끊김 방지
-             ✅ [수정 4] whitespace-pre-wrap: 텍스트 내 줄바꿈(\n) 적용
+          {/* ✅ [수정 4] mx-auto 추가 
+             max-w-3xl로 너비가 제한된 상태에서 박스 자체가 중앙에 오도록 margin auto를 줍니다.
           */}
-          <p className="text-gray-400 text-lg md:text-xl max-w-3xl leading-relaxed break-keep whitespace-pre-wrap">
+          <p className="text-gray-400 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed break-keep whitespace-pre-wrap">
             {description}
           </p>
         </div>
