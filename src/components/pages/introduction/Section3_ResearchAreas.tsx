@@ -23,17 +23,23 @@ export function Section3_ResearchAreas({ content, loading }: { content: any, loa
 
     return {
       title: item.title,
-      // ✅ [수정] 텍스트 영역에 스크롤바 적용
+      // ✅ [수정] 스크롤바 및 높이 제한 로직 변경
       description: (
         <div 
           className="
             block text-xs sm:text-sm md:text-base leading-relaxed text-gray-400 
             max-w-[95%] mx-auto 
-            max-h-[80px] md:max-h-[100px] /* ↕️ 높이 제한 (모바일 80px, PC 100px) */
-            overflow-y-auto               /* ↕️ 내용 넘치면 세로 스크롤 허용 */
-            pr-2                          /* 스크롤바와 글자 사이 간격 */
+            
+            /* 📱 모바일: 120px 넘으면 스크롤 발생 */
+            max-h-[120px] 
+            overflow-y-auto 
+            
+            /* 💻 PC (md 이상): 높이 제한 해제 (전체 텍스트 표시) & 스크롤 숨김 */
+            md:max-h-none 
+            md:overflow-visible
+
+            pr-2 /* 스크롤바와 텍스트 간격 */
           "
-          // 스크롤바 디자인 (파이어폭스 및 웹킷 브라우저용)
           style={{ scrollbarWidth: 'thin', scrollbarColor: '#4b5563 transparent' }}
         >
           {descriptionText}
