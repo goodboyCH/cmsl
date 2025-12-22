@@ -20,8 +20,8 @@ export function Section2_CoreCapabilites({ items }: { items: any[] }) {
             1. whitespace-nowrap 제거 -> whitespace-normal: 화면이 좁으면 자연스럽게 줄바꿈 허용
             2. clamp() 제거 -> text-4xl ~ text-6xl: 예측 가능한 표준 사이즈 사용
           */}
-          <div className="relative font-bold leading-tight whitespace-nowrap">
-            <div className="text-4xl md:text-5xl lg:text-6xl inline-block max-w-full">
+          <div className="relative font-bold leading-tight whitespace-normal">
+            <div className="text-[2.2rem] md:text-[3rem] lg:text-[3.5rem] inline-block max-w-full">
               <GradientText
                 colors={["#06b6d4", "#ffffff", "#06b6d4", "#ffffff", "#06b6d4"]}
                 animationSpeed={5}
