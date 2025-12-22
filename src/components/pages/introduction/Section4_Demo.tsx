@@ -75,8 +75,9 @@ export function Section4_Demo({ title, description }: Section4Props) {
         {/* ✅ [수정 2] w-full: items-start 적용 시 너비가 컨텐츠만큼만 잡힐 수 있으므로, 
            부모 너비를 꽉 채우도록 설정하여 text-left가 확실히 먹히도록 함 
         */}
-        <div className="w-full mb-12 text-left">
-          <h2 className="text-4xl md:text-6xl font-bold mb-4">
+       <div className="w-full mb-12 text-left">
+          {/* [수정] flex와 justify-start를 추가하여 내부의 GradientText를 강제로 왼쪽으로 당김 */}
+          <h2 className="text-4xl md:text-6xl font-bold mb-4 flex justify-start">
             <GradientText
               colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
               animationSpeed={5}

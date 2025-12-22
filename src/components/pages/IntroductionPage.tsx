@@ -62,7 +62,7 @@ const STATIC_CONTENT = {
       en: "PFM Simulation"
     },
     description: {
-      ko: "Full-Stack PFM 엔진으로 예측된 미세조직 진화를 경험해보세요. 스크롤을 내려 시뮬레이션 타임랩스를 제어할 수 있습니다.",
+      ko: "Full-Stack PFM 엔진으로 예측된 미세조직 진화를 경험해보세요.\n스크롤을 내려 시뮬레이션 타임랩스를 제어할 수 있습니다.",
       en: "Experience the microstructure evolution predicted by our Full-Stack PFM engine. Scroll down to control the simulation time-lapse."
     }
   },
