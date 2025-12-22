@@ -16,10 +16,12 @@ export function Section2_CoreCapabilites({ items }: { items: any[] }) {
             Our Core Capabilities
           </h2>
           
-          <div className="relative font-bold leading-tight whitespace-normal md:whitespace-nowrap">
-            {/* ✅ [수정] clamp()를 사용하여 화면 폭에 비례해 폰트 크기가 부드럽게 조절되도록 변경 */}
-            {/* 최소 2rem(32px) ~ 최대 5rem(80px) 사이에서 5.5vw 비율로 유지 */}
-            <div className="text-[clamp(2rem,5.5vw,5rem)] inline-block">
+          {/* ✅ [수정 포인트]
+            1. whitespace-nowrap 제거 -> whitespace-normal: 화면이 좁으면 자연스럽게 줄바꿈 허용
+            2. clamp() 제거 -> text-4xl ~ text-6xl: 예측 가능한 표준 사이즈 사용
+          */}
+          <div className="relative font-bold leading-tight whitespace-normal">
+            <div className="text-4xl md:text-5xl lg:text-6xl inline-block max-w-full">
               <GradientText
                 colors={["#06b6d4", "#ffffff", "#06b6d4", "#ffffff", "#06b6d4"]}
                 animationSpeed={5}
@@ -29,7 +31,7 @@ export function Section2_CoreCapabilites({ items }: { items: any[] }) {
                 Advanced Simulation & Data-Driven Design
               </GradientText>
             </div>
-
+            
             <div className="h-4 md:h-8 w-full select-none" aria-hidden="true">
               &nbsp;
             </div>

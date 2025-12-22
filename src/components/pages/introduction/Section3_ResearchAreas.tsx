@@ -31,7 +31,7 @@ export function Section3_ResearchAreas({ content, loading }: { content: any, loa
             max-w-[95%] mx-auto 
             
             /* 📱 모바일: 120px 넘으면 스크롤 발생 */
-            max-h-[120px] 
+            max-h-[200px] 
             overflow-y-auto 
             
             /* 💻 PC (md 이상): 높이 제한 해제 (전체 텍스트 표시) & 스크롤 숨김 */
