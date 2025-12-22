@@ -18,7 +18,7 @@ import { Cpu, Atom, BrainCircuit, Boxes, Network, Zap, Globe, ShieldCheck } from
 // Static Data (Updated based on Research Proposal)
 const STATIC_CONTENT = {
   mission: {
-    ko: "물리 법칙과 인공지능의 완벽한 융합:\n예측 가능한 미래 소재를 설계하다", 
+    ko: "물리 법칙과 인공지능의 융합:\n예측 가능한 미래 소재를 설계하다", 
     en: "The Perfect Convergence of Physics and AI: Designing Predictable Future Materials", 
   },
   capabilities: [

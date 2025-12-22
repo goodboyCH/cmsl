@@ -5,6 +5,8 @@ import ColorBends from '@/components/reactbits/ColorBends';
   
 
 export function Section1_Intro({ missionKor, missionEng }: { missionKor: string, missionEng: string }) {
+  const korLines = missionKor.split('\n');
+  
   return (
     <section className="relative h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-black border-b border-white/10">
       
@@ -35,14 +37,17 @@ export function Section1_Intro({ missionKor, missionEng }: { missionKor: string,
       {/* 2. 텍스트: BlurText 적용 */}
       <div className="relative z-10 text-center px-6 max-w-7xl">
         {/* 한글 미션 */}
-        <div className="mb-8 mix-blend-screen"> {/* 배경과 예쁘게 섞이도록 블렌드 모드 사용 */}
+        <div className="mb-8 mix-blend-screen flex flex-col items-center gap-2 md:gap-4"> 
+           {korLines.map((line, index) => (
            <BlurText
-             text={missionKor}
-             delay={50}
-             animateBy="words"
-             direction="bottom"
-             className="text-4xl md:text-7xl lg:text-8xl font-bold tracking-tight text-white leading-tight whitespace-pre-line"
-           />
+               key={index}
+               text={line}
+               delay={50 + (index * 150)} // 두 번째 줄은 약간 늦게 시작하여 자연스럽게 연출
+               animateBy="words"
+               direction="bottom"
+               className="text-4xl md:text-7xl lg:text-8xl font-bold tracking-tight text-white leading-tight"
+             />
+           ))}
         </div>
           
         {/* 영문 미션 */}
