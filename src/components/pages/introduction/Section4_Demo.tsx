@@ -8,19 +8,17 @@ import GradientText from '@/components/reactbits/GradientText';
 
 gsap.registerPlugin(ScrollTrigger);
 
-// const VIDEO_SRC = "/videos/demo-sequence1.mp4";
 const VIDEO_SRC = "/videos/demo2.mp4"; 
-
 const FPS = 30; 
 
 export function Section4_Demo() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const textRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null); // 비디오 컨테이너 참조
 
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
-      if (!videoRef.current || !sectionRef.current) return;
+      if (!videoRef.current || !sectionRef.current || !containerRef.current) return;
 
       const video = videoRef.current;
 
@@ -31,39 +29,31 @@ export function Section4_Demo() {
 
         const tl = gsap.timeline({
           scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top top",
-            end: "+=400%", 
-            pin: true,
-            scrub: 0.5,
+            trigger: sectionRef.current, // 섹션을 트리거로 잡음
+            // ✅ [수정] start/end 지점 조정
+            // 화면 중앙(center)에 비디오 박스의 중앙(center)이 오면 고정 시작
+            start: "center center", 
+            end: "+=300%", // 스크롤 길이 (길수록 천천히 재생됨)
+            pin: true,     // 섹션 고정
+            scrub: 1,      // 부드러운 스크러빙
           }
         });
 
+        // 비디오 프레임 재생 애니메이션
         tl.to(videoState, {
           frame: totalFrames,
           duration: duration,
           ease: "none",
           onUpdate: () => {
             if (video) {
-                video.currentTime = videoState.frame / FPS;
+                // 비디오가 로드된 상태에서만 시간 업데이트
+                if (Number.isFinite(videoState.frame)) {
+                   video.currentTime = videoState.frame / FPS;
+                }
             }
           }
         }, 0); 
 
-        if (textRef.current) {
-          const fadeInTime = duration * 0.2;
-          const fadeOutTime = duration * 0.8;
-          
-          tl.fromTo(textRef.current, 
-            { opacity: 0, y: 50 }, 
-            { opacity: 1, y: 0, duration: 1 }, 
-            fadeInTime
-          )
-          .to(textRef.current, 
-            { opacity: 0, y: -50, duration: 1 }, 
-            fadeOutTime
-          );
-        }
       };
 
       if (video.readyState >= 1) {
@@ -78,41 +68,52 @@ export function Section4_Demo() {
   }, []);
 
   return (
-    <div ref={sectionRef} className="relative h-screen w-full bg-black overflow-hidden">
-      <div className="absolute inset-0 w-full h-full z-0">
-        <video
-          ref={videoRef}
-          src={VIDEO_SRC}
-          className="w-full h-full object-contain" 
-          playsInline
-          muted
-          preload="auto"
-        />
-      </div>
-
-      <div 
-        ref={textRef} 
-        className="absolute bottom-20 left-0 w-full text-center z-10 opacity-0 pointer-events-none"
-      >
-        <div className="inline-block bg-black/80 backdrop-blur-md px-8 py-4 rounded-full border border-white/10 shadow-2xl">
-          <div className="text-white text-lg md:text-3xl font-bold tracking-wide flex items-center justify-center gap-2 md:gap-3 flex-wrap">
-            <span>Simulation Results:</span>
-            
-            {/* 🛑 [변경] GradientText 적용 */}
+    // ✅ [레이아웃] 전체 화면(h-screen) 대신 패딩이 있는 섹션으로 변경
+    <section ref={sectionRef} className="relative py-32 bg-black border-b border-white/10 overflow-hidden">
+      <div className="container mx-auto px-6 md:px-12 max-w-7xl h-full flex flex-col justify-center">
+        
+        {/* --- 1. 헤더 (다른 섹션과 통일된 스타일) --- */}
+        <div className="mb-12 text-center md:text-left">
+          <h2 className="text-4xl md:text-6xl font-bold mb-4">
             <GradientText
               colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
-              animationSpeed={3}
+              animationSpeed={5}
               showBorder={false}
-              className="font-bold"
             >
-              Predicted Microstructure
+              Simulation Demo
             </GradientText>
+          </h2>
+          <p className="text-gray-400 text-lg md:text-xl max-w-2xl">
+            Experience the microstructure evolution predicted by our Full-Stack PFM engine.
+            <br className="hidden md:block"/>
+            Scroll down to control the simulation time-lapse.
+          </p>
+        </div>
+
+        {/* --- 2. 비디오 컨테이너 (16:9 비율) --- */}
+        <div 
+          ref={containerRef}
+          className="relative w-full aspect-video bg-zinc-900 rounded-3xl border border-white/10 shadow-2xl overflow-hidden ring-1 ring-white/5"
+        >
+          <video
+            ref={videoRef}
+            src={VIDEO_SRC}
+            className="w-full h-full object-contain" 
+            playsInline
+            muted
+            preload="auto"
+          />
           
+          {/* 장식용: 비디오 위에 살짝 그라데이션 오버레이 (선택사항) */}
+          <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+          
+          {/* 우측 하단 라벨 */}
+          <div className="absolute bottom-6 right-6 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-xs md:text-sm text-cyan-400 font-mono">
+             ● AI-Accelerated PFM
           </div>
         </div>
+
       </div>
-      
-      <div className="absolute inset-0 z-20 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay"></div>
-    </div>
+    </section>
   );
 }
