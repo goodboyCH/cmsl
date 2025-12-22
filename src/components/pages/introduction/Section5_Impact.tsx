@@ -4,13 +4,15 @@ import SpotlightCard from '@/components/reactbits/SpotlightCard';
 import GradientText from '@/components/reactbits/GradientText';
 
 interface Section5Props {
-  items: { title: string; description: string }[];
+  items: { 
+    title: string; 
+    description: string;
+    // icon Prop 제거됨
+  }[];
   logos: { name: string; url: string }[];
-  // ✅ [추가] 헤더 설명글을 받을 Prop 정의
   description: string; 
 }
 
-// ✅ [추가] description을 구조 분해 할당으로 받음
 export function Section5_Impact({ items = [], logos = [], description }: Section5Props) {
   
   return (
@@ -28,28 +30,34 @@ export function Section5_Impact({ items = [], logos = [], description }: Section
                 Global Impact
               </GradientText>
             </h2>
-            {/* ✅ [수정] 하드코딩된 텍스트를 Prop으로 교체 */}
-            {/* whitespace-pre-line: 데이터에 있는 \n을 줄바꿈으로 인식하되, 모바일 등 공간이 부족하면 자연스럽게 줄바꿈됨 */}
             <p className="text-gray-400 max-w-2xl mx-auto text-lg leading-relaxed whitespace-pre-line">
               {description}
             </p>
          </div>
          
-         {/* --- Bento Grid --- */}
-         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
+         {/* --- Bento Grid (3x2 Layout) --- */}
+         {/* lg:grid-cols-3 으로 변경하여 6개 아이템이 3개씩 2줄로 꽉 차게 배치됨 */}
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
             {items.map((item, idx) => {
-              const isLarge = idx === 0 || idx === 3;
               return (
-                <div key={idx} className={isLarge ? 'md:col-span-2' : ''}>
+                <div key={idx} className="h-full">
                   <SpotlightCard 
-                    className="h-full p-10 flex flex-col justify-between"
-                    spotlightColor="rgba(6, 182, 212, 0.2)"
+                    className="h-full p-8 flex flex-col justify-between group"
+                    spotlightColor="rgba(6, 182, 212, 0.15)"
                   >
                       <div>
-                        <div className="text-cyan-500 mb-6 text-xl font-bold font-mono">0{idx + 1}</div>
-                        <h3 className="text-2xl md:text-3xl font-bold mb-4 text-white">{item.title}</h3>
+                        {/* 번호 강조 */}
+                        <div className="text-cyan-500/50 text-xl font-bold font-mono mb-6">
+                            0{idx + 1}
+                        </div>
+                        
+                        <h3 className="text-2xl font-bold mb-4 text-white group-hover:text-cyan-100 transition-colors">
+                            {item.title}
+                        </h3>
                       </div>
-                      <p className="text-gray-400 text-base leading-relaxed mt-6">{item.description}</p>
+                      <p className="text-gray-400 text-sm md:text-base leading-relaxed mt-4 border-t border-white/5 pt-4">
+                        {item.description}
+                      </p>
                   </SpotlightCard>
                 </div>
               );
