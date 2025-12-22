@@ -5,31 +5,31 @@ import React from 'react';
 import GradientText from '@/components/reactbits/GradientText';
 import InfiniteMenu from '@/components/reactbits/InfiniteMenu';
 
-// ✅ [추가] 언어 설정을 가져오기 위해 import
 import { useLanguage } from '@/components/LanguageProvider';
 
 export function Section3_ResearchAreas({ content, loading }: { content: any, loading: boolean }) {
-  // ✅ [추가] 현재 언어 값('ko' or 'en') 가져오기
   const { language } = useLanguage();
 
   const rawItems = Array.isArray(content?.items) ? content.items : [];
 
   const menuItems = rawItems.map((item: any) => {
-    // ✅ [수정] description이 객체인지 문자열인지 확인하여 처리
-    // (기존 데이터가 문자열로 남아있을 경우를 대비한 안전 장치 포함)
     let descriptionText = "";
     
     if (typeof item.description === 'object' && item.description !== null) {
-      // 1. 데이터가 { ko: "...", en: "..." } 객체인 경우 -> 현재 언어 선택
       descriptionText = item.description[language] || item.description['ko'] || "";
     } else {
-      // 2. 데이터가 그냥 문자열인 경우 (구 데이터) -> 그대로 사용
       descriptionText = item.description || "";
     }
 
     return {
       title: item.title,
-      description: descriptionText, // ✅ 변환된 텍스트 적용
+      // ✅ [수정] 텍스트를 span으로 감싸서 화면 크기에 따른 폰트 사이즈 클래스 적용
+      // 모바일: text-xs (12px), 태블릿: text-sm (14px), PC: text-base (16px)
+      description: (
+        <span className="block text-xs sm:text-sm md:text-base leading-relaxed text-gray-400 max-w-[90%] mx-auto">
+          {descriptionText}
+        </span>
+      ),
       image: item.imageUrl || "https://placehold.co/600x400/18181b/FFF?text=No+Image",
       link: item.link || item.url || "" 
     };
