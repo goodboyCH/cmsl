@@ -9,7 +9,7 @@ import GradientText from '@/components/reactbits/GradientText';
 gsap.registerPlugin(ScrollTrigger);
 
 // const VIDEO_SRC = "/videos/demo-sequence1.mp4";
-const VIDEO_SRC = "/videos/demo1.mp4"; 
+const VIDEO_SRC = "/videos/demo2.mp4"; 
 
 const FPS = 30; 
 
