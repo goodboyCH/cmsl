@@ -11,7 +11,13 @@ gsap.registerPlugin(ScrollTrigger);
 const VIDEO_SRC = "/videos/demo2.mp4"; 
 const FPS = 30; 
 
-export function Section4_Demo() {
+// [추가] Props 인터페이스 정의
+interface Section4Props {
+  title: string;
+  description: string;
+}
+
+export function Section4_Demo({ title, description }: Section4Props) {
   const sectionRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -62,11 +68,10 @@ export function Section4_Demo() {
 
   return (
     <section ref={sectionRef} className="relative py-32 bg-black border-b border-white/10 overflow-hidden">
-      {/* ✅ [수정] max-w-7xl 제거 -> Section 3와 동일하게 너비 확장 */}
+      {/* 너비 확장 */}
       <div className="container mx-auto px-6 md:px-12 h-full flex flex-col justify-center">
         
-        {/* --- 1. 헤더 (좌측 정렬 고정) --- */}
-        {/* ✅ [수정] text-center 제거 -> text-left로 고정 */}
+        {/* --- 1. 헤더 (좌측 정렬 유지) --- */}
         <div className="mb-12 text-left">
           <h2 className="text-4xl md:text-6xl font-bold mb-4">
             <GradientText
@@ -74,18 +79,16 @@ export function Section4_Demo() {
               animationSpeed={5}
               showBorder={false}
             >
-              Simulation Demo
+              {title} {/* [수정] Props로 받은 title 사용 */}
             </GradientText>
           </h2>
           
-          {/* ✅ [수정] <br> 제거 및 max-w 조절로 자연스러운 줄바꿈 유도 */}
           <p className="text-gray-400 text-lg md:text-xl max-w-3xl leading-relaxed">
-            Experience the microstructure evolution predicted by our Full-Stack PFM engine.
-            Scroll down to control the simulation time-lapse.
+            {description} {/* [수정] Props로 받은 description 사용 */}
           </p>
         </div>
 
-        {/* --- 2. 비디오 컨테이너 (16:9 비율, 꽉 찬 너비) --- */}
+        {/* --- 2. 비디오 컨테이너 --- */}
         <div 
           ref={containerRef}
           className="relative w-full aspect-video bg-zinc-900 rounded-3xl border border-white/10 shadow-2xl overflow-hidden ring-1 ring-white/5"

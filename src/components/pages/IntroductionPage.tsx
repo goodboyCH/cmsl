@@ -13,9 +13,9 @@ import { Section4_Demo } from './introduction/Section4_Demo';
 import { Section5_Impact } from './introduction/Section5_Impact';
 
 // Icons
-import { Cpu, Atom, BrainCircuit, Boxes, Network, Zap, Globe, ShieldCheck } from 'lucide-react';
+import { Atom, BrainCircuit, Boxes, Network } from 'lucide-react';
 
-// Static Data (Updated based on Research Proposal)
+// Static Data
 const STATIC_CONTENT = {
   mission: {
     ko: "물리 법칙과 인공지능의 융합\n예측 가능한 미래 소재를 설계하다", 
@@ -26,7 +26,6 @@ const STATIC_CONTENT = {
       icon: <Atom className="w-10 h-10" />, 
       title: "Full-Stack PFM Technology",
       description: {
-        // 소스: 7대 핵심 물성 코드 독자 보유, 소재의 탄생부터 죽음까지
         ko: "소재의 탄생(Sintering)부터 소멸(Failure)까지, 전 생애주기를 관통하는 7대 핵심 PFM 원천 코드를 통해 미세조직의 진화를 완벽하게 예측합니다.",
         en: "We predict microstructure evolution perfectly through 7 proprietary Full-Stack PFM codes covering the entire lifecycle from sintering to failure."
       }
@@ -35,7 +34,6 @@ const STATIC_CONTENT = {
       icon: <BrainCircuit className="w-10 h-10" />,
       title: "Neuro-Symbolic AI (PINO)",
       description: {
-        // 소스: PINO 기반 초고속 대리 모델, 10,000배 가속
         ko: "물리 법칙의 엄밀함과 AI의 초고속 연산성을 결합한 PINO(Physics-Informed Neural Operator) 기술로 시뮬레이션 속도를 10,000배 이상 가속화합니다.",
         en: "Accelerating simulation speeds by over 10,000x using PINO technology, combining the rigor of physical laws with the ultra-fast computation of AI."
       }
@@ -44,7 +42,6 @@ const STATIC_CONTENT = {
       icon: <Network className="w-10 h-10" />,
       title: "Autonomous Evolution",
       description: {
-        // 소스: 자율 보정, Grey-box Evolving Thermodynamics
         ko: "현장 데이터를 실시간으로 흡수하여 물리 엔진이 스스로 오차를 보정하고 진화하는 'Grey-box 자율 진화 열역학' 시스템을 구축합니다.",
         en: "Building a 'Grey-box Evolving Thermodynamics' system where the physics engine autonomously calibrates errors and evolves by absorbing real-time field data."
       }
@@ -53,19 +50,27 @@ const STATIC_CONTENT = {
       icon: <Boxes className="w-10 h-10" />,
       title: "Lab-to-Field Deployment",
       description: {
-        // 소스: Portable Palantir, Edge Device 탑재
         ko: "이론적 연구를 넘어, 실제 제조 현장의 엣지 디바이스(Edge Device)에 탑재 가능한 경량화된 'Portable Palantir' 솔루션을 제공합니다.",
         en: "Going beyond theoretical research, we provide 'Portable Palantir' solutions—lightweight models deployable on edge devices in actual manufacturing sites."
       }
     }
   ],
+  // [추가] Demo 섹션 한/영 데이터
+  demo: {
+    title: {
+      ko: "Microstructure Evolution",
+      en: "Microstructure Evolution"
+    },
+    description: {
+      ko: "Full-Stack PFM 엔진으로 예측된 미세조직 진화를 경험해보세요. 스크롤을 내려 시뮬레이션 타임랩스를 제어할 수 있습니다.",
+      en: "Experience the microstructure evolution predicted by our Full-Stack PFM engine. Scroll down to control the simulation time-lapse."
+    }
+  },
   impact: {
     headerDesc: {
-        // 연구계획서: 소재 데이터 주권, Material Metaverse
         ko: "우리는 소재 개발의 패러다임을 '경험'에서 '데이터와 물리'로 전환하며,\n국가 소재 데이터 주권과 글로벌 표준을 확립합니다.",
         en: "We aim to shift the paradigm of material development from 'experience' to 'data & physics',\nestablishing national data sovereignty and global standards."
     },
-
     items: [
       { 
         title: "Material Metaverse", 
@@ -111,10 +116,10 @@ const STATIC_CONTENT = {
       }
     ],
     logos: [
-      { name: "KIST", url: "/images/logo_kist.png" }, // 예시: 연구계획서에 KIST 협력 언급
+      { name: "KIST", url: "/images/logo_kist.png" },
       { name: "Samsung", url: "/images/logo_samsung.png" },
       { name: "Hyundai", url: "/images/logo_hyundai.png" },
-      { name: "NRF", url: "/images/logo_nrf.png" }, // 한국연구재단
+      { name: "NRF", url: "/images/logo_nrf.png" },
     ]
   }
 };
@@ -159,11 +164,14 @@ export function IntroductionPage() {
           }))} 
         />
 
-        {/* Section 3: Research Areas (Supabase Data) */}
-        {/* Supabase 데이터도 연구계획서의 'Multi-physics Integration', 'Acceleration', 'Evolution' 등의 키워드로 업데이트하면 좋습니다. */}
+        {/* Section 3: Research Areas */}
         <Section3_ResearchAreas content={researchContent} loading={loading} />
         
-        <Section4_Demo />
+        {/* [수정] Section 4: Demo (Props 전달) */}
+        <Section4_Demo 
+          title={STATIC_CONTENT.demo.title[language]}
+          description={STATIC_CONTENT.demo.description[language]}
+        />
 
         {/* Section 5: Impact */}
         <Section5_Impact 
