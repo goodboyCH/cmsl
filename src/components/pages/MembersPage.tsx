@@ -25,6 +25,19 @@ export function MembersPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const renderResearchFocus = (focus: string) => {
+    const topics = focus.split(' / ').map(t => t.trim());
+    if (topics.length <= 2) return focus;
+
+    return (
+      <span>
+        {topics.slice(0, 2).join(' / ')}
+        <span className="text-primary font-bold ml-1 text-xs">
+          +{topics.length - 2} more
+        </span>
+      </span>
+    );
+  };
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -144,7 +157,10 @@ export function MembersPage() {
                               <GraduationCap className="h-4 w-4" />
                               Research
                             </h4>
-                            <p className="text-muted-foreground leading-snug text-sm">{member.research_focus}</p>
+                            {/* ⬇️ 이 부분을 수정하여 헬퍼 함수 적용 */}
+                            <p className="text-muted-foreground leading-snug text-sm">
+                              {renderResearchFocus(member.research_focus)}
+                            </p>
                           </div>
 
                           <div className="pt-3 border-t mt-3">
