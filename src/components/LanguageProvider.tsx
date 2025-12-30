@@ -30,16 +30,16 @@ const translations: Record<Language, Record<string, string>> = {
 
     'members.header.title': 'Our Team',
     'members.header.desc': 'Meet the talented researchers advancing computational materials science',
-    
+
     'alumni.header.title': 'Alumni',
     'alumni.header.desc': 'Meet our distinguished graduates who are making an impact in their fields.',
-    
+
     'publications.header.title': 'Publications',
     'publications.header.desc': 'Explore our research contributions to computational materials science.',
 
     'news.header.title': 'Notices & News',
     'news.header.desc': 'Stay updated with the latest news and announcements.',
-    
+
     'gallery.header.title': 'Gallery',
     'gallery.header.desc': 'Explore our lab\'s activities and achievements.',
 
@@ -51,7 +51,7 @@ const translations: Record<Language, Record<string, string>> = {
     'home.btn.learn_more': 'Learn More',
 
     // Research Page Titles (정적 페이지용)
-    'research.casting': 'High-Performance Casting Alloys',
+    'research.casting': 'Real Scale PFM',
     'research.films': 'Ferroelectric Thin Films',
     'research.biodegradable': 'Biodegradable Mg-Zn Alloys',
 
@@ -76,7 +76,7 @@ const translations: Record<Language, Record<string, string>> = {
     'contact.addr.dept': 'School of Materials Science & Engineering',
     'contact.addr.building': 'Kookmin University Engineering building Room 443',
     'contact.addr.street': '77 Jeongneung-ro, Seongbuk-gu, Seoul, 02707, Korea',
-    
+
     // ✅ Simulation Page (추가)
     'sim.header.title': 'Multi-Physics Simulation Service',
     'sim.header.desc': 'Powered by Python on Google Colab',
@@ -100,7 +100,7 @@ const translations: Record<Language, Record<string, string>> = {
     // ✅ Header & Footer (추가)
     'header.line1': 'Computational Materials',
     'header.line2': 'Science Laboratory',
-    
+
     'footer.lab': 'Computational Materials Science Laboratory',
     'footer.dept': 'Dept. of Materials Science and Engineering',
     'footer.univ': 'Kookmin University',
@@ -134,10 +134,10 @@ const translations: Record<Language, Record<string, string>> = {
 
     'members.header.title': '연구원 소개',
     'members.header.desc': '계산 재료 과학 연구를 선도하는 연구원들을 소개합니다.',
-    
+
     'alumni.header.title': '졸업생',
     'alumni.header.desc': '각 분야에서 활약하고 있는 자랑스러운 졸업생들을 소개합니다.',
-    
+
     'publications.header.title': '연구 논문',
     'publications.header.desc': '계산 재료 과학 분야의 연구 성과와 기여를 확인해보세요.',
 
@@ -155,7 +155,7 @@ const translations: Record<Language, Record<string, string>> = {
     'home.btn.learn_more': '자세히 보기',
 
     // Research Page Titles
-    'research.casting': '고성능 주조 합금 설계',
+    'research.casting': 'Real Scale PFM',
     'research.films': '강유전체 박막 연구',
     'research.biodegradable': '생분해성 Mg-Zn 합금',
 

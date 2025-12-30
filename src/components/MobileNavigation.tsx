@@ -18,7 +18,7 @@ export function MobileNavigation({ currentPage, onPageChange }: MobileNavigation
   const navItems = [
     { key: 'home', path: '/', label: 'Home' },
     { key: 'introduction', path: '/introduction', label: 'Introduction' },
-    { 
+    {
       key: 'people',
       label: 'People',
       subItems: [
@@ -27,17 +27,17 @@ export function MobileNavigation({ currentPage, onPageChange }: MobileNavigation
         { key: 'alumni', path: '/people/alumni', label: 'Alumni' }
       ]
     },
-    { 
+    {
       key: 'research',
       label: 'Research',
       subItems: [
-        { key: 'casting', path: '/research/casting', label: 'High-Performance Alloys' },
+        { key: 'casting', path: '/research/pfm', label: 'Real Scale PFM' },
         { key: 'films', path: '/research/films', label: 'Ferroelectric Films' },
         { key: 'biodegradable', path: '/research/biodegradable', label: 'Biodegradable Alloys' }
       ]
     },
     { key: 'publications', path: '/publications', label: 'Publications' },
-    { 
+    {
       key: 'board',
       label: 'Board',
       subItems: [
@@ -46,10 +46,10 @@ export function MobileNavigation({ currentPage, onPageChange }: MobileNavigation
       ]
     },
     { key: 'contact', path: '/contact', label: 'Contact' },
-    { 
-      key: 'pfm', 
-      path: '/simulation', 
-      label: 'PFM Calculation', 
+    {
+      key: 'pfm',
+      path: '/simulation',
+      label: 'PFM Calculation',
       isExternal: false // 외부 링크 여부에 따라 조정 (시뮬레이션 페이지는 내부 라우트이므로 false)
     },
   ];
@@ -65,13 +65,13 @@ export function MobileNavigation({ currentPage, onPageChange }: MobileNavigation
   };
 
   const toggleExpanded = (key: string) => {
-    setExpandedItems(prev => 
-      prev.includes(key) 
+    setExpandedItems(prev =>
+      prev.includes(key)
         ? prev.filter(item => item !== key)
         : [...prev, key]
     );
   };
-  
+
   React.useEffect(() => {
     if (isOpen) {
       const parentCategory = currentPage.split('/')[0];
@@ -84,9 +84,9 @@ export function MobileNavigation({ currentPage, onPageChange }: MobileNavigation
 
   return (
     <div className="relative">
-      <Button 
+      <Button
         variant="ghost"
-        size="icon" 
+        size="icon"
         className="h-10 w-10"
         onClick={() => setIsOpen(!isOpen)}
       >
@@ -95,7 +95,7 @@ export function MobileNavigation({ currentPage, onPageChange }: MobileNavigation
 
       {isOpen && (
         <>
-          <div 
+          <div
             className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm animate-in fade-in-0 duration-200"
             onClick={() => setIsOpen(false)}
           />
@@ -131,9 +131,8 @@ export function MobileNavigation({ currentPage, onPageChange }: MobileNavigation
                           className="w-full justify-between text-base font-medium h-11 px-3"
                         >
                           {item.label}
-                          <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${
-                            expandedItems.includes(item.key) ? 'rotate-180' : ''
-                          }`} />
+                          <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${expandedItems.includes(item.key) ? 'rotate-180' : ''
+                            }`} />
                         </Button>
                         {expandedItems.includes(item.key) && (
                           <div className="ml-4 pl-2 border-l-2 space-y-1 py-1">
@@ -165,15 +164,15 @@ export function MobileNavigation({ currentPage, onPageChange }: MobileNavigation
 
               {/* 3. 언어 전환 버튼 추가 */}
               <div className="mt-auto pt-4 border-t">
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-center gap-2" 
+                <Button
+                  variant="outline"
+                  className="w-full justify-center gap-2"
                   onClick={toggleLanguage}
                 >
                   <Globe className="h-4 w-4" />
                   {language === 'en' ? 'Switch to Korean' : 'Switch to English'}
                 </Button>
-                
+
                 <p className="text-xs text-muted-foreground text-center mt-4">
                   Computational Materials Science Laboratory
                 </p>

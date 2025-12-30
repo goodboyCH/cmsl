@@ -119,7 +119,7 @@ function AppContent() {
                 <Route path="/people/professor" element={<ProfessorPage />} />
                 <Route path="/people/members" element={<MembersPage />} />
                 <Route path="/people/alumni" element={<AlumniPage />} />
-                <Route path="/research/casting" element={<CastingAlloysPage />} />
+                <Route path="/research/pfm" element={<CastingAlloysPage />} />
                 <Route path="/research/films" element={<ThinFilmsPage />} />
                 <Route path="/research/biodegradable" element={<BiodegradableAlloysPage />} />
                 <Route path="/publications" element={<PublicationsPage />} />
@@ -166,7 +166,7 @@ function AppContent() {
               {/* 🌍 푸터 링크 번역 적용 */}
               <h3 className="text-lg font-semibold text-primary mb-4">{t('footer.links')}</h3>
               <div className="space-y-2 text-sm">
-                <button onClick={() => handlePageChange('/research/casting')} className="block w-full text-muted-foreground hover:text-primary smooth-transition md:text-left">{t('footer.links.research')}</button>
+                <button onClick={() => handlePageChange('/research/pfm')} className="block w-full text-muted-foreground hover:text-primary smooth-transition md:text-left">{t('footer.links.research')}</button>
                 <button onClick={() => handlePageChange('/publications')} className="block w-full text-muted-foreground hover:text-primary smooth-transition md:text-left">{t('footer.links.pubs')}</button>
                 <button onClick={() => handlePageChange('/people/members')} className="block w-full text-muted-foreground hover:text-primary smooth-transition md:text-left">{t('footer.links.members')}</button>
                 <button onClick={() => handlePageChange('/contact')} className="block w-full text-muted-foreground hover:text-primary smooth-transition md:text-left">{t('footer.links.contact')}</button>
