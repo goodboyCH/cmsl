@@ -2,12 +2,9 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-// 빌드 시 환경변수가 없을 경우를 위한 기본값 (실제 Supabase URL 형식)
-const FALLBACK_URL = 'https://placeholder.supabase.co';
-const FALLBACK_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2MDAwMDAwMDAsImV4cCI6MjAwMDAwMDAwMH0.placeholder';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || FALLBACK_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || FALLBACK_KEY;
+// 환경변수 또는 직접 값 사용 (anon key는 공개되어도 RLS로 보호됨)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://hjaickjcmdxrsormsgve.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhqYWlja2pjbWR4cnNvcm1zZ3ZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgwNjM3NDgsImV4cCI6MjA3MzYzOTc0OH0.1DxYsqXO2QkL-8JKYjFd78S71q82X1L1Cxf6rQIkE_k';
 
 // 클라이언트 사이드에서만 Supabase 클라이언트 생성
 let supabaseInstance: SupabaseClient | null = null;
