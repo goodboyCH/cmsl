@@ -18,8 +18,8 @@ export function Navigation({ currentPage, onPageChange }: NavigationProps) {
   const navItems = [
     { key: 'home', path: '/', label: 'Home' },
     { key: 'introduction', path: '/introduction', label: 'Introduction' },
-    { 
-      key: 'people', 
+    {
+      key: 'people',
       label: 'People',
       subItems: [
         { key: 'professor', path: '/people/professor', label: 'Professor' },
@@ -27,18 +27,18 @@ export function Navigation({ currentPage, onPageChange }: NavigationProps) {
         { key: 'alumni', path: '/people/alumni', label: 'Alumni' }
       ]
     },
-    { 
-      key: 'research', 
+    {
+      key: 'research',
       label: 'Research',
       subItems: [
-        { key: 'casting', path: '/research/casting', label: 'High-Performance Alloys' },
+        { key: 'casting', path: '/research/pfm', label: 'Real Scale PFM' },
         { key: 'films', path: '/research/films', label: 'Ferroelectric Films' },
         { key: 'biodegradable', path: '/research/biodegradable', label: 'Biodegradable Alloys' }
       ]
     },
     { key: 'publications', path: '/publications', label: 'Publications' },
-    { 
-      key: 'board', 
+    {
+      key: 'board',
       label: 'Board',
       subItems: [
         { key: 'news', path: '/board/news', label: 'Notices & News' },
@@ -72,8 +72,8 @@ export function Navigation({ currentPage, onPageChange }: NavigationProps) {
   return (
     <nav className="flex items-center">
       {navItems.map((item) => (
-        <div 
-          key={item.key} 
+        <div
+          key={item.key}
           className="relative"
           onMouseEnter={() => item.subItems && handleMouseEnter(item.key)}
           onMouseLeave={handleMouseLeave}
@@ -90,16 +90,15 @@ export function Navigation({ currentPage, onPageChange }: NavigationProps) {
           ) : item.subItems ? (
             <div className="relative">
               <div
-                className={`px-4 py-4 text-lg font-medium cursor-pointer transition-all duration-200 flex items-center gap-1 ${
-                  currentPage === item.key 
-                    ? 'text-primary bg-primary/5 border-b-2 border-primary' 
+                className={`px-4 py-4 text-lg font-medium cursor-pointer transition-all duration-200 flex items-center gap-1 ${currentPage === item.key
+                    ? 'text-primary bg-primary/5 border-b-2 border-primary'
                     : 'text-foreground hover:text-primary hover:bg-primary/5'
-                }`}
+                  }`}
               >
                 {item.label}
                 <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${openDropdown === item.key ? 'rotate-180' : ''}`} />
               </div>
-              
+
               {openDropdown === item.key && (
                 <div className="absolute top-full left-0 min-w-48 bg-background border border-border rounded-lg shadow-lg z-50 py-2 animate-in slide-in-from-top-2 duration-200">
                   {item.subItems.map((subItem) => (
@@ -117,11 +116,10 @@ export function Navigation({ currentPage, onPageChange }: NavigationProps) {
           ) : (
             <div
               onClick={() => onPageChange(item.path)}
-              className={`px-4 py-4 text-lg font-medium cursor-pointer transition-all duration-200 ${
-                (currentPage === item.key || (item.key === 'home' && currentPage === ''))
-                  ? 'text-primary bg-primary/5 border-b-2 border-primary' 
+              className={`px-4 py-4 text-lg font-medium cursor-pointer transition-all duration-200 ${(currentPage === item.key || (item.key === 'home' && currentPage === ''))
+                  ? 'text-primary bg-primary/5 border-b-2 border-primary'
                   : 'text-foreground hover:text-primary hover:bg-primary/5'
-              }`}
+                }`}
             >
               {item.label}
             </div>
@@ -131,9 +129,9 @@ export function Navigation({ currentPage, onPageChange }: NavigationProps) {
 
       {/* 3. 언어 전환 버튼은 그대로 유지 */}
       <div className="ml-4 pl-4 border-l h-6 flex items-center">
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={toggleLanguage}
           className="font-semibold text-muted-foreground hover:text-primary gap-1 px-2"
         >
