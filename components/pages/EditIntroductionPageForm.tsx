@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/lib/supabaseClient';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 // Select 등 사용하지 않는 import 제거 가능
 
 interface EditIntroductionPageFormProps { onBack: () => void; }
@@ -163,83 +163,6 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
                 >
                   Add Research Area
                 </Button>
-              </AccordionContent>
-            </AccordionItem>
-
-          <AccordionItem value="item-4">
-              <AccordionTrigger>Section 4: Demo Videos</AccordionTrigger>
-              <AccordionContent className="space-y-6 pt-4">
-                
-                {/* 메인 타이틀 및 설명 */}
-                <div className="space-y-4 border-b pb-4">
-                  <div className="space-y-2">
-                    <Label>Main Section Title</Label>
-                    <Input 
-                      value={content?.demo?.title || ''} 
-                      onChange={(e) => handleSectionChange('demo', 'title', e.target.value)} 
-                      placeholder="e.g., Innovative Simulation"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Main Description</Label>
-                    <Textarea 
-                      value={content?.demo?.description || ''} 
-                      onChange={(e) => handleSectionChange('demo', 'description', e.target.value)} 
-                      placeholder="섹션 전체에 대한 설명을 입력하세요."
-                    />
-                  </div>
-                </div>
-
-                {/* 비디오 리스트 관리 */}
-                <div className="space-y-4">
-                  <Label className="text-lg font-semibold">Video List</Label>
-                  
-                  {(content?.demo?.items || []).map((item: any, index: number) => (
-                    <div key={index} className="p-4 border rounded-md space-y-3 relative bg-slate-50 dark:bg-slate-900">
-                       <Button 
-                        type="button" 
-                        variant="destructive" 
-                        size="icon" 
-                        className="absolute top-2 right-2 h-7 w-7" 
-                        onClick={() => removeItemFromArray('demo', 'items', index)}
-                       >
-                         <Trash2 className="h-4 w-4"/>
-                       </Button>
-                      
-                      <div className="space-y-2">
-                        <Label>Video Title ({index + 1})</Label>
-                        <Input 
-                          value={item.title || ''} 
-                          onChange={(e) => handleArrayItemChange('demo', 'items', index, 'title', e.target.value)} 
-                          placeholder="e.g., KKS Model Simulation"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Video URL ({index + 1})</Label>
-                        <Input 
-                          value={item.videoUrl || ''} 
-                          onChange={(e) => handleArrayItemChange('demo', 'items', index, 'videoUrl', e.target.value)} 
-                          placeholder="/videos/demo.mp4 or External Link"
-                        />
-                        <p className="text-xs text-muted-foreground">public/videos 폴더 내의 경로 혹은 외부 URL</p>
-                      </div>
-                    </div>
-                  ))}
-
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    className="w-full border-dashed"
-                    onClick={() => addItemToArray('demo', 'items', {
-                      title: 'New Video Title', 
-                      videoUrl: ''
-                    })}
-                  >
-                    <Plus className="mr-2 h-4 w-4"/> Add Video
-                  </Button>
-                </div>
-
               </AccordionContent>
             </AccordionItem>
 
