@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabaseClient';
-import 'react-quill/dist/quill.snow.css';
+import 'react-quill-new/dist/quill.snow.css';
 import { X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 // Dynamic import for React Quill (SSR disabled)
 const ReactQuill = dynamic(
   async () => {
-    const { default: RQ } = await import('react-quill');
+    const { default: RQ } = await import('react-quill-new');
     return RQ;
   },
   {
@@ -27,7 +27,7 @@ const ReactQuill = dynamic(
 // Get Quill only on client side
 const getQuill = () => {
   if (typeof window !== 'undefined') {
-    const { Quill } = require('react-quill');
+    const { Quill } = require('react-quill-new');
     return Quill;
   }
   return null;

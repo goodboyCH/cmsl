@@ -16,12 +16,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import 'react-quill/dist/quill.snow.css';
+import 'react-quill-new/dist/quill.snow.css';
 
 // Dynamic import for React Quill (SSR disabled)
 const ReactQuill = dynamic(
   async () => {
-    const { default: RQ } = await import('react-quill');
+    const { default: RQ } = await import('react-quill-new');
     return RQ;
   },
   {
@@ -33,7 +33,7 @@ const ReactQuill = dynamic(
 // Get Quill only on client side
 const getQuill = () => {
   if (typeof window !== 'undefined') {
-    const { Quill } = require('react-quill');
+    const { Quill } = require('react-quill-new');
     return Quill;
   }
   return null;

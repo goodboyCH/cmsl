@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import Draggable from 'react-draggable';
 import { X } from 'lucide-react';
-import 'react-quill/dist/quill.snow.css';
+import 'react-quill-new/dist/quill.snow.css';
 
 const POPUP_LOCAL_STORAGE_PREFIX = 'cmsl-popup-seen-';
 
