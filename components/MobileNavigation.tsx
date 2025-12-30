@@ -32,7 +32,7 @@ export function MobileNavigation({ currentPage }: MobileNavigationProps) {
       key: 'research',
       label: 'Research',
       subItems: [
-        { key: 'casting', path: '/research/casting', label: 'High-Performance Alloys' },
+        { key: 'pfm', path: '/research/pfm', label: 'Real Scale PFM' },
         { key: 'films', path: '/research/films', label: 'Ferroelectric Films' },
         { key: 'biodegradable', path: '/research/biodegradable', label: 'Biodegradable Alloys' }
       ]
