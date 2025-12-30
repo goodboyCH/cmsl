@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(for file in *.tsx)",
+      "Bash(do if [ -f \"$file\" ])",
+      "Bash(then if ! grep -q \"^''use client''\" \"$file\")",
+      "Bash(! grep -q '^\"\"use client\"\"' \"$file\")",
+      "Bash(then echo \"''use client'';\")",
+      "Bash(npm run build:*)"
+    ]
+  }
+}
