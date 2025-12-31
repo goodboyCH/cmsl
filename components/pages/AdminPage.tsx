@@ -22,6 +22,7 @@ const ReactQuill = dynamic(
     return RQ;
   },
   {
+  
     ssr: false,
     loading: () => <div className="h-40 bg-muted animate-pulse rounded" />
   }
