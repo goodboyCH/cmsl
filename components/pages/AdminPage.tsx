@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -17,25 +17,12 @@ import { useRouter } from 'next/navigation';
 
 // Dynamic import for React Quill (SSR disabled)
 const ReactQuill = dynamic(
-  async () => {
-    const { default: RQ } = await import('react-quill-new');
-    return RQ;
-  },
+  () => import('react-quill-new'),
   {
-  
     ssr: false,
     loading: () => <div className="h-40 bg-muted animate-pulse rounded" />
   }
 );
-
-// Get Quill only on client side
-const getQuill = () => {
-  if (typeof window !== 'undefined') {
-    const { Quill } = require('react-quill-new');
-    return Quill;
-  }
-  return null;
-};
 
 const sanitizeForStorage = (filename: string) => {
   const cleaned = filename.replace(/[^a-zA-Z0-9._-]/g, '');
@@ -103,30 +90,15 @@ export function AdminPage() {
     };
   }, []);
 
-  const modules = useMemo(() => {
-    const baseModules: any = {
-      toolbar: {
-        container: [
-          [{ 'header': [1, 2, 3, false] }], ['bold', 'italic', 'underline', 'strike'], [{'align': []}],
-          [{'list': 'ordered'}, {'list': 'bullet'}], ['link', 'image'], ['clean']
-        ],
-        handlers: { image: imageHandler },
-      },
-    };
-
-    // imageResize는 클라이언트에서만 활성화
-    if (typeof window !== 'undefined') {
-      const Quill = getQuill();
-      if (Quill) {
-        baseModules.imageResize = {
-          parchment: Quill.import('parchment'),
-          modules: ['Resize', 'DisplaySize']
-        };
-      }
-    }
-
-    return baseModules;
-  }, [imageHandler]);
+  const modules = useMemo(() => ({
+    toolbar: {
+      container: [
+        [{ 'header': [1, 2, 3, false] }], ['bold', 'italic', 'underline', 'strike'], [{'align': []}],
+        [{'list': 'ordered'}, {'list': 'bullet'}], ['link', 'image'], ['clean']
+      ],
+      handlers: { image: imageHandler },
+    },
+  }), [imageHandler]);
 
 
   const handleSubmit = async (e: React.FormEvent) => {
