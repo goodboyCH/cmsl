@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import Draggable from 'react-draggable';
 import { X } from 'lucide-react';
-import 'react-quill-new/dist/quill.snow.css';
 
 const POPUP_LOCAL_STORAGE_PREFIX = 'cmsl-popup-seen-';
 
@@ -77,13 +76,10 @@ export function SinglePopupDialog({ popup }: SinglePopupDialogProps) {
           </Button>
         </div>
 
-        <div 
-          className="p-4 ql-snow"
-        >
-          <div 
-            className="ql-editor overflow-x-hidden"
-            style={{ padding: 0 }} 
-            dangerouslySetInnerHTML={{ __html: popup.content }} 
+        <div className="p-4">
+          <div
+            className="prose prose-sm dark:prose-invert max-w-none overflow-x-hidden"
+            dangerouslySetInnerHTML={{ __html: popup.content }}
           />
         </div>
         

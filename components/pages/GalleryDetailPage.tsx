@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Session } from '@supabase/supabase-js';
-import 'react-quill-new/dist/quill.snow.css';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { ArrowLeft } from 'lucide-react';
@@ -83,9 +82,9 @@ export function GalleryDetailPage({ session, id }: GalleryDetailPageProps) {
           </div>
         </CardHeader>
         <CardContent className="py-8">
-          <div className="prose dark:prose-invert w-full max-w-full ql-snow">
+          <div className="prose dark:prose-invert w-full max-w-full">
             {/* 4. 적용 */}
-            <div className="ql-editor" dangerouslySetInnerHTML={{ __html: getContent(post, 'content') || '' }} />
+            <div dangerouslySetInnerHTML={{ __html: getContent(post, 'content') || '' }} />
           </div>
         </CardContent>
       </Card>
