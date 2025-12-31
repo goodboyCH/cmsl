@@ -103,14 +103,30 @@ export function AdminPage() {
     };
   }, []);
 
-  const modules = useMemo(() => ({
-    toolbar: { container: [
-        [{ 'header': [1, 2, 3, false] }], ['bold', 'italic', 'underline', 'strike'], [{'align': []}],
-        [{'list': 'ordered'}, {'list': 'bullet'}], ['link', 'image'], ['clean']
-      ], handlers: { image: imageHandler },
-    },
-    imageResize: { parchment: getQuill()?.import('parchment'), modules: ['Resize', 'DisplaySize'] }
-  }), [imageHandler]);
+  const modules = useMemo(() => {
+    const baseModules: any = {
+      toolbar: {
+        container: [
+          [{ 'header': [1, 2, 3, false] }], ['bold', 'italic', 'underline', 'strike'], [{'align': []}],
+          [{'list': 'ordered'}, {'list': 'bullet'}], ['link', 'image'], ['clean']
+        ],
+        handlers: { image: imageHandler },
+      },
+    };
+
+    // imageResize는 클라이언트에서만 활성화
+    if (typeof window !== 'undefined') {
+      const Quill = getQuill();
+      if (Quill) {
+        baseModules.imageResize = {
+          parchment: Quill.import('parchment'),
+          modules: ['Resize', 'DisplaySize']
+        };
+      }
+    }
+
+    return baseModules;
+  }, [imageHandler]);
 
 
   const handleSubmit = async (e: React.FormEvent) => {
