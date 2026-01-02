@@ -1,12 +1,7 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Link from '@tiptap/extension-link';
-import Image from '@tiptap/extension-image';
-import TextAlign from '@tiptap/extension-text-align';
-import Underline from '@tiptap/extension-underline';
+import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -14,10 +9,36 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/lib/supabaseClient';
-import { X, Bold, Italic, Underline as UnderlineIcon, Strikethrough, List, ListOrdered, Link as LinkIcon, Image as ImageIcon, AlignLeft, AlignCenter, AlignRight, Heading1, Heading2, Heading3 } from 'lucide-react';
+import { X } from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRouter } from 'next/navigation';
+
+// 1. Dynamic import for ReactQuill to avoid SSR issues
+const ReactQuill = dynamic(
+  async () => {
+    const { default: RQ } = await import('react-quill-new');
+
+    // Register modules only on client side
+    if (typeof window !== 'undefined') {
+      try {
+        const { default: ImageResize } = await import('quill-image-resize-module-react');
+        RQ.Quill.register('modules/imageResize', ImageResize);
+      } catch (e) {
+        console.error('Failed to load ImageResize module', e);
+      }
+    }
+
+    return RQ; // Ensure we return the component itself
+  },
+  {
+    ssr: false,
+    loading: () => <div className="h-64 w-full bg-muted animate-pulse rounded-md border" />
+  }
+) as any; // Cast to any to avoid ref type mismatch with dynamic loading
+
+// Import styles (make sure this is compatible with your setup, otherwise might need copy to global)
+import 'react-quill-new/dist/quill.snow.css';
 
 const sanitizeForStorage = (filename: string) => {
   const cleaned = filename.replace(/[^a-zA-Z0-9._-]/g, '');
@@ -28,200 +49,12 @@ const sanitizeForStorage = (filename: string) => {
   return cleaned;
 };
 
-// Tiptap Toolbar Component
-const MenuBar = ({ editor, onImageUpload }: { editor: any; onImageUpload: () => void }) => {
-  if (!editor) return null;
-
-  const addLink = () => {
-    const url = window.prompt('URL을 입력하세요:');
-    if (url) {
-      editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
-    }
-  };
-
-  return (
-    <div className="flex flex-wrap gap-1 p-2 border-b bg-muted/30">
-      <Button
-        type="button"
-        variant={editor.isActive('heading', { level: 1 }) ? 'secondary' : 'ghost'}
-        size="icon"
-        className="h-8 w-8"
-        onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-      >
-        <Heading1 className="h-4 w-4" />
-      </Button>
-      <Button
-        type="button"
-        variant={editor.isActive('heading', { level: 2 }) ? 'secondary' : 'ghost'}
-        size="icon"
-        className="h-8 w-8"
-        onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-      >
-        <Heading2 className="h-4 w-4" />
-      </Button>
-      <Button
-        type="button"
-        variant={editor.isActive('heading', { level: 3 }) ? 'secondary' : 'ghost'}
-        size="icon"
-        className="h-8 w-8"
-        onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-      >
-        <Heading3 className="h-4 w-4" />
-      </Button>
-      <div className="w-px h-8 bg-border mx-1" />
-      <Button
-        type="button"
-        variant={editor.isActive('bold') ? 'secondary' : 'ghost'}
-        size="icon"
-        className="h-8 w-8"
-        onClick={() => editor.chain().focus().toggleBold().run()}
-      >
-        <Bold className="h-4 w-4" />
-      </Button>
-      <Button
-        type="button"
-        variant={editor.isActive('italic') ? 'secondary' : 'ghost'}
-        size="icon"
-        className="h-8 w-8"
-        onClick={() => editor.chain().focus().toggleItalic().run()}
-      >
-        <Italic className="h-4 w-4" />
-      </Button>
-      <Button
-        type="button"
-        variant={editor.isActive('underline') ? 'secondary' : 'ghost'}
-        size="icon"
-        className="h-8 w-8"
-        onClick={() => editor.chain().focus().toggleUnderline().run()}
-      >
-        <UnderlineIcon className="h-4 w-4" />
-      </Button>
-      <Button
-        type="button"
-        variant={editor.isActive('strike') ? 'secondary' : 'ghost'}
-        size="icon"
-        className="h-8 w-8"
-        onClick={() => editor.chain().focus().toggleStrike().run()}
-      >
-        <Strikethrough className="h-4 w-4" />
-      </Button>
-      <div className="w-px h-8 bg-border mx-1" />
-      <Button
-        type="button"
-        variant={editor.isActive({ textAlign: 'left' }) ? 'secondary' : 'ghost'}
-        size="icon"
-        className="h-8 w-8"
-        onClick={() => editor.chain().focus().setTextAlign('left').run()}
-      >
-        <AlignLeft className="h-4 w-4" />
-      </Button>
-      <Button
-        type="button"
-        variant={editor.isActive({ textAlign: 'center' }) ? 'secondary' : 'ghost'}
-        size="icon"
-        className="h-8 w-8"
-        onClick={() => editor.chain().focus().setTextAlign('center').run()}
-      >
-        <AlignCenter className="h-4 w-4" />
-      </Button>
-      <Button
-        type="button"
-        variant={editor.isActive({ textAlign: 'right' }) ? 'secondary' : 'ghost'}
-        size="icon"
-        className="h-8 w-8"
-        onClick={() => editor.chain().focus().setTextAlign('right').run()}
-      >
-        <AlignRight className="h-4 w-4" />
-      </Button>
-      <div className="w-px h-8 bg-border mx-1" />
-      <Button
-        type="button"
-        variant={editor.isActive('bulletList') ? 'secondary' : 'ghost'}
-        size="icon"
-        className="h-8 w-8"
-        onClick={() => editor.chain().focus().toggleBulletList().run()}
-      >
-        <List className="h-4 w-4" />
-      </Button>
-      <Button
-        type="button"
-        variant={editor.isActive('orderedList') ? 'secondary' : 'ghost'}
-        size="icon"
-        className="h-8 w-8"
-        onClick={() => editor.chain().focus().toggleOrderedList().run()}
-      >
-        <ListOrdered className="h-4 w-4" />
-      </Button>
-      <div className="w-px h-8 bg-border mx-1" />
-      <Button
-        type="button"
-        variant={editor.isActive('link') ? 'secondary' : 'ghost'}
-        size="icon"
-        className="h-8 w-8"
-        onClick={addLink}
-      >
-        <LinkIcon className="h-4 w-4" />
-      </Button>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8"
-        onClick={onImageUpload}
-      >
-        <ImageIcon className="h-4 w-4" />
-      </Button>
-    </div>
-  );
-};
-
-// Tiptap Editor Component
-const TiptapEditor = ({
-  value,
-  onChange,
-  onImageUpload
-}: {
-  value: string;
-  onChange: (html: string) => void;
-  onImageUpload: (editor: any) => void;
-}) => {
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Underline,
-      Link.configure({ openOnClick: false }),
-      Image.configure({ inline: true }),
-      TextAlign.configure({ types: ['heading', 'paragraph'] }),
-    ],
-    content: value,
-    onUpdate: ({ editor }) => {
-      onChange(editor.getHTML());
-    },
-    editorProps: {
-      attributes: {
-        class: 'prose prose-sm max-w-none min-h-[200px] p-4 focus:outline-none',
-      },
-    },
-  });
-
-  const handleImageUpload = () => {
-    if (editor) {
-      onImageUpload(editor);
-    }
-  };
-
-  return (
-    <div className="border rounded-md overflow-hidden bg-background">
-      <MenuBar editor={editor} onImageUpload={handleImageUpload} />
-      <EditorContent editor={editor} />
-    </div>
-  );
-};
-
 export function AdminPage() {
   const router = useRouter();
   const [postType, setPostType] = useState<'notice' | 'gallery' | 'publication' | 'project'>('notice');
+  const [mounted, setMounted] = useState(false);
 
+  // States
   const [title, setTitle] = useState('');
   const [titleKo, setTitleKo] = useState('');
   const [content, setContent] = useState('');
@@ -231,31 +64,40 @@ export function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
+  // Refs
+  const quillRef = useRef<any>(null);
+  const quillRefKo = useRef<any>(null);
+
   const [attachments, setAttachments] = useState<File[]>([]);
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [pubData, setPubData] = useState({ year: new Date().getFullYear(), authors: '', journal: '', doi_link: '', is_featured: false });
   const [pubImage, setPubImage] = useState<File | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const resetForm = () => {
     setTitle(''); setTitleKo('');
     setContent(''); setContentKo('');
     setAuthor('Administrator'); setThumbnail(null); setAttachments([]); setPubImage(null);
     setPubData({ year: new Date().getFullYear(), authors: '', journal: '', doi_link: '', is_featured: false });
+
+    // Manual DOM manipulation for file inputs as they are uncontrolled
     const thumbInput = document.getElementById('thumbnail-input') as HTMLInputElement; if (thumbInput) thumbInput.value = '';
     const attachInput = document.getElementById('attachment-input') as HTMLInputElement; if (attachInput) attachInput.value = '';
     const pubImageInput = document.getElementById('pub-image-input') as HTMLInputElement; if (pubImageInput) pubImageInput.value = '';
   };
 
-  const handlePubDataChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type } = e.target;
-    setPubData(prev => ({ ...prev, [name]: type === 'number' ? parseInt(value, 10) || 0 : value }));
-  };
+  // Handlers
+  const handlePubDataChange = (e: React.ChangeEvent<HTMLInputElement>) => { const { name, value, type } = e.target; setPubData(prev => ({ ...prev, [name]: type === 'number' ? parseInt(value, 10) || 0 : value })); };
   const handlePubImageChange = (e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files?.[0]) setPubImage(e.target.files[0]); };
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files?.[0]) setThumbnail(e.target.files[0]); };
   const handleAttachmentChange = (e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files) setAttachments(Array.from(e.target.files)); };
   const removeAttachment = (index: number) => { setAttachments(attachments.filter((_, i) => i !== index)); };
 
-  const handleImageUpload = useCallback(async (editor: any) => {
+  // Image Handler
+  const imageHandler = useCallback(() => {
     const input = document.createElement('input');
     input.setAttribute('type', 'file');
     input.setAttribute('accept', 'image/*');
@@ -278,16 +120,43 @@ export function AdminPage() {
 
         const { data: urlData } = supabase.storage.from('notice-attachments').getPublicUrl(filePath);
 
-        editor.chain().focus().setImage({ src: urlData.publicUrl }).run();
+        // Insert into editor
+        const editor = quillRef.current?.getEditor();
+        if (editor) {
+          const range = editor.getSelection(true);
+          editor.insertEmbed(range?.index || 0, 'image', urlData.publicUrl);
+        }
 
-        setMessage('이미지 업로드 완료.');
+        setMessage('이미지 업로드 완료. (영문 탭 에디터에 삽입됨)');
         setLoading(false);
       }
     };
   }, []);
 
+  // Modules Configuration
+  const modules = useMemo(() => ({
+    toolbar: {
+      container: [
+        [{ 'header': [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'align': [] }],
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+        ['link', 'image'],
+        ['clean']
+      ],
+      handlers: { image: imageHandler },
+    },
+    imageResize: {
+      parchment: null, // Let module handle parchment
+      modules: ['Resize', 'DisplaySize', 'Toolbar']
+    }
+  }), [imageHandler]);
+
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); setLoading(true); setMessage('');
+    e.preventDefault();
+    setLoading(true);
+    setMessage('');
+
     try {
       if (postType === 'notice') {
         let uploadedAttachments = [];
@@ -298,6 +167,7 @@ export function AdminPage() {
           const { data: urlData } = supabase.storage.from('notice-attachments').getPublicUrl(filePath);
           uploadedAttachments.push({ name: file.name, url: urlData.publicUrl });
         }
+
         await supabase.from('notices').insert([{
           title, title_ko: titleKo,
           content, content_ko: contentKo,
@@ -309,6 +179,7 @@ export function AdminPage() {
         const { error } = await supabase.storage.from('notice-attachments').upload(thumbPath, thumbnail);
         if (error) throw error;
         const { data: thumbUrlData } = supabase.storage.from('notice-attachments').getPublicUrl(thumbPath);
+
         await supabase.from('gallery').insert([{
           title, title_ko: titleKo,
           content, content_ko: contentKo,
@@ -325,13 +196,20 @@ export function AdminPage() {
         }
         await supabase.from('publications').insert([{ title, abstract: content, image_url: imageUrl, ...pubData }]);
       }
+
       setMessage('게시물이 성공적으로 등록되었습니다!');
       resetForm();
-    } catch (err: any) { setMessage(`오류 발생: ${err.message}`); }
-    finally { setLoading(false); }
+    } catch (err: any) {
+      setMessage(`오류 발생: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleLogout = async () => { await supabase.auth.signOut(); window.location.reload(); };
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    window.location.reload();
+  };
 
   const renderPostForm = () => {
     if (postType === 'publication') {
@@ -354,6 +232,7 @@ export function AdminPage() {
       <>
         <div className="space-y-2"><Label htmlFor="author">작성자</Label><Input id="author" value={author} onChange={(e) => setAuthor(e.target.value)} required /></div>
 
+        {/* Tabs for English and Korean */}
         <Tabs defaultValue="en" className="border p-4 rounded-md mt-4">
           <TabsList className="mb-4">
             <TabsTrigger value="en">English (Primary)</TabsTrigger>
@@ -367,11 +246,18 @@ export function AdminPage() {
             </div>
             <div className="space-y-2">
               <Label>Content (EN)</Label>
-              <TiptapEditor
-                value={content}
-                onChange={setContent}
-                onImageUpload={handleImageUpload}
-              />
+              {mounted && (
+                <div className="bg-background">
+                  <ReactQuill
+                    ref={quillRef}
+                    theme="snow"
+                    value={content}
+                    onChange={setContent}
+                    modules={modules}
+                    className="min-h-[200px]"
+                  />
+                </div>
+              )}
             </div>
           </TabsContent>
 
@@ -382,11 +268,18 @@ export function AdminPage() {
             </div>
             <div className="space-y-2">
               <Label>내용 (KO)</Label>
-              <TiptapEditor
-                value={contentKo}
-                onChange={setContentKo}
-                onImageUpload={handleImageUpload}
-              />
+              {mounted && (
+                <div className="bg-background">
+                  <ReactQuill
+                    ref={quillRefKo}
+                    theme="snow"
+                    value={contentKo}
+                    onChange={setContentKo}
+                    modules={modules}
+                    className="min-h-[200px]"
+                  />
+                </div>
+              )}
             </div>
           </TabsContent>
         </Tabs>
@@ -398,6 +291,10 @@ export function AdminPage() {
       </>
     );
   };
+
+  if (!mounted) {
+    return <div className="p-8 text-center text-muted-foreground">Loading Editor...</div>;
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -429,6 +326,16 @@ export function AdminPage() {
           </form>
         </CardContent>
       </Card>
+
+      {/* Scope styles for Quill content output if needed globally, but here just for editor */}
+      <style jsx global>{`
+        .ql-container {
+          font-size: 1rem; 
+        }
+        .ql-editor {
+          min-height: 200px;
+        }
+      `}</style>
     </div>
   );
 }
