@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/components/LanguageProvider';
 import { ChevronDown, Menu, X, Globe } from 'lucide-react';
@@ -12,6 +12,7 @@ interface MobileNavigationProps {
 
 export function MobileNavigation({ currentPage }: MobileNavigationProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { language, toggleLanguage } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
@@ -47,121 +48,102 @@ export function MobileNavigation({ currentPage }: MobileNavigationProps) {
       ]
     },
     { key: 'contact', path: '/contact', label: 'Contact' },
-    {
-      key: 'pfm',
-      path: '/simulation',
-      label: 'PFM Calculation',
-    },
+    { key: 'pfm_sim', path: '/simulation', label: 'PFM Calculation' },
   ];
 
   const handleItemClick = (path: string) => {
     router.push(path);
     setIsOpen(false);
-    setExpandedItems([]);
   };
 
   const toggleExpanded = (key: string) => {
     setExpandedItems(prev =>
-      prev.includes(key)
-        ? prev.filter(item => item !== key)
-        : [...prev, key]
+      prev.includes(key) ? prev.filter(item => item !== key) : [...prev, key]
     );
   };
 
+  // Close nav when path changes (optional but good UI UX)
   useEffect(() => {
-    if (isOpen) {
-      const parentCategory = currentPage.split('/')[0];
-      if (parentCategory && !expandedItems.includes(parentCategory)) {
-        setExpandedItems([parentCategory]);
-      }
-    }
-  }, [isOpen, currentPage]);
-
+    setIsOpen(false);
+  }, [pathname]);
 
   return (
     <div className="relative">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-10 w-10"
-        onClick={() => setIsOpen(!isOpen)}
-      >
+      <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setIsOpen(true)}>
         <Menu className="h-6 w-6" />
       </Button>
 
       {isOpen && (
         <>
-          <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm animate-in fade-in-0 duration-200" onClick={() => setIsOpen(false)} />
-          <div className="fixed left-0 top-0 h-full w-[85%] max-w-sm z-50 bg-white dark:bg-zinc-950 border-r shadow-xl animate-in slide-in-from-left-full duration-300 flex flex-col">
-            <div className="p-4 flex flex-col h-full bg-white dark:bg-zinc-950">
-              <div className="flex items-center justify-between pb-4 border-b">
-                <div>
-                  <h2 className="text-xl font-bold text-blue-900 dark:text-blue-400">CMSL</h2>
-                  <p className="text-xs text-zinc-500">Navigation</p>
-                </div>
-                <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
-                  <X className="h-5 w-5 text-zinc-700 dark:text-zinc-300" />
-                </Button>
-              </div>
+          {/* Overlay Background */}
+          <div
+            className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm"
+            onClick={() => setIsOpen(false)}
+          />
 
-              <nav className="flex-1 overflow-y-auto mt-4 space-y-1">
-                {navItems.map((item: any) => (
-                  <div key={item.key}>
-                    {item.subItems ? (
-                      <>
-                        <Button
-                          variant="ghost"
-                          onClick={() => toggleExpanded(item.key)}
-                          className="w-full justify-between text-base font-medium h-12 px-3 text-zinc-800 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                        >
-                          {item.label}
-                          <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${expandedItems.includes(item.key) ? 'rotate-180' : ''}`} />
-                        </Button>
-                        {expandedItems.includes(item.key) && (
-                          <div className="ml-4 pl-2 border-l-2 border-zinc-200 dark:border-zinc-700 space-y-1 py-1">
-                            {item.subItems.map((subItem: any) => (
-                              <Button
-                                key={subItem.key}
-                                variant={currentPage.endsWith(subItem.key) ? 'secondary' : 'ghost'}
-                                onClick={() => handleItemClick(subItem.path)}
-                                className="w-full justify-start text-sm h-10 px-3 text-zinc-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 font-normal hover:bg-zinc-50 dark:hover:bg-zinc-800"
-                              >
-                                {subItem.label}
-                              </Button>
-                            ))}
-                          </div>
-                        )}
-                      </>
-                    ) : (
+          {/* Sidebar Body */}
+          <div className="fixed left-0 top-0 h-full w-[80%] max-w-xs z-[70] bg-white dark:bg-zinc-900 shadow-2xl flex flex-col animate-in slide-in-from-left duration-300">
+            <div className="flex items-center justify-between p-4 border-b bg-white dark:bg-zinc-900">
+              <div>
+                <h2 className="text-xl font-bold text-blue-900 dark:text-blue-400">CMSL</h2>
+                <p className="text-xs text-zinc-500">Navigation</p>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+
+            {/* Navigation List Area */}
+            <nav className="flex-1 overflow-y-auto p-4 space-y-2 bg-white dark:bg-zinc-900">
+              {navItems.map((item) => (
+                <div key={item.key} className="w-full">
+                  {item.subItems ? (
+                    <div className="flex flex-col w-full">
                       <Button
-                        variant={currentPage === item.key ? 'default' : 'ghost'}
-                        onClick={() => handleItemClick(item.path)}
-                        className={`w-full justify-start text-base font-medium h-12 px-3 ${currentPage === item.key
-                            ? 'bg-blue-600 text-white hover:bg-blue-700'
-                            : 'text-zinc-800 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                          }`}
+                        variant="ghost"
+                        onClick={() => toggleExpanded(item.key)}
+                        className="w-full justify-between text-base font-semibold h-12 px-3 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-100"
                       >
                         {item.label}
+                        <ChevronDown className={`h-4 w-4 transition-transform ${expandedItems.includes(item.key) ? 'rotate-180' : ''}`} />
                       </Button>
-                    )}
-                  </div>
-                ))}
-              </nav>
+                      {expandedItems.includes(item.key) && (
+                        <div className="ml-4 mt-1 border-l-2 border-zinc-200 dark:border-zinc-700 space-y-1">
+                          {item.subItems.map((sub) => (
+                            <Button
+                              key={sub.key}
+                              variant="ghost"
+                              onClick={() => handleItemClick(sub.path)}
+                              className={`w-full justify-start text-sm h-10 px-4 ${pathname === sub.path ? 'text-blue-600 font-bold dark:text-blue-400' : 'text-zinc-600 dark:text-zinc-400'}`}
+                            >
+                              {sub.label}
+                            </Button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      onClick={() => item.path && handleItemClick(item.path)}
+                      className={`w-full justify-start text-base font-semibold h-12 px-3 ${pathname === item.path ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' : 'text-zinc-800 dark:text-zinc-100'}`}
+                    >
+                      {item.label}
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </nav>
 
-              <div className="mt-auto pt-4 border-t">
-                <Button
-                  variant="outline"
-                  className="w-full justify-center gap-2 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700"
-                  onClick={toggleLanguage}
-                >
-                  <Globe className="h-4 w-4" />
-                  {language === 'en' ? 'Switch to Korean' : 'Switch to English'}
-                </Button>
-
-                <p className="text-xs text-zinc-400 text-center mt-4">
-                  Computational Materials Science Laboratory
-                </p>
-              </div>
+            {/* Bottom Button Area */}
+            <div className="p-4 border-t bg-zinc-50 dark:bg-zinc-800">
+              <Button variant="outline" className="w-full gap-2 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300" onClick={toggleLanguage}>
+                <Globe className="h-4 w-4" />
+                {language === 'en' ? 'Switch to Korean' : 'Switch to English'}
+              </Button>
+              <p className="text-[10px] text-zinc-400 text-center mt-4 uppercase tracking-tighter">
+                Computational Materials Science Laboratory
+              </p>
             </div>
           </div>
         </>
