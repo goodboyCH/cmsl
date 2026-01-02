@@ -77,11 +77,13 @@ const VideoBlock = ({ item, index }: { item: DemoItem; index: number }) => {
     return () => ctx.revert();
   }, [item.videoUrl]); // URL 변경 시 재실행
 
+  // 1. min-h-screen -> min-h-[80vh]로 조정하여 너무 넓지 않게 함
+  // 2. my-20 등으로 상하 여백을 주어 자연스러운 분리
   return (
-    <div ref={containerRef} className="py-24 flex flex-col items-center justify-center min-h-screen">
+    <div ref={containerRef} className="w-full flex flex-col items-center justify-center min-h-[80vh] my-20">
 
       {/* 개별 비디오 제목 (중앙 정렬) */}
-      <h3 className="text-2xl md:text-4xl font-bold text-white mb-8 text-center">
+      <h3 className="text-2xl md:text-4xl font-bold text-white mb-12 text-center">
         {item.title}
       </h3>
 
@@ -95,7 +97,7 @@ const VideoBlock = ({ item, index }: { item: DemoItem; index: number }) => {
           muted
           preload="auto"
         />
-        {/* 그라데이션 오버레이 (텍스트 배지 제거됨) */}
+        {/* 그라데이션 오버레이 */}
         <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
       </div>
 
@@ -105,12 +107,15 @@ const VideoBlock = ({ item, index }: { item: DemoItem; index: number }) => {
 
 export function Section4_Demo({ title, description, items = [] }: Section4Props) {
   return (
-    <section className="relative pt-32 pb-10 bg-black border-b border-white/10 overflow-hidden">
+    // 1. Section 자체의 overflow-hidden을 유지하되, 내부 컨테이너 높이 제한 제거
+    // 2. pb-32로 하단 여백 확보
+    <section className="relative pt-32 pb-32 bg-black border-b border-white/10 overflow-hidden">
 
-      <div className="container mx-auto px-6 md:px-12 h-full flex flex-col items-center">
+      {/* h-full 제거하여 자식 높이에 맞게 늘어나도록 함 */}
+      <div className="container mx-auto px-6 md:px-12 flex flex-col items-center">
 
         {/* --- 메인 섹션 제목 및 설명 (중앙 정렬) --- */}
-        <div className="w-full mb-12 text-center">
+        <div className="w-full mb-24 text-center">
           <h2 className="text-4xl md:text-6xl font-bold mb-4 flex justify-center">
             <GradientText
               colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
@@ -126,8 +131,9 @@ export function Section4_Demo({ title, description, items = [] }: Section4Props)
           </p>
         </div>
 
-        {/* --- 비디오 리스트 렌더링 --- */}
-        <div className="w-full flex flex-col">
+        {/* --- 비디오 리스트 렌더링 (Gap 추가) --- */}
+        {/* gap-y-40으로 비디오 간 간격 확실하게 확보 */}
+        <div className="w-full flex flex-col gap-y-40">
           {items && items.length > 0 ? (
             items.map((item, index) => (
               <VideoBlock key={index} item={item} index={index} />
