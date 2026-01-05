@@ -13,7 +13,9 @@
       "Bash(git log:*)",
       "Bash(git checkout:*)",
       "Bash(git branch:*)",
-      "Bash(npx shadcn:*)"
+      "Bash(npx shadcn:*)",
+      "Bash(cat:*)",
+      "Bash(git rev-parse:*)"
     ]
   }
 }
