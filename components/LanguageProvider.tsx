@@ -53,7 +53,7 @@ const translations: Record<Language, Record<string, string>> = {
     'home.btn.learn_more': 'Learn More',
 
     // Research Page Titles
-    'research.casting': 'High-Performance Casting Alloys',
+    'research.casting': 'Real Scale PFM',
     'research.films': 'Ferroelectric Thin Films',
     'research.biodegradable': 'Biodegradable Mg-Zn Alloys',
 
@@ -157,7 +157,7 @@ const translations: Record<Language, Record<string, string>> = {
     'home.btn.learn_more': '자세히 보기',
 
     // Research Page Titles
-    'research.casting': '고성능 주조 합금 설계',
+    'research.casting': 'Real Scale PFM',
     'research.films': '강유전체 박막 연구',
     'research.biodegradable': '생분해성 Mg-Zn 합금',
 

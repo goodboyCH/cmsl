@@ -1,36 +1,14 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import dynamic from 'next/dynamic';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabaseClient';
-import 'react-quill/dist/quill.snow.css';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-// Dynamic import for React Quill (SSR disabled)
-const ReactQuill = dynamic(
-  async () => {
-    const { default: RQ } = await import('react-quill');
-    return RQ;
-  },
-  {
-    ssr: false,
-    loading: () => <div className="h-40 bg-muted animate-pulse rounded" />
-  }
-);
-
-// Get Quill only on client side
-const getQuill = () => {
-  if (typeof window !== 'undefined') {
-    const { Quill } = require('react-quill');
-    return Quill;
-  }
-  return null;
-};
+import { TiptapEditor } from '@/components/ui/tiptap-editor';
 
 const sanitizeForStorage = (filename: string) => {
   const cleaned = filename.replace(/[^a-zA-Z0-9._-]/g, '');
@@ -50,15 +28,14 @@ export function EditGalleryPage({ id }: EditGalleryPageProps) {
   const router = useRouter();
 
   const [title, setTitle] = useState('');
-  const [titleKo, setTitleKo] = useState(''); // 추가
+  const [titleKo, setTitleKo] = useState('');
   const [content, setContent] = useState('');
-  const [contentKo, setContentKo] = useState(''); // 추가
+  const [contentKo, setContentKo] = useState('');
   const [author, setAuthor] = useState('');
   const [newThumbnail, setNewThumbnail] = useState<File | null>(null);
   const [existingThumbUrl, setExistingThumbUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
-  
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -67,9 +44,9 @@ export function EditGalleryPage({ id }: EditGalleryPageProps) {
       const { data, error } = await supabase.from('gallery').select('*').eq('id', postId).single();
       if (data) {
         setTitle(data.title);
-        setTitleKo(data.title_ko || ''); // 로드
+        setTitleKo(data.title_ko || '');
         setContent(data.content);
-        setContentKo(data.content_ko || ''); // 로드
+        setContentKo(data.content_ko || '');
         setAuthor(data.author);
         setExistingThumbUrl(data.thumbnail_url);
       } else if (error) {
@@ -79,31 +56,39 @@ export function EditGalleryPage({ id }: EditGalleryPageProps) {
     };
     fetchPost();
   }, [postId]);
-  
-  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => { if (e.target.files && e.target.files.length > 0) setNewThumbnail(e.target.files[0]); };
-  
-  const modules = useMemo(() => {
-    const imageHandler = () => {
-      const input = document.createElement('input'); input.setAttribute('type', 'file'); input.setAttribute('accept', 'image/*'); input.click();
-      input.onchange = async () => {
-        if (input.files && input.files.length > 0) {
-          const file = input.files[0]; setMessage('이미지 업로드 중...');
-          const storageFileName = sanitizeForStorage(file.name);
-          const filePath = `public/images/${Date.now()}_${storageFileName}`;
-          const { error: uploadError } = await supabase.storage.from('notice-attachments').upload(filePath, file);
-          if (uploadError) { setMessage(`이미지 업로드 오류: ${uploadError.message}`); return; }
-          const { data: urlData } = supabase.storage.from('notice-attachments').getPublicUrl(filePath);
-          // 영문 에디터에 이미지 HTML 추가
-          setContent(prev => prev + `<p><img src="${urlData.publicUrl}" /></p>`);
-          setMessage('이미지 업로드 완료.');
+
+  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) setNewThumbnail(e.target.files[0]);
+  };
+
+  const handleImageUpload = useCallback(async (editor: any) => {
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.setAttribute('accept', 'image/*');
+    input.click();
+
+    input.onchange = async () => {
+      if (input.files && input.files.length > 0) {
+        const file = input.files[0];
+        setMessage('이미지 업로드 중...');
+        const storageFileName = sanitizeForStorage(file.name);
+        const filePath = `public/images/${Date.now()}_${storageFileName}`;
+        const { error: uploadError } = await supabase.storage.from('notice-attachments').upload(filePath, file);
+        if (uploadError) {
+          setMessage(`이미지 업로드 오류: ${uploadError.message}`);
+          return;
         }
-      };
+        const { data: urlData } = supabase.storage.from('notice-attachments').getPublicUrl(filePath);
+        editor.chain().focus().setImage({ src: urlData.publicUrl }).run();
+        setMessage('이미지 업로드 완료.');
+      }
     };
-    return { toolbar: { container: [[{ 'header': [1, 2, 3, false] }], ['bold', 'italic', 'underline', 'strike'], [{'align': []}], [{'list': 'ordered'}, {'list': 'bullet'}], ['link', 'image'], ['clean']], handlers: { image: imageHandler }, }, imageResize: { parchment: getQuill()?.import('parchment'), modules: ['Resize', 'DisplaySize'] } };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); setLoading(true); setMessage('');
+    e.preventDefault();
+    setLoading(true);
+    setMessage('');
     try {
       let finalThumbnailUrl = existingThumbUrl;
       if (newThumbnail) {
@@ -118,14 +103,13 @@ export function EditGalleryPage({ id }: EditGalleryPageProps) {
         const { data: thumbUrlData } = supabase.storage.from('notice-attachments').getPublicUrl(thumbPath);
         finalThumbnailUrl = thumbUrlData.publicUrl;
       }
-      
-      // Update: _ko 필드 추가
+
       const { error } = await supabase
         .from('gallery')
-        .update({ 
-            title, title_ko: titleKo, 
-            content, content_ko: contentKo, 
-            author, thumbnail_url: finalThumbnailUrl 
+        .update({
+          title, title_ko: titleKo,
+          content, content_ko: contentKo,
+          author, thumbnail_url: finalThumbnailUrl
         })
         .eq('id', postId);
 
@@ -138,7 +122,7 @@ export function EditGalleryPage({ id }: EditGalleryPageProps) {
       setLoading(false);
     }
   };
-  
+
   if (loading) return <p className="text-center p-8">Loading editor...</p>;
 
   return (
@@ -150,30 +134,47 @@ export function EditGalleryPage({ id }: EditGalleryPageProps) {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2"><Label htmlFor="author">작성자</Label><Input id="author" value={author} onChange={(e) => setAuthor(e.target.value)} required /></div>
-            
-            {/* Tabs 적용 */}
+            <div className="space-y-2">
+              <Label htmlFor="author">작성자</Label>
+              <Input id="author" value={author} onChange={(e) => setAuthor(e.target.value)} required />
+            </div>
+
             <Tabs defaultValue="en" className="border p-4 rounded-md">
               <TabsList className="mb-4">
                 <TabsTrigger value="en">English (Primary)</TabsTrigger>
                 <TabsTrigger value="ko">Korean (Optional)</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="en" className="space-y-4">
-                <div className="space-y-2"><Label>Title (EN)</Label><Input value={title} onChange={(e) => setTitle(e.target.value)} required /></div>
-                <div className="space-y-2"><Label>Content (EN)</Label><ReactQuill theme="snow" value={content} onChange={setContent} modules={modules} className="bg-background"/></div>
+                <div className="space-y-2">
+                  <Label>Title (EN)</Label>
+                  <Input value={title} onChange={(e) => setTitle(e.target.value)} required />
+                </div>
+                <div className="space-y-2">
+                  <Label>Content (EN)</Label>
+                  <TiptapEditor value={content} onChange={setContent} onImageUpload={handleImageUpload} />
+                </div>
               </TabsContent>
 
               <TabsContent value="ko" className="space-y-4">
-                <div className="space-y-2"><Label>제목 (KO)</Label><Input value={titleKo} onChange={(e) => setTitleKo(e.target.value)} placeholder="한글 제목" /></div>
-                <div className="space-y-2"><Label>내용 (KO)</Label><ReactQuill theme="snow" value={contentKo} onChange={setContentKo} modules={modules} className="bg-background"/></div>
+                <div className="space-y-2">
+                  <Label>제목 (KO)</Label>
+                  <Input value={titleKo} onChange={(e) => setTitleKo(e.target.value)} placeholder="한글 제목" />
+                </div>
+                <div className="space-y-2">
+                  <Label>내용 (KO)</Label>
+                  <TiptapEditor value={contentKo} onChange={setContentKo} onImageUpload={handleImageUpload} />
+                </div>
               </TabsContent>
             </Tabs>
 
             <div className="space-y-2 mt-4">
               <Label htmlFor="thumbnail-input">대표 이미지 변경</Label>
               {existingThumbUrl && (
-                <div className="mt-2"><p className="text-sm font-medium mb-2">현재 이미지:</p><img src={existingThumbUrl} alt="Current thumbnail" className="rounded-md border max-w-xs" /></div>
+                <div className="mt-2">
+                  <p className="text-sm font-medium mb-2">현재 이미지:</p>
+                  <img src={existingThumbUrl} alt="Current thumbnail" className="rounded-md border max-w-xs" />
+                </div>
               )}
               <Input id="thumbnail-input" type="file" accept="image/*" onChange={handleThumbnailChange} />
             </div>

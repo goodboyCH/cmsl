@@ -33,7 +33,7 @@ export function Footer() {
           <div className="md:flex-1">
             <h3 className="text-lg font-semibold text-primary mb-4">{t('footer.links')}</h3>
             <div className="space-y-2 text-sm">
-              <Link href="/research/casting" className="block w-full text-muted-foreground hover:text-primary smooth-transition md:text-left">
+              <Link href="/research/pfm" className="block w-full text-muted-foreground hover:text-primary smooth-transition md:text-left">
                 {t('footer.links.research')}
               </Link>
               <Link href="/publications" className="block w-full text-muted-foreground hover:text-primary smooth-transition md:text-left">

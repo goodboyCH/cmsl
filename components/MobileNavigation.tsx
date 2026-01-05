@@ -1,20 +1,34 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { createPortal } from 'react-dom'; // Portal 기능 추가
+import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/components/LanguageProvider';
 import { ChevronDown, Menu, X, Globe } from 'lucide-react';
 
-interface MobileNavigationProps {
-  currentPage: string;
-}
-
-export function MobileNavigation({ currentPage }: MobileNavigationProps) {
+export function MobileNavigation({ currentPage }: { currentPage: string }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { language, toggleLanguage } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const [mounted, setMounted] = useState(false); // 서버 사이드 렌더링 방지용
+
+  // 1. 마운트 확인 (Next.js Hydration 오류 방지)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // 2. 메뉴 열림 시 스크롤 방지
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [isOpen]);
 
   const navItems = [
     { key: 'home', path: '/', label: 'Home' },
@@ -32,7 +46,7 @@ export function MobileNavigation({ currentPage }: MobileNavigationProps) {
       key: 'research',
       label: 'Research',
       subItems: [
-        { key: 'casting', path: '/research/casting', label: 'High-Performance Alloys' },
+        { key: 'pfm', path: '/research/pfm', label: 'Real Scale PFM' },
         { key: 'films', path: '/research/films', label: 'Ferroelectric Films' },
         { key: 'biodegradable', path: '/research/biodegradable', label: 'Biodegradable Alloys' }
       ]
@@ -47,127 +61,103 @@ export function MobileNavigation({ currentPage }: MobileNavigationProps) {
       ]
     },
     { key: 'contact', path: '/contact', label: 'Contact' },
-    {
-      key: 'pfm',
-      path: '/simulation',
-      label: 'PFM Calculation',
-    },
+    { key: 'pfm_calc', path: '/simulation', label: 'PFM Calculation' },
   ];
 
   const handleItemClick = (path: string) => {
     router.push(path);
     setIsOpen(false);
-    setExpandedItems([]);
   };
 
   const toggleExpanded = (key: string) => {
     setExpandedItems(prev =>
-      prev.includes(key)
-        ? prev.filter(item => item !== key)
-        : [...prev, key]
+      prev.includes(key) ? prev.filter(item => item !== key) : [...prev, key]
     );
   };
 
-  useEffect(() => {
-    if (isOpen) {
-      const parentCategory = currentPage.split('/')[0];
-      if (parentCategory && !expandedItems.includes(parentCategory)) {
-        setExpandedItems([parentCategory]);
-      }
-    }
-  }, [isOpen, currentPage]);
+  // 3. Portal에 렌더링될 실제 메뉴 컴포넌트
+  const menuContent = (
+    <div className="fixed inset-0 z-[10000] flex"> {/* 최상단 고정 */}
+      {/* 배경 오버레이 */}
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
+        onClick={() => setIsOpen(false)}
+      />
 
+      {/* 사이드바 본체 */}
+      <div className="relative w-[300px] h-full bg-white dark:bg-zinc-950 shadow-2xl flex flex-col animate-in slide-in-from-left duration-300">
+        <div className="p-5 flex items-center justify-between border-b">
+          <div>
+            <h2 className="text-xl font-bold text-blue-900 dark:text-blue-400">CMSL</h2>
+            <p className="text-[10px] text-zinc-500 uppercase tracking-widest">Navigation</p>
+          </div>
+          <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
 
+        <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+          {navItems.map((item) => (
+            <div key={item.key}>
+              {item.subItems ? (
+                <div className="mb-1">
+                  <Button
+                    variant="ghost"
+                    onClick={() => toggleExpanded(item.key)}
+                    className="w-full justify-between text-base font-semibold h-12 px-3"
+                  >
+                    {item.label}
+                    <ChevronDown className={`h-4 w-4 transition-transform ${expandedItems.includes(item.key) ? 'rotate-180' : ''}`} />
+                  </Button>
+                  {expandedItems.includes(item.key) && (
+                    <div className="ml-4 mt-1 border-l-2 border-zinc-100 space-y-1">
+                      {item.subItems.map((sub) => (
+                        <Button
+                          key={sub.key}
+                          variant="ghost"
+                          onClick={() => handleItemClick(sub.path)}
+                          className={`w-full justify-start text-sm h-10 px-4 ${pathname === sub.path ? 'text-blue-600 bg-blue-50' : 'text-zinc-600'}`}
+                        >
+                          {sub.label}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Button
+                  variant="ghost"
+                  onClick={() => handleItemClick(item.path)}
+                  className={`w-full justify-start text-base font-semibold h-12 px-3 mb-1 ${pathname === item.path ? 'bg-blue-50 text-blue-700' : 'text-zinc-800'}`}
+                >
+                  {item.label}
+                </Button>
+              )}
+            </div>
+          ))}
+        </nav>
+
+        <div className="p-5 border-t bg-zinc-50 dark:bg-zinc-900/50">
+          <Button variant="outline" className="w-full gap-2" onClick={toggleLanguage}>
+            <Globe className="h-4 w-4" />
+            {language === 'en' ? 'Switch to Korean' : 'Switch to English'}
+          </Button>
+          <div className="mt-4 text-[10px] text-zinc-400 text-center leading-relaxed">
+            Computational Materials Science Laboratory<br />Kookmin University
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // 버튼은 원래 위치에, 메뉴는 body 바로 아래에 렌더링
   return (
-    <div className="relative">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-10 w-10"
-        onClick={() => setIsOpen(!isOpen)}
-      >
+    <>
+      <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setIsOpen(true)}>
         <Menu className="h-6 w-6" />
       </Button>
 
-      {isOpen && (
-        <>
-          <div
-            className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm animate-in fade-in-0 duration-200"
-            onClick={() => setIsOpen(false)}
-          />
-          <div className="fixed left-0 top-0 h-full w-[85%] max-w-sm z-50 bg-background border-r shadow-xl animate-in slide-in-from-left-full duration-300">
-            <div className="p-4 flex flex-col h-full">
-              <div className="flex items-center justify-between pb-4 border-b">
-                <div>
-                  <h2 className="text-xl font-bold text-primary">CMSL</h2>
-                  <p className="text-xs text-muted-foreground">Navigation</p>
-                </div>
-                <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
-                  <X className="h-5 w-5" />
-                </Button>
-              </div>
-
-              <nav className="flex-1 overflow-y-auto mt-4 space-y-1">
-                {navItems.map((item: any) => (
-                  <div key={item.key}>
-                    {item.subItems ? (
-                      <>
-                        <Button
-                          variant="ghost"
-                          onClick={() => toggleExpanded(item.key)}
-                          className="w-full justify-between text-base font-medium h-11 px-3"
-                        >
-                          {item.label}
-                          <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${
-                            expandedItems.includes(item.key) ? 'rotate-180' : ''
-                          }`} />
-                        </Button>
-                        {expandedItems.includes(item.key) && (
-                          <div className="ml-4 pl-2 border-l-2 space-y-1 py-1">
-                            {item.subItems.map((subItem: any) => (
-                              <Button
-                                key={subItem.key}
-                                variant={currentPage.endsWith(subItem.key) ? 'secondary' : 'ghost'}
-                                onClick={() => handleItemClick(subItem.path)}
-                                className="w-full justify-start text-sm h-9 px-3 text-muted-foreground hover:text-foreground font-normal"
-                              >
-                                {subItem.label}
-                              </Button>
-                            ))}
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <Button
-                        variant={currentPage === item.key ? 'default' : 'ghost'}
-                        onClick={() => handleItemClick(item.path)}
-                        className="w-full justify-start text-base font-medium h-11 px-3"
-                      >
-                        {item.label}
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </nav>
-
-              <div className="mt-auto pt-4 border-t">
-                <Button
-                  variant="outline"
-                  className="w-full justify-center gap-2"
-                  onClick={toggleLanguage}
-                >
-                  <Globe className="h-4 w-4" />
-                  {language === 'en' ? 'Switch to Korean' : 'Switch to English'}
-                </Button>
-
-                <p className="text-xs text-muted-foreground text-center mt-4">
-                  Computational Materials Science Laboratory
-                </p>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-    </div>
+      {isOpen && mounted && createPortal(menuContent, document.body)}
+    </>
   );
 }

@@ -38,12 +38,12 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
     updatedItems[index] = { ...updatedItems[index], [field]: value };
     handleSectionChange(section, arrayName, updatedItems);
   };
-  
+
   const addItemToArray = (section: string, arrayName: string, newItem: object) => {
     const updatedItems = [...(content[section]?.[arrayName] || []), newItem];
     handleSectionChange(section, arrayName, updatedItems);
   };
-  
+
   const removeItemFromArray = (section: string, arrayName: string, indexToRemove: number) => {
     const updatedItems = (content[section]?.[arrayName] || []).filter((_: any, index: number) => index !== indexToRemove);
     handleSectionChange(section, arrayName, updatedItems);
@@ -88,49 +88,49 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
                   <Label>Section Title</Label>
                   <Input value={content?.research?.title || ''} onChange={(e) => handleSectionChange('research', 'title', e.target.value)} />
                 </div>
-                
+
                 {(content?.research?.items || []).map((item: any, index: number) => (
                   <div key={index} className="p-4 border rounded-md space-y-3 relative bg-slate-50 dark:bg-slate-900">
-                     <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeItemFromArray('research', 'items', index)}>
-                       <Trash2 className="h-4 w-4"/>
-                     </Button>
-                    
+                    <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => removeItemFromArray('research', 'items', index)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+
                     <div className="space-y-2">
                       <Label>Title</Label>
                       <Input value={item.title} onChange={(e) => handleArrayItemChange('research', 'items', index, 'title', e.target.value)} />
                     </div>
-                    
+
                     {/* 🟢 [수정됨] Description을 한/영 두 개로 분리 */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Description (Korean)</Label>
-                        <Textarea 
+                        <Textarea
                           // 기존 데이터가 문자열일 경우를 대비해 안전하게 처리
-                          value={typeof item.description === 'string' ? item.description : (item.description?.ko || '')} 
+                          value={typeof item.description === 'string' ? item.description : (item.description?.ko || '')}
                           onChange={(e) => {
                             // 기존 값이 객체가 아니면 새로 만들고, 객체면 유지하면서 ko 업데이트
                             const currentDesc = typeof item.description === 'object' ? item.description : { ko: item.description, en: '' };
                             handleArrayItemChange('research', 'items', index, 'description', { ...currentDesc, ko: e.target.value });
-                          }} 
+                          }}
                           placeholder="한글 설명을 입력하세요"
                           className="min-h-[100px]"
                         />
                       </div>
-                      
+
                       <div className="space-y-2">
                         <Label>Description (English)</Label>
-                        <Textarea 
-                          value={typeof item.description === 'string' ? '' : (item.description?.en || '')} 
+                        <Textarea
+                          value={typeof item.description === 'string' ? '' : (item.description?.en || '')}
                           onChange={(e) => {
                             const currentDesc = typeof item.description === 'object' ? item.description : { ko: item.description, en: '' };
                             handleArrayItemChange('research', 'items', index, 'description', { ...currentDesc, en: e.target.value });
-                          }} 
+                          }}
                           placeholder="Enter English description"
                           className="min-h-[100px]"
                         />
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label>Image URL (Optional)</Label>
                       <Input value={item.imageUrl} onChange={(e) => handleArrayItemChange('research', 'items', index, 'imageUrl', e.target.value)} />
@@ -138,26 +138,26 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
 
                     <div className="space-y-2">
                       <Label>Link URL (페이지 이동 주소)</Label>
-                      <Input 
-                        placeholder="https://... 또는 /research/..." 
-                        value={item.link || ''} 
-                        onChange={(e) => handleArrayItemChange('research', 'items', index, 'link', e.target.value)} 
+                      <Input
+                        placeholder="https://... 또는 /research/..."
+                        value={item.link || ''}
+                        onChange={(e) => handleArrayItemChange('research', 'items', index, 'link', e.target.value)}
                       />
                     </div>
 
                   </div>
                 ))}
-                
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm" 
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
                   // 🟢 [수정됨] 새 항목 추가 시 description을 객체 { ko, en } 형태로 초기화
                   onClick={() => addItemToArray('research', 'items', {
-                    icon: 'Car', 
-                    title: '', 
-                    description: { ko: '', en: '' }, 
-                    imageUrl: '', 
+                    icon: 'Car',
+                    title: '',
+                    description: { ko: '', en: '' },
+                    imageUrl: '',
                     link: ''
                   })}
                 >
@@ -166,25 +166,25 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
               </AccordionContent>
             </AccordionItem>
 
-          <AccordionItem value="item-4">
+            <AccordionItem value="item-4">
               <AccordionTrigger>Section 4: Demo Videos</AccordionTrigger>
               <AccordionContent className="space-y-6 pt-4">
-                
+
                 {/* 메인 타이틀 및 설명 */}
                 <div className="space-y-4 border-b pb-4">
                   <div className="space-y-2">
                     <Label>Main Section Title</Label>
-                    <Input 
-                      value={content?.demo?.title || ''} 
-                      onChange={(e) => handleSectionChange('demo', 'title', e.target.value)} 
+                    <Input
+                      value={content?.demo?.title || ''}
+                      onChange={(e) => handleSectionChange('demo', 'title', e.target.value)}
                       placeholder="e.g., Innovative Simulation"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label>Main Description</Label>
-                    <Textarea 
-                      value={content?.demo?.description || ''} 
-                      onChange={(e) => handleSectionChange('demo', 'description', e.target.value)} 
+                    <Textarea
+                      value={content?.demo?.description || ''}
+                      onChange={(e) => handleSectionChange('demo', 'description', e.target.value)}
                       placeholder="섹션 전체에 대한 설명을 입력하세요."
                     />
                   </div>
@@ -193,33 +193,33 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
                 {/* 비디오 리스트 관리 */}
                 <div className="space-y-4">
                   <Label className="text-lg font-semibold">Video List</Label>
-                  
+
                   {(content?.demo?.items || []).map((item: any, index: number) => (
                     <div key={index} className="p-4 border rounded-md space-y-3 relative bg-slate-50 dark:bg-slate-900">
-                       <Button 
-                        type="button" 
-                        variant="destructive" 
-                        size="icon" 
-                        className="absolute top-2 right-2 h-7 w-7" 
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 h-7 w-7"
                         onClick={() => removeItemFromArray('demo', 'items', index)}
-                       >
-                         <Trash2 className="h-4 w-4"/>
-                       </Button>
-                      
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+
                       <div className="space-y-2">
                         <Label>Video Title ({index + 1})</Label>
-                        <Input 
-                          value={item.title || ''} 
-                          onChange={(e) => handleArrayItemChange('demo', 'items', index, 'title', e.target.value)} 
+                        <Input
+                          value={item.title || ''}
+                          onChange={(e) => handleArrayItemChange('demo', 'items', index, 'title', e.target.value)}
                           placeholder="e.g., KKS Model Simulation"
                         />
                       </div>
 
                       <div className="space-y-2">
                         <Label>Video URL ({index + 1})</Label>
-                        <Input 
-                          value={item.videoUrl || ''} 
-                          onChange={(e) => handleArrayItemChange('demo', 'items', index, 'videoUrl', e.target.value)} 
+                        <Input
+                          value={item.videoUrl || ''}
+                          onChange={(e) => handleArrayItemChange('demo', 'items', index, 'videoUrl', e.target.value)}
                           placeholder="/videos/demo.mp4 or External Link"
                         />
                         <p className="text-xs text-muted-foreground">public/videos 폴더 내의 경로 혹은 외부 URL</p>
@@ -227,16 +227,16 @@ export function EditIntroductionPageForm({ onBack }: EditIntroductionPageFormPro
                     </div>
                   ))}
 
-                  <Button 
-                    type="button" 
-                    variant="outline" 
+                  <Button
+                    type="button"
+                    variant="outline"
                     className="w-full border-dashed"
                     onClick={() => addItemToArray('demo', 'items', {
-                      title: 'New Video Title', 
+                      title: 'New Video Title',
                       videoUrl: ''
                     })}
                   >
-                    <Plus className="mr-2 h-4 w-4"/> Add Video
+                    <Plus className="mr-2 h-4 w-4" /> Add Video
                   </Button>
                 </div>
 

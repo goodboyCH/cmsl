@@ -8,22 +8,32 @@ import GradientText from '@/components/reactbits/GradientText';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const VIDEO_SRC = "/videos/demo2.mp4";
 const FPS = 30;
+
+interface DemoItem {
+  title: string;
+  videoUrl: string;
+}
 
 interface Section4Props {
   title: string;
   description: string;
+  items?: DemoItem[];
 }
 
-export function Section4_Demo({ title, description }: Section4Props) {
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
+/**
+ * VideoBlock Component (CSS Sticky Implementation)
+ * - Container: Acts as the scroll track (height = scroll duration).
+ * - Sticky Wrapper: Stays fixed in the viewport while scrolling through the container.
+ * - GSAP: Only handles the video scrubbing animation.
+ */
+const VideoBlock = ({ item, index }: { item: DemoItem; index: number }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
-      if (!videoRef.current || !sectionRef.current || !containerRef.current) return;
+      if (!videoRef.current || !containerRef.current) return;
 
       const video = videoRef.current;
 
@@ -32,26 +42,23 @@ export function Section4_Demo({ title, description }: Section4Props) {
         const totalFrames = Math.floor(duration * FPS);
         const videoState = { frame: 0 };
 
-        const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "center center",
-            end: "+=300%",
-            pin: true,
-            scrub: 1,
-          }
-        });
-
-        tl.to(videoState, {
+        // GSAP Scrubbing Animation
+        // Note: No 'pin: true' because we use CSS position: sticky
+        gsap.to(videoState, {
           frame: totalFrames,
-          duration: duration,
           ease: "none",
+          scrollTrigger: {
+            trigger: containerRef.current,
+            start: "top top",      // Start when container top hits viewport top
+            end: "bottom bottom",  // End when container bottom hits viewport bottom
+            scrub: 1,              // Smooth scrubbing
+          },
           onUpdate: () => {
             if (video && Number.isFinite(videoState.frame)) {
-                video.currentTime = videoState.frame / FPS;
+              video.currentTime = videoState.frame / FPS;
             }
           }
-        }, 0);
+        });
       };
 
       if (video.readyState >= 1) {
@@ -60,27 +67,53 @@ export function Section4_Demo({ title, description }: Section4Props) {
         video.onloadedmetadata = handleMetadata;
       }
 
-    }, sectionRef);
+    }, containerRef);
 
     return () => ctx.revert();
-  }, []);
+  }, [item.videoUrl]);
 
   return (
-    <section ref={sectionRef} className="relative py-32 bg-black border-b border-white/10 overflow-hidden">
+    // 1. Scroll Track (Height determines animation duration)
+    // h-[200vh] provides ample scroll space for the video to play out
+    // mb-40 creates the 'gap' between this video's finish and the next one's start
+    <div ref={containerRef} className="relative h-[200vh] w-full mb-40 last:mb-0">
 
-      {/* ✅ [수정 1] items-start -> items-center
-         Flex 컨테이너 내부 요소들을 수평 중앙으로 정렬합니다.
-      */}
-      <div className="container mx-auto px-6 md:px-12 h-full flex flex-col justify-center items-center">
+      {/* 2. Sticky Viewport: This stays fixed while user scrolls through the 300vh track */}
+      <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-hidden">
 
-        {/* ✅ [수정 2] text-left -> text-center
-           내부 텍스트들이 가운데로 정렬되도록 변경했습니다.
-        */}
-       <div className="w-full mb-12 text-center">
+        {/* Title stays with the video */}
+        <h3 className="text-2xl md:text-4xl font-bold text-white mb-8 text-center px-4 relative z-10">
+          {item.title}
+        </h3>
 
-          {/* ✅ [수정 3] justify-start -> justify-center
-             GradientText 컴포넌트가 화면 중앙에 위치하도록 Flex 정렬을 수정했습니다.
-          */}
+        {/* Video Player Container */}
+        <div className="relative w-[90%] md:w-[80%] max-w-6xl aspect-video bg-zinc-900 rounded-3xl border border-white/10 shadow-2xl overflow-hidden ring-1 ring-white/5 z-10">
+          <video
+            ref={videoRef}
+            src={item.videoUrl}
+            className="w-full h-full object-contain bg-black"
+            playsInline
+            muted
+            preload="auto"
+          />
+          {/* Subtle Overlay */}
+          <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
+export function Section4_Demo({ title, description, items = [] }: Section4Props) {
+  return (
+    // 'relative' allows standard flow. Removed 'overflow-hidden' from section to allow sticky to work.
+    <section className="relative pt-32 pb-32 bg-black border-b border-white/10">
+
+      <div className="container mx-auto px-6 md:px-12 flex flex-col items-center">
+
+        {/* Intro Text Block */}
+        <div className="w-full mb-24 text-center">
           <h2 className="text-4xl md:text-6xl font-bold mb-4 flex justify-center">
             <GradientText
               colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
@@ -91,33 +124,22 @@ export function Section4_Demo({ title, description }: Section4Props) {
             </GradientText>
           </h2>
 
-          {/* ✅ [수정 4] mx-auto 추가
-             max-w-3xl로 너비가 제한된 상태에서 박스 자체가 중앙에 오도록 margin auto를 줍니다.
-          */}
           <p className="text-gray-400 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed break-keep whitespace-pre-wrap">
             {description}
           </p>
         </div>
 
-        {/* --- 비디오 컨테이너 --- */}
-        <div
-          ref={containerRef}
-          className="relative w-full aspect-video bg-zinc-900 rounded-3xl border border-white/10 shadow-2xl overflow-hidden ring-1 ring-white/5"
-        >
-          <video
-            ref={videoRef}
-            src={VIDEO_SRC}
-            className="w-full h-full object-contain"
-            playsInline
-            muted
-            preload="auto"
-          />
-
-          <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
-
-          <div className="absolute bottom-6 right-6 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-xs md:text-sm text-cyan-400 font-mono">
-             ● AI-Accelerated PFM
-          </div>
+        {/* Video List Wrapper */}
+        <div className="w-full">
+          {items && items.length > 0 ? (
+            items.map((item, index) => (
+              <VideoBlock key={index} item={item} index={index} />
+            ))
+          ) : (
+            <div className="text-center text-gray-500 py-20 min-h-[50vh] flex items-center justify-center">
+              No demo videos available.
+            </div>
+          )}
         </div>
 
       </div>

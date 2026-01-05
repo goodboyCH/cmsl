@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import Draggable from 'react-draggable';
 import { X } from 'lucide-react';
-import 'react-quill/dist/quill.snow.css';
 
 const POPUP_LOCAL_STORAGE_PREFIX = 'cmsl-popup-seen-';
 
@@ -27,6 +26,7 @@ const getTodayDateString = () => {
 export function SinglePopupDialog({ popup }: SinglePopupDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const localStorageKey = `${POPUP_LOCAL_STORAGE_PREFIX}${popup.id}`;
+  const nodeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // --- ⬇️ '오늘 하루 보지 않기' 로직 수정 ⬇️ ---
@@ -65,10 +65,10 @@ export function SinglePopupDialog({ popup }: SinglePopupDialogProps) {
     return null;
   }
 
-  // Draggable 팝업 UI (변경 없음)
+  // Draggable 팝업 UI
   return (
-    <Draggable handle=".drag-handle">
-      <div className="fixed top-4 left-4 z-50 w-auto max-w-[90vw] sm:max-w-xl bg-background border rounded-lg shadow-lg">
+    <Draggable handle=".drag-handle" nodeRef={nodeRef}>
+      <div ref={nodeRef} className="fixed top-4 left-4 z-50 w-auto max-w-[90vw] sm:max-w-xl bg-background border rounded-lg shadow-lg">
         
         <div className="drag-handle flex justify-between items-center p-4 cursor-move bg-primary text-primary-foreground rounded-t-lg">
           <h3 className="font-semibold text-xl text-primary-foreground">{popup.title}</h3>
@@ -77,13 +77,10 @@ export function SinglePopupDialog({ popup }: SinglePopupDialogProps) {
           </Button>
         </div>
 
-        <div 
-          className="p-4 ql-snow"
-        >
-          <div 
-            className="ql-editor overflow-x-hidden"
-            style={{ padding: 0 }} 
-            dangerouslySetInnerHTML={{ __html: popup.content }} 
+        <div className="p-4">
+          <div
+            className="prose prose-sm dark:prose-invert max-w-none overflow-x-hidden"
+            dangerouslySetInnerHTML={{ __html: popup.content }}
           />
         </div>
         
