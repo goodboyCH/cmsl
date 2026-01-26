@@ -62,41 +62,58 @@ export function EditGalleryPage({ id }: EditGalleryPageProps) {
   };
 
   const handleImageUpload = useCallback(async (editor: any) => {
-    if (!editor) {
-      console.error("Editor instance not found");
-      return;
-    }
+    if (!editor) return;
 
+    // 1. input 태그 생성
     const input = document.createElement('input');
     input.setAttribute('type', 'file');
     input.setAttribute('accept', 'image/*');
-    input.click();
+
+    // [핵심 수정] input을 body에 강제로 붙여야 브라우저가 이벤트를 정상 처리합니다.
+    input.style.position = 'fixed';
+    input.style.left = '-9999px';
+    document.body.appendChild(input);
 
     input.onchange = async () => {
       if (input.files && input.files.length > 0) {
         const file = input.files[0];
         try {
           setMessage('이미지 업로드 중...');
+
           const storageFileName = sanitizeForStorage(file.name);
           const filePath = `public/images/${Date.now()}_${storageFileName}`;
+
           const { error: uploadError } = await supabase.storage.from('notice-attachments').upload(filePath, file);
-          if (uploadError) {
-            setMessage(`이미지 업로드 오류: ${uploadError.message}`);
-            return;
-          }
+          if (uploadError) throw uploadError;
+
           const { data: urlData } = supabase.storage.from('notice-attachments').getPublicUrl(filePath);
 
-          // focus()를 먼저 호출하여 해당 에디터가 활성화되도록 함
+          // 2. 에디터 포커스 및 이미지 삽입
+          // focus()를 먼저 호출해 '작업 중' 상태로 만듭니다.
           editor.chain().focus().setImage({ src: urlData.publicUrl }).run();
-          // State update race condition prevention: defer message to allow editor onChange to propagate
+
+          // 메시지 업데이트 (리렌더링 유발)
           setTimeout(() => setMessage('이미지 업로드 완료.'), 100);
+
         } catch (error: any) {
-          setMessage(`업로드 중 예외 발생: ${error.message}`);
+          console.error(error);
+          setMessage(`업로드 실패: ${error.message}`);
         } finally {
-          input.value = ''; // Reset input
+          // [중요] 사용이 끝난 태그 제거
+          if (document.body.contains(input)) {
+            document.body.removeChild(input);
+          }
+        }
+      } else {
+        // 파일 선택 취소 시에도 제거
+        if (document.body.contains(input)) {
+          document.body.removeChild(input);
         }
       }
     };
+
+    // 3. 파일 탐색기 열기
+    input.click();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
