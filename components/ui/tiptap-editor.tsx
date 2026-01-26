@@ -200,9 +200,14 @@ export function TiptapEditor({ value, onChange, onImageUpload }: TiptapEditorPro
     // 1. 내용이 완전히 같다면 무시
     if (currentContent === value) return;
 
-    // 2. [안전 장치] 만약 에디터에는 이미지가 있는데(<img), 부모 값(value)에는 없다면?
-    // 이는 "방금 이미지를 넣었는데 부모가 옛날 텍스트로 덮어쓰려는 상황"이므로 무시합니다.
-    if (currentContent.includes('<img') && !value.includes('<img')) {
+    // 2. 이미지 안전 장치 강화
+    // 단순히 <img가 포함되어 있는지만 보는 것이 아니라, 
+    // "에디터가 가진 이미지 개수"가 "부모(value)가 가진 이미지 개수"보다 많다면
+    // 방금 업로드 중이거나 변경된 상태이므로 부모 값으로 덮어쓰지 않고 무시합니다.
+    const currentImageCount = (currentContent.match(/<img/g) || []).length;
+    const valueImageCount = (value.match(/<img/g) || []).length;
+
+    if (currentImageCount > valueImageCount) {
       return;
     }
 
