@@ -86,6 +86,7 @@ export function EditGalleryPage({ id }: EditGalleryPageProps) {
           }
           const { data: urlData } = supabase.storage.from('notice-attachments').getPublicUrl(filePath);
 
+          // focus()를 먼저 호출하여 해당 에디터가 활성화되도록 함
           editor.chain().focus().setImage({ src: urlData.publicUrl }).run();
           setMessage('이미지 업로드 완료.');
         } catch (error: any) {
