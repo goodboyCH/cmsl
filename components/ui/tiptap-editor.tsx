@@ -169,7 +169,8 @@ interface TiptapEditorProps {
   onImageUpload?: (editor: any) => void;
 }
 
-export function TiptapEditor({ value, onChange, onImageUpload }: TiptapEditorProps) {
+// TiptapEditor component definition
+function TiptapEditorComponent({ value, onChange, onImageUpload }: TiptapEditorProps) {
   const extensions = React.useMemo(() => [
     StarterKit,
     Underline,
@@ -230,3 +231,5 @@ export function TiptapEditor({ value, onChange, onImageUpload }: TiptapEditorPro
     </div>
   );
 }
+
+export const TiptapEditor = React.memo(TiptapEditorComponent);
