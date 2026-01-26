@@ -170,14 +170,16 @@ interface TiptapEditorProps {
 }
 
 export function TiptapEditor({ value, onChange, onImageUpload }: TiptapEditorProps) {
+  const extensions = React.useMemo(() => [
+    StarterKit,
+    Underline,
+    Link.configure({ openOnClick: false }),
+    Image.configure({ inline: true }),
+    TextAlign.configure({ types: ['heading', 'paragraph'] }),
+  ], []);
+
   const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Underline,
-      Link.configure({ openOnClick: false }),
-      Image.configure({ inline: true }),
-      TextAlign.configure({ types: ['heading', 'paragraph'] }),
-    ],
+    extensions,
     content: value,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
