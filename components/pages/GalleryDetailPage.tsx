@@ -27,8 +27,19 @@ export function GalleryDetailPage({ session, id }: GalleryDetailPageProps) {
   const router = useRouter();
   const { language } = useLanguage();
 
+  const [currentUser, setCurrentUser] = useState<Session | null>(session);
   const [post, setPost] = useState<GalleryPostDetail | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!session) {
+      supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+        setCurrentUser(currentSession);
+      });
+    } else {
+      setCurrentUser(session);
+    }
+  }, [session]);
 
   // 3. 헬퍼 함수
   const getContent = (data: GalleryPostDetail | null, field: 'title' | 'content') => {
@@ -40,7 +51,7 @@ export function GalleryDetailPage({ session, id }: GalleryDetailPageProps) {
       text = data[field];
     }
     // Replace &nbsp; and &amp;nbsp; with space
-    return text.replace(/&nbsp;/g, ' ').replace(/&amp;nbsp;/g, ' ');
+    return text.replace(/(&nbsp;|&#160;|&#xA0;|\u00A0|&amp;nbsp;)/gi, ' ');
   };
 
   useEffect(() => {
@@ -77,7 +88,7 @@ export function GalleryDetailPage({ session, id }: GalleryDetailPageProps) {
                 <span>등록일: {new Date(post.created_at).toLocaleDateString()}</span>
               </div>
             </div>
-            {session && (
+            {currentUser && (
               <div className="flex-shrink-0 w-full sm:w-auto flex items-center gap-2">
                 <Button variant="outline" onClick={() => router.push(`/board/gallery/${post.id}/edit`)} className="flex-1 sm:flex-none">수정</Button>
                 <Button variant="destructive" onClick={() => handleDelete(post.id)} className="flex-1 sm:flex-none">삭제</Button>
