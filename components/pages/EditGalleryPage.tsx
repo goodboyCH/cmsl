@@ -37,6 +37,10 @@ export function EditGalleryPage({ id }: EditGalleryPageProps) {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
 
+  // [Ref Setup] Static input ref and active editor tracker
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const activeEditorRef = React.useRef<any>(null);
+
   useEffect(() => {
     const fetchPost = async () => {
       if (!postId) return;
@@ -61,60 +65,46 @@ export function EditGalleryPage({ id }: EditGalleryPageProps) {
     if (e.target.files && e.target.files.length > 0) setNewThumbnail(e.target.files[0]);
   };
 
-  const handleImageUpload = useCallback(async (editor: any) => {
+  // [Trigger] Called by TiptapEditor button
+  const triggerImageUpload = useCallback((editor: any) => {
+    if (!editor) return;
+    activeEditorRef.current = editor;
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+      fileInputRef.current.click();
+    }
+  }, []);
+
+  // [Handler] Actual upload logic on hidden input change
+  const onHiddenFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    const editor = activeEditorRef.current;
     if (!editor) return;
 
-    // 1. input 태그 생성
-    const input = document.createElement('input');
-    input.setAttribute('type', 'file');
-    input.setAttribute('accept', 'image/*');
+    try {
+      setMessage('이미지 업로드 중...');
 
-    // [핵심 수정] input을 body에 강제로 붙여야 브라우저가 이벤트를 정상 처리합니다.
-    input.style.position = 'fixed';
-    input.style.left = '-9999px';
-    document.body.appendChild(input);
+      const storageFileName = sanitizeForStorage(file.name);
+      const filePath = `public/images/${Date.now()}_${storageFileName}`;
 
-    input.onchange = async () => {
-      if (input.files && input.files.length > 0) {
-        const file = input.files[0];
-        try {
-          setMessage('이미지 업로드 중...');
+      const { error: uploadError } = await supabase.storage.from('notice-attachments').upload(filePath, file);
+      if (uploadError) throw uploadError;
 
-          const storageFileName = sanitizeForStorage(file.name);
-          const filePath = `public/images/${Date.now()}_${storageFileName}`;
+      const { data: urlData } = supabase.storage.from('notice-attachments').getPublicUrl(filePath);
 
-          const { error: uploadError } = await supabase.storage.from('notice-attachments').upload(filePath, file);
-          if (uploadError) throw uploadError;
+      // Focus and Insert
+      editor.chain().focus().setImage({ src: urlData.publicUrl }).run();
 
-          const { data: urlData } = supabase.storage.from('notice-attachments').getPublicUrl(filePath);
+      setTimeout(() => setMessage('이미지 업로드 완료.'), 100);
 
-          // 2. 에디터 포커스 및 이미지 삽입
-          // focus()를 먼저 호출해 '작업 중' 상태로 만듭니다.
-          editor.chain().focus().setImage({ src: urlData.publicUrl }).run();
-
-          // 메시지 업데이트 (리렌더링 유발)
-          setTimeout(() => setMessage('이미지 업로드 완료.'), 100);
-
-        } catch (error: any) {
-          console.error(error);
-          setMessage(`업로드 실패: ${error.message}`);
-        } finally {
-          // [중요] 사용이 끝난 태그 제거
-          if (document.body.contains(input)) {
-            document.body.removeChild(input);
-          }
-        }
-      } else {
-        // 파일 선택 취소 시에도 제거
-        if (document.body.contains(input)) {
-          document.body.removeChild(input);
-        }
-      }
-    };
-
-    // 3. 파일 탐색기 열기
-    input.click();
-  }, []);
+    } catch (error: any) {
+      console.error(error);
+      setMessage(`업로드 실패: ${error.message}`);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,6 +160,14 @@ export function EditGalleryPage({ id }: EditGalleryPageProps) {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Static Hidden Input for Image Upload */}
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              onChange={onHiddenFileInputChange}
+              style={{ display: 'none' }}
+            />
             <div className="space-y-2">
               <Label htmlFor="author">작성자</Label>
               <Input id="author" value={author} onChange={(e) => setAuthor(e.target.value)} required />
@@ -188,7 +186,7 @@ export function EditGalleryPage({ id }: EditGalleryPageProps) {
                 </div>
                 <div className="space-y-2">
                   <Label>Content (EN)</Label>
-                  <TiptapEditor key="en" value={content} onChange={setContent} onImageUpload={handleImageUpload} />
+                  <TiptapEditor key="en" value={content} onChange={setContent} onImageUpload={triggerImageUpload} />
                 </div>
               </TabsContent>
 
@@ -199,7 +197,7 @@ export function EditGalleryPage({ id }: EditGalleryPageProps) {
                 </div>
                 <div className="space-y-2">
                   <Label>내용 (KO)</Label>
-                  <TiptapEditor key="ko" value={contentKo} onChange={setContentKo} onImageUpload={handleImageUpload} />
+                  <TiptapEditor key="ko" value={contentKo} onChange={setContentKo} onImageUpload={triggerImageUpload} />
                 </div>
               </TabsContent>
             </Tabs>
