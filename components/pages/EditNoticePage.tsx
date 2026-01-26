@@ -176,7 +176,7 @@ export function EditNoticePage({ id }: EditNoticePageProps) {
                 </div>
                 <div className="space-y-2">
                   <Label>Content (EN)</Label>
-                  <TiptapEditor value={content} onChange={setContent} onImageUpload={handleImageUpload} />
+                  <TiptapEditor key="en" value={content} onChange={setContent} onImageUpload={handleImageUpload} />
                 </div>
               </TabsContent>
 
@@ -187,7 +187,7 @@ export function EditNoticePage({ id }: EditNoticePageProps) {
                 </div>
                 <div className="space-y-2">
                   <Label>내용 (KO)</Label>
-                  <TiptapEditor value={contentKo} onChange={setContentKo} onImageUpload={handleImageUpload} />
+                  <TiptapEditor key="ko" value={contentKo} onChange={setContentKo} onImageUpload={handleImageUpload} />
                 </div>
               </TabsContent>
             </Tabs>
