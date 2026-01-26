@@ -191,7 +191,10 @@ export function TiptapEditor({ value, onChange, onImageUpload }: TiptapEditorPro
 
   // Sync value prop with editor content
   React.useEffect(() => {
-    if (editor && value !== editor.getHTML()) {
+    if (!editor) return;
+
+    const isSame = editor.getHTML() === value;
+    if (!isSame && !editor.isFocused) {
       editor.commands.setContent(value);
     }
   }, [value, editor]);
