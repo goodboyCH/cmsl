@@ -1,4 +1,5 @@
 import { GalleryDetailPage } from '@/components/pages/GalleryDetailPage';
+import { createClient } from '@/utils/supabase/server';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -6,5 +7,8 @@ interface PageProps {
 
 export default async function GalleryDetail({ params }: PageProps) {
   const { id } = await params;
-  return <GalleryDetailPage id={id} session={null} />;
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+
+  return <GalleryDetailPage id={id} session={session} />;
 }

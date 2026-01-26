@@ -27,17 +27,21 @@ interface NoticeDetailPageProps {
 export function NoticeDetailPage({ session, id }: NoticeDetailPageProps) {
   const router = useRouter();
   const { language } = useLanguage();
-  
+
   const [notice, setNotice] = useState<NoticeDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
   // 3. 언어 선택 헬퍼
   const getContent = (data: NoticeDetail | null, field: 'title' | 'content') => {
     if (!data) return '';
+    let text = '';
     if (language === 'ko' && data[`${field}_ko`]) {
-      return data[`${field}_ko`];
+      text = data[`${field}_ko`]!;
+    } else {
+      text = data[field];
     }
-    return data[field];
+    // Replace &nbsp; and &amp;nbsp; with space
+    return text.replace(/&nbsp;/g, ' ').replace(/&amp;nbsp;/g, ' ');
   };
 
   useEffect(() => {
@@ -90,7 +94,7 @@ export function NoticeDetailPage({ session, id }: NoticeDetailPageProps) {
 
           {notice.attachments && notice.attachments.length > 0 && (
             <div className="border-t pt-6">
-              <h4 className="font-semibold text-primary mb-4 flex items-center gap-2"><Paperclip className="h-5 w-5"/> 첨부파일</h4>
+              <h4 className="font-semibold text-primary mb-4 flex items-center gap-2"><Paperclip className="h-5 w-5" /> 첨부파일</h4>
               <div className="space-y-2">
                 {notice.attachments.map((file, index) => (
                   <a key={index} href={file.url} target="_blank" rel="noopener noreferrer" className="flex items-center p-2 rounded-md hover:bg-muted/50 break-all">

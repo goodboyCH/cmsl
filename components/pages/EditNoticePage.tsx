@@ -79,17 +79,26 @@ export function EditNoticePage({ id }: EditNoticePageProps) {
     input.onchange = async () => {
       if (input.files && input.files.length > 0) {
         const file = input.files[0];
-        setMessage('이미지 업로드 중...');
-        const storageFileName = sanitizeForStorage(file.name);
-        const filePath = `public/images/${Date.now()}_${storageFileName}`;
-        const { error: uploadError } = await supabase.storage.from('notice-attachments').upload(filePath, file);
-        if (uploadError) {
-          setMessage(`이미지 업로드 오류: ${uploadError.message}`);
-          return;
+        try {
+          setMessage('이미지 업로드 중...');
+          const storageFileName = sanitizeForStorage(file.name);
+          const filePath = `public/images/${Date.now()}_${storageFileName}`;
+          const { error: uploadError } = await supabase.storage.from('notice-attachments').upload(filePath, file);
+          if (uploadError) {
+            setMessage(`이미지 업로드 오류: ${uploadError.message}`);
+            return;
+          }
+          const { data: urlData } = supabase.storage.from('notice-attachments').getPublicUrl(filePath);
+
+          if (editor) {
+            editor.chain().focus().setImage({ src: urlData.publicUrl }).run();
+          }
+          setMessage('이미지 업로드 완료.');
+        } catch (error: any) {
+          setMessage(`업로드 중 예외 발생: ${error.message}`);
+        } finally {
+          input.value = ''; // Reset input
         }
-        const { data: urlData } = supabase.storage.from('notice-attachments').getPublicUrl(filePath);
-        editor.chain().focus().setImage({ src: urlData.publicUrl }).run();
-        setMessage('이미지 업로드 완료.');
       }
     };
   }, []);
@@ -99,6 +108,11 @@ export function EditNoticePage({ id }: EditNoticePageProps) {
     setLoading(true);
     setMessage('');
     try {
+      // Sanitize content before saving
+      const sanitizeContent = (html: string) => html.replace(/&nbsp;/g, ' ').replace(/&amp;nbsp;/g, ' ');
+      const cleanContent = sanitizeContent(content);
+      const cleanContentKo = sanitizeContent(contentKo);
+
       const attachmentsToDelete = initialAttachments.filter(initial => !existingAttachments.some(existing => existing.url === initial.url));
       if (attachmentsToDelete.length > 0) {
         const filePaths = attachmentsToDelete.map(file => new URL(file.url).pathname.substring(new URL(file.url).pathname.indexOf('public/')));
@@ -118,7 +132,7 @@ export function EditNoticePage({ id }: EditNoticePageProps) {
         .from('notices')
         .update({
           title, title_ko: titleKo,
-          content, content_ko: contentKo,
+          content: cleanContent, content_ko: cleanContentKo,
           author, attachments: finalAttachments
         })
         .eq('id', noticeId);

@@ -26,17 +26,21 @@ interface GalleryDetailPageProps {
 export function GalleryDetailPage({ session, id }: GalleryDetailPageProps) {
   const router = useRouter();
   const { language } = useLanguage();
-  
+
   const [post, setPost] = useState<GalleryPostDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
   // 3. 헬퍼 함수
   const getContent = (data: GalleryPostDetail | null, field: 'title' | 'content') => {
     if (!data) return '';
+    let text = '';
     if (language === 'ko' && data[`${field}_ko`]) {
-      return data[`${field}_ko`];
+      text = data[`${field}_ko`]!;
+    } else {
+      text = data[field];
     }
-    return data[field];
+    // Replace &nbsp; and &amp;nbsp; with space
+    return text.replace(/&nbsp;/g, ' ').replace(/&amp;nbsp;/g, ' ');
   };
 
   useEffect(() => {

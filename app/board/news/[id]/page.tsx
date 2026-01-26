@@ -1,4 +1,5 @@
 import { NoticeDetailPage } from '@/components/pages/NoticeDetailPage';
+import { createClient } from '@/utils/supabase/server';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -6,5 +7,8 @@ interface PageProps {
 
 export default async function NoticeDetail({ params }: PageProps) {
   const { id } = await params;
-  return <NoticeDetailPage id={id} session={null} />;
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+
+  return <NoticeDetailPage id={id} session={session} />;
 }
