@@ -71,6 +71,11 @@ export function EditNoticePage({ id }: EditNoticePageProps) {
   };
 
   const handleImageUpload = useCallback(async (editor: any) => {
+    if (!editor) {
+      console.error("Editor instance not found");
+      return;
+    }
+
     const input = document.createElement('input');
     input.setAttribute('type', 'file');
     input.setAttribute('accept', 'image/*');
@@ -90,9 +95,7 @@ export function EditNoticePage({ id }: EditNoticePageProps) {
           }
           const { data: urlData } = supabase.storage.from('notice-attachments').getPublicUrl(filePath);
 
-          if (editor) {
-            editor.chain().focus().setImage({ src: urlData.publicUrl }).run();
-          }
+          editor.chain().focus().setImage({ src: urlData.publicUrl }).run();
           setMessage('이미지 업로드 완료.');
         } catch (error: any) {
           setMessage(`업로드 중 예외 발생: ${error.message}`);
