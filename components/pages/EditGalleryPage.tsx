@@ -70,17 +70,26 @@ export function EditGalleryPage({ id }: EditGalleryPageProps) {
     input.onchange = async () => {
       if (input.files && input.files.length > 0) {
         const file = input.files[0];
-        setMessage('이미지 업로드 중...');
-        const storageFileName = sanitizeForStorage(file.name);
-        const filePath = `public/images/${Date.now()}_${storageFileName}`;
-        const { error: uploadError } = await supabase.storage.from('notice-attachments').upload(filePath, file);
-        if (uploadError) {
-          setMessage(`이미지 업로드 오류: ${uploadError.message}`);
-          return;
+        try {
+          setMessage('이미지 업로드 중...');
+          const storageFileName = sanitizeForStorage(file.name);
+          const filePath = `public/images/${Date.now()}_${storageFileName}`;
+          const { error: uploadError } = await supabase.storage.from('notice-attachments').upload(filePath, file);
+          if (uploadError) {
+            setMessage(`이미지 업로드 오류: ${uploadError.message}`);
+            return;
+          }
+          const { data: urlData } = supabase.storage.from('notice-attachments').getPublicUrl(filePath);
+
+          if (editor) {
+            editor.chain().focus().setImage({ src: urlData.publicUrl }).run();
+          }
+          setMessage('이미지 업로드 완료.');
+        } catch (error: any) {
+          setMessage(`업로드 중 예외 발생: ${error.message}`);
+        } finally {
+          input.value = ''; // Reset input
         }
-        const { data: urlData } = supabase.storage.from('notice-attachments').getPublicUrl(filePath);
-        editor.chain().focus().setImage({ src: urlData.publicUrl }).run();
-        setMessage('이미지 업로드 완료.');
       }
     };
   }, []);
@@ -90,6 +99,11 @@ export function EditGalleryPage({ id }: EditGalleryPageProps) {
     setLoading(true);
     setMessage('');
     try {
+      // Sanitize content before saving
+      const sanitizeContent = (html: string) => html.replace(/&nbsp;/g, ' ').replace(/&amp;nbsp;/g, ' ');
+      const cleanContent = sanitizeContent(content);
+      const cleanContentKo = sanitizeContent(contentKo);
+
       let finalThumbnailUrl = existingThumbUrl;
       if (newThumbnail) {
         if (existingThumbUrl) {
@@ -108,7 +122,7 @@ export function EditGalleryPage({ id }: EditGalleryPageProps) {
         .from('gallery')
         .update({
           title, title_ko: titleKo,
-          content, content_ko: contentKo,
+          content: cleanContent, content_ko: cleanContentKo,
           author, thumbnail_url: finalThumbnailUrl
         })
         .eq('id', postId);
