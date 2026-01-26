@@ -100,7 +100,7 @@ export function EditGalleryPage({ id }: EditGalleryPageProps) {
     setMessage('');
     try {
       // Sanitize content before saving
-      const sanitizeContent = (html: string) => html.replace(/&nbsp;/g, ' ').replace(/&amp;nbsp;/g, ' ');
+      const sanitizeContent = (html: string) => html.replace(/(&nbsp;|&#160;|&#xA0;|\u00A0|&amp;nbsp;)/gi, ' ');
       const cleanContent = sanitizeContent(content);
       const cleanContentKo = sanitizeContent(contentKo);
 

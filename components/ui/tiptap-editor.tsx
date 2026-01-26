@@ -189,6 +189,13 @@ export function TiptapEditor({ value, onChange, onImageUpload }: TiptapEditorPro
     },
   });
 
+  // Sync value prop with editor content
+  React.useEffect(() => {
+    if (editor && value !== editor.getHTML()) {
+      editor.commands.setContent(value);
+    }
+  }, [value, editor]);
+
   const handleImageUpload = useCallback(() => {
     if (editor && onImageUpload) {
       onImageUpload(editor);
