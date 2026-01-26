@@ -193,9 +193,13 @@ export function TiptapEditor({ value, onChange, onImageUpload }: TiptapEditorPro
   React.useEffect(() => {
     if (!editor) return;
 
-    const isSame = editor.getHTML() === value;
-    if (!isSame && !editor.isFocused) {
-      editor.commands.setContent(value);
+    // 현재 에디터 내용과 부모의 value가 다를 때만 동기화 시도
+    if (editor.getHTML() !== value) {
+      // ★ 중요: 에디터가 '포커스' 상태라면(사용자가 작업 중이거나 방금 이미지를 넣음), 
+      // 부모의 옛날 값으로 덮어쓰지 않도록 막습니다.
+      if (!editor.isFocused) {
+        editor.commands.setContent(value);
+      }
     }
   }, [value, editor]);
 
