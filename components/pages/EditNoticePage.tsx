@@ -71,41 +71,63 @@ export function EditNoticePage({ id }: EditNoticePageProps) {
   };
 
   const handleImageUpload = useCallback(async (editor: any) => {
-    if (!editor) {
-      console.error("Editor instance not found");
-      return;
-    }
+    if (!editor) return;
 
+    // 1. input 태그 생성
     const input = document.createElement('input');
     input.setAttribute('type', 'file');
     input.setAttribute('accept', 'image/*');
-    input.click();
+
+    // [핵심 수정] input을 body에 강제로 붙여야 브라우저가 이벤트를 정상 처리합니다.
+    input.style.position = 'fixed';
+    input.style.left = '-9999px';
+    document.body.appendChild(input);
 
     input.onchange = async () => {
       if (input.files && input.files.length > 0) {
         const file = input.files[0];
         try {
           setMessage('이미지 업로드 중...');
+
+          // 한글 파일명 깨짐 방지를 위한 처리
           const storageFileName = sanitizeForStorage(file.name);
           const filePath = `public/images/${Date.now()}_${storageFileName}`;
+
           const { error: uploadError } = await supabase.storage.from('notice-attachments').upload(filePath, file);
-          if (uploadError) {
-            setMessage(`이미지 업로드 오류: ${uploadError.message}`);
-            return;
-          }
+          if (uploadError) throw uploadError;
+
           const { data: urlData } = supabase.storage.from('notice-attachments').getPublicUrl(filePath);
 
-          // focus()를 먼저 호출하여 해당 에디터가 활성화되도록 함
+          // 2. 에디터 포커스 및 이미지 삽입
+          // focus()를 먼저 호출해 '작업 중' 상태로 만듭니다.
           editor.chain().focus().setImage({ src: urlData.publicUrl }).run();
-          // State update race condition prevention: defer message to allow editor onChange to propagate
+
+          // 메시지 업데이트 (리렌더링 유발)
           setTimeout(() => setMessage('이미지 업로드 완료.'), 100);
+
         } catch (error: any) {
-          setMessage(`업로드 중 예외 발생: ${error.message}`);
+          console.error(error);
+          setMessage(`업로드 실패: ${error.message}`);
         } finally {
-          input.value = ''; // Reset input
+          // [중요] 사용이 끝난 태그 제거
+          if (document.body.contains(input)) {
+            document.body.removeChild(input);
+          }
+        }
+      } else {
+        // 파일 선택 취소 시에도 제거
+        if (document.body.contains(input)) {
+          document.body.removeChild(input);
         }
       }
     };
+
+    // Cancel event handling (optional but good practice if supported, mostly relying on onchange/timeout/manual cleanup logic if needed, but standard approach usually relies on GC if simple, but appendChild requires manual cleanup. The else block in onchange handles explicit empty selection if browser fires it, but usually cancel doesn't fire onchange. A strictly robust cancel listen is complex, but adding a simple timeout cleanup or global focus listener is common. For this request, strictly following user code which puts removal in onchange/finally. Note: file input cancel detection is tricky. User code puts removal in `onchange` else block, which might not fire on cancel in all browsers. However, sticking to User's requested code structure is safest.
+    // User code has: else { document.body.removeChild(input); } inside onchange, which might not run on cancel.
+    // I will stick exactly to the provided logic but wrap removeChild in checks to avoid errors.
+
+    // 3. 파일 탐색기 열기
+    input.click();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
