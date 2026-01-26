@@ -88,7 +88,8 @@ export function EditGalleryPage({ id }: EditGalleryPageProps) {
 
           // focus()를 먼저 호출하여 해당 에디터가 활성화되도록 함
           editor.chain().focus().setImage({ src: urlData.publicUrl }).run();
-          setMessage('이미지 업로드 완료.');
+          // State update race condition prevention: defer message to allow editor onChange to propagate
+          setTimeout(() => setMessage('이미지 업로드 완료.'), 100);
         } catch (error: any) {
           setMessage(`업로드 중 예외 발생: ${error.message}`);
         } finally {
