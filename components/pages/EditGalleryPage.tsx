@@ -85,11 +85,47 @@ export function EditGalleryPage({ id }: EditGalleryPageProps) {
     };
   }, []);
 
+  // [Handler] Actual upload logic on hidden input change
+  const onHiddenFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    const editor = activeEditorRef.current;
+    if (!editor) return;
+
+    try {
+      setMessage('이미지 업로드 중...');
+
+      const storageFileName = sanitizeForStorage(file.name);
+      const filePath = `public/images/${Date.now()}_${storageFileName}`;
+
+      const { error: uploadError } = await supabase.storage.from('notice-attachments').upload(filePath, file);
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from('notice-attachments').getPublicUrl(filePath);
+
+      // Focus and Insert
+      editor.chain().focus().setImage({ src: urlData.publicUrl }).run();
+
+      setTimeout(() => setMessage('이미지 업로드 완료.'), 100);
+
+    } catch (error: any) {
+      console.error(error);
+      setMessage(`업로드 실패: ${error.message}`);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage('');
     try {
+      // Sanitize content before saving
+      const sanitizeContent = (html: string) => html.replace(/(&nbsp;|&#160;|&#xA0;|\u00A0|&amp;nbsp;)/gi, ' ');
+      const cleanContent = sanitizeContent(content);
+      const cleanContentKo = sanitizeContent(contentKo);
+
       let finalThumbnailUrl = existingThumbUrl;
       if (newThumbnail) {
         if (existingThumbUrl) {

@@ -20,6 +20,7 @@ interface NoticeBoardPageProps {
 }
 
 export function NoticeBoardPage({ session }: NoticeBoardPageProps) {
+  const [currentUser, setCurrentUser] = useState<Session | null>(session);
   const [notices, setNotices] = useState<NoticeSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,6 +32,16 @@ export function NoticeBoardPage({ session }: NoticeBoardPageProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
   const router = useRouter();
+
+  useEffect(() => {
+    if (!session) {
+      supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+        setCurrentUser(currentSession);
+      });
+    } else {
+      setCurrentUser(session);
+    }
+  }, [session]);
 
   useEffect(() => {
     fetchNotices();
@@ -47,7 +58,7 @@ export function NoticeBoardPage({ session }: NoticeBoardPageProps) {
       let query = supabase
         .from('notices')
         .select('id, created_at, title, title_ko, author, is_pinned', { count: 'exact' });
-      
+
       // 공지글 쿼리에도 title_ko 추가
       let pinnedQuery = supabase
         .from('notices')
@@ -60,7 +71,7 @@ export function NoticeBoardPage({ session }: NoticeBoardPageProps) {
         // pinnedQuery는 갯수만 세는 용도라면 필터링 제외해도 되지만, 정확성을 위해 포함
         pinnedQuery = pinnedQuery.or(`title.ilike.%${searchQuery}%,title_ko.ilike.%${searchQuery}%`);
       }
-      
+
       const [noticeResult, pinnedResult] = await Promise.all([
         query.order('is_pinned', { ascending: false }).order('created_at', { ascending: false }).range(from, to),
         pinnedQuery
@@ -68,7 +79,7 @@ export function NoticeBoardPage({ session }: NoticeBoardPageProps) {
 
       if (noticeResult.error) throw noticeResult.error;
       if (pinnedResult.error) throw pinnedResult.error;
-      
+
       setNotices(noticeResult.data || []);
       setTotalPosts(noticeResult.count || 0);
       setTotalPinned(pinnedResult.count || 0);
@@ -83,7 +94,7 @@ export function NoticeBoardPage({ session }: NoticeBoardPageProps) {
     setCurrentPage(1);
     setSearchQuery(searchTerm);
   };
-  
+
   const handleTogglePin = async (id: number, currentStatus: boolean) => {
     await supabase.from('notices').update({ is_pinned: !currentStatus }).eq('id', id);
     fetchNotices();
@@ -97,11 +108,11 @@ export function NoticeBoardPage({ session }: NoticeBoardPageProps) {
   };
 
   return (
-    <NewsPage 
+    <NewsPage
       notices={notices}
       loading={loading}
       error={error}
-      session={session}
+      session={currentUser}
       currentPage={currentPage}
       totalPosts={totalPosts}
       totalPinned={totalPinned}

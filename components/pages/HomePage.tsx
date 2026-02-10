@@ -72,7 +72,10 @@ export function HomePage() {
 
   const stripHtmlAndTruncate = (html: string, length: number) => {
     if (!html) return '';
-    return html.replace(/<[^>]*>?/gm, '').substring(0, length);
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    const text = tempDiv.textContent || tempDiv.innerText || '';
+    return text.substring(0, length);
   };
 
   if (loading || !pageContent) {

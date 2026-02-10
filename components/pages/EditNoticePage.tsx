@@ -99,6 +99,11 @@ export function EditNoticePage({ id }: EditNoticePageProps) {
     setLoading(true);
     setMessage('');
     try {
+      // Sanitize content before saving
+      const sanitizeContent = (html: string) => html.replace(/(&nbsp;|&#160;|&#xA0;|\u00A0|&amp;nbsp;)/gi, ' ');
+      const cleanContent = sanitizeContent(content);
+      const cleanContentKo = sanitizeContent(contentKo);
+
       const attachmentsToDelete = initialAttachments.filter(initial => !existingAttachments.some(existing => existing.url === initial.url));
       if (attachmentsToDelete.length > 0) {
         const filePaths = attachmentsToDelete.map(file => new URL(file.url).pathname.substring(new URL(file.url).pathname.indexOf('public/')));

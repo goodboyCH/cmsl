@@ -27,17 +27,32 @@ interface NoticeDetailPageProps {
 export function NoticeDetailPage({ session, id }: NoticeDetailPageProps) {
   const router = useRouter();
   const { language } = useLanguage();
-  
+
+  const [currentUser, setCurrentUser] = useState<Session | null>(session);
   const [notice, setNotice] = useState<NoticeDetail | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!session) {
+      supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+        setCurrentUser(currentSession);
+      });
+    } else {
+      setCurrentUser(session);
+    }
+  }, [session]);
 
   // 3. 언어 선택 헬퍼
   const getContent = (data: NoticeDetail | null, field: 'title' | 'content') => {
     if (!data) return '';
+    let text = '';
     if (language === 'ko' && data[`${field}_ko`]) {
-      return data[`${field}_ko`];
+      text = data[`${field}_ko`]!;
+    } else {
+      text = data[field];
     }
-    return data[field];
+    // Replace &nbsp; and &amp;nbsp; with space
+    return text.replace(/(&nbsp;|&#160;|&#xA0;|\u00A0|&amp;nbsp;)/gi, ' ');
   };
 
   useEffect(() => {
@@ -74,7 +89,7 @@ export function NoticeDetailPage({ session, id }: NoticeDetailPageProps) {
                 <span>등록일: {new Date(notice.created_at).toLocaleDateString()}</span>
               </div>
             </div>
-            {session && (
+            {currentUser && (
               <div className="flex-shrink-0 w-full sm:w-auto flex items-center gap-2">
                 <Button variant="outline" onClick={() => router.push(`/board/news/${notice.id}/edit`)} className="flex-1 sm:flex-none">수정</Button>
                 <Button variant="destructive" onClick={() => handleDelete(notice.id)} className="flex-1 sm:flex-none">삭제</Button>
@@ -90,7 +105,7 @@ export function NoticeDetailPage({ session, id }: NoticeDetailPageProps) {
 
           {notice.attachments && notice.attachments.length > 0 && (
             <div className="border-t pt-6">
-              <h4 className="font-semibold text-primary mb-4 flex items-center gap-2"><Paperclip className="h-5 w-5"/> 첨부파일</h4>
+              <h4 className="font-semibold text-primary mb-4 flex items-center gap-2"><Paperclip className="h-5 w-5" /> 첨부파일</h4>
               <div className="space-y-2">
                 {notice.attachments.map((file, index) => (
                   <a key={index} href={file.url} target="_blank" rel="noopener noreferrer" className="flex items-center p-2 rounded-md hover:bg-muted/50 break-all">
