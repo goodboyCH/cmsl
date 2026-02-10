@@ -49,6 +49,7 @@ export function Navigation({ currentPage }: NavigationProps) {
     },
     { key: 'contact', path: '/contact', label: 'Contact' },
     { key: 'simulation', path: '/simulation', label: 'PFM Calculation' },
+    { key: 'simulation2', path: '/simulation2', label: 'PFM AI Assistant' },
   ];
 
   const handleMouseEnter = (key: string) => {

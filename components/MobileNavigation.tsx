@@ -62,6 +62,7 @@ export function MobileNavigation({ currentPage }: { currentPage: string }) {
     },
     { key: 'contact', path: '/contact', label: 'Contact' },
     { key: 'pfm_calc', path: '/simulation', label: 'PFM Calculation' },
+    { key: 'simulation2', path: '/simulation2', label: 'PFM AI Assistant' },
   ];
 
   const handleItemClick = (path: string) => {
