@@ -85,21 +85,7 @@ export function EditGalleryPage({ id }: EditGalleryPageProps) {
     };
   }, []);
 
-  // [Handler] Actual upload logic on hidden input change
-  const onHiddenFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    const file = files[0];
-    const editor = activeEditorRef.current;
-    if (!editor) return;
-
-    try {
-      setMessage('이미지 업로드 중...');
-
-      const storageFileName = sanitizeForStorage(file.name);
-      const filePath = `public/images/${Date.now()}_${storageFileName}`;
-
+ 
       const { error: uploadError } = await supabase.storage.from('notice-attachments').upload(filePath, file);
       if (uploadError) throw uploadError;
 
