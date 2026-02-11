@@ -169,15 +169,18 @@ interface TiptapEditorProps {
   onImageUpload?: (editor: any) => void;
 }
 
-export function TiptapEditor({ value, onChange, onImageUpload }: TiptapEditorProps) {
+// TiptapEditor component definition
+function TiptapEditorComponent({ value, onChange, onImageUpload }: TiptapEditorProps) {
+  const extensions = React.useMemo(() => [
+    StarterKit,
+    Underline,
+    Link.configure({ openOnClick: false }),
+    Image.configure({ inline: true }),
+    TextAlign.configure({ types: ['heading', 'paragraph'] }),
+  ], []);
+
   const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Underline,
-      Link.configure({ openOnClick: false }),
-      Image.configure({ inline: true }),
-      TextAlign.configure({ types: ['heading', 'paragraph'] }),
-    ],
+    extensions,
     content: value,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
@@ -188,6 +191,32 @@ export function TiptapEditor({ value, onChange, onImageUpload }: TiptapEditorPro
       },
     },
   });
+
+  // Sync value prop with editor content
+  React.useEffect(() => {
+    if (!editor) return;
+
+    const currentContent = editor.getHTML();
+
+    // 1. 내용이 완전히 같다면 무시
+    if (currentContent === value) return;
+
+    // 2. 이미지 안전 장치 강화
+    // 단순히 <img가 포함되어 있는지만 보는 것이 아니라, 
+    // "에디터가 가진 이미지 개수"가 "부모(value)가 가진 이미지 개수"보다 많다면
+    // 방금 업로드 중이거나 변경된 상태이므로 부모 값으로 덮어쓰지 않고 무시합니다.
+    const currentImageCount = (currentContent.match(/<img/g) || []).length;
+    const valueImageCount = (value.match(/<img/g) || []).length;
+
+    if (currentImageCount > valueImageCount) {
+      return;
+    }
+
+    // 3. 그 외의 경우 (단순 텍스트 변경 등)이고, 사용자가 작업 중(focus)이 아닐 때만 동기화
+    if (!editor.isFocused) {
+      editor.commands.setContent(value);
+    }
+  }, [value, editor]);
 
   const handleImageUpload = useCallback(() => {
     if (editor && onImageUpload) {
@@ -202,3 +231,5 @@ export function TiptapEditor({ value, onChange, onImageUpload }: TiptapEditorPro
     </div>
   );
 }
+
+export const TiptapEditor = React.memo(TiptapEditorComponent);

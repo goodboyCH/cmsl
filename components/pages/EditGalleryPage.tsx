@@ -37,6 +37,10 @@ export function EditGalleryPage({ id }: EditGalleryPageProps) {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
 
+  // [Ref Setup] Static input ref and active editor tracker
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const activeEditorRef = React.useRef<any>(null);
+
   useEffect(() => {
     const fetchPost = async () => {
       if (!postId) return;
@@ -61,31 +65,31 @@ export function EditGalleryPage({ id }: EditGalleryPageProps) {
     if (e.target.files && e.target.files.length > 0) setNewThumbnail(e.target.files[0]);
   };
 
-  const handleImageUpload = useCallback(async (editor: any) => {
-    const input = document.createElement('input');
-    input.setAttribute('type', 'file');
-    input.setAttribute('accept', 'image/*');
-    input.click();
-
-    input.onchange = async () => {
-      if (input.files && input.files.length > 0) {
-        const file = input.files[0];
-        setMessage('이미지 업로드 중...');
-        const storageFileName = sanitizeForStorage(file.name);
-        const filePath = `public/images/${Date.now()}_${storageFileName}`;
-        const { error: uploadError } = await supabase.storage.from('notice-attachments').upload(filePath, file);
-        if (uploadError) {
-          setMessage(`이미지 업로드 오류: ${uploadError.message}`);
-          return;
-        }
-        const { data: urlData } = supabase.storage.from('notice-attachments').getPublicUrl(filePath);
-        editor.chain().focus().setImage({ src: urlData.publicUrl }).run();
-        setMessage('이미지 업로드 완료.');
-      }
-    };
+  // [Trigger] Called by TiptapEditor button
+  const triggerImageUpload = useCallback((editor: any) => {
+    if (!editor) return;
+    activeEditorRef.current = editor;
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+      fileInputRef.current.click();
+    }
   }, []);
 
- 
+  // [Handler] Actual upload logic on hidden input change
+  const onHiddenFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    const editor = activeEditorRef.current;
+    if (!editor) return;
+
+    try {
+      setMessage('이미지 업로드 중...');
+
+      const storageFileName = sanitizeForStorage(file.name);
+      const filePath = `public/images/${Date.now()}_${storageFileName}`;
+
       const { error: uploadError } = await supabase.storage.from('notice-attachments').upload(filePath, file);
       if (uploadError) throw uploadError;
 
@@ -130,7 +134,7 @@ export function EditGalleryPage({ id }: EditGalleryPageProps) {
         .from('gallery')
         .update({
           title, title_ko: titleKo,
-          content, content_ko: contentKo,
+          content: cleanContent, content_ko: cleanContentKo,
           author, thumbnail_url: finalThumbnailUrl
         })
         .eq('id', postId);
@@ -156,6 +160,14 @@ export function EditGalleryPage({ id }: EditGalleryPageProps) {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Static Hidden Input for Image Upload */}
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              onChange={onHiddenFileInputChange}
+              style={{ display: 'none' }}
+            />
             <div className="space-y-2">
               <Label htmlFor="author">작성자</Label>
               <Input id="author" value={author} onChange={(e) => setAuthor(e.target.value)} required />
@@ -174,7 +186,7 @@ export function EditGalleryPage({ id }: EditGalleryPageProps) {
                 </div>
                 <div className="space-y-2">
                   <Label>Content (EN)</Label>
-                  <TiptapEditor value={content} onChange={setContent} onImageUpload={handleImageUpload} />
+                  <TiptapEditor key="en" value={content} onChange={setContent} onImageUpload={triggerImageUpload} />
                 </div>
               </TabsContent>
 
@@ -185,7 +197,7 @@ export function EditGalleryPage({ id }: EditGalleryPageProps) {
                 </div>
                 <div className="space-y-2">
                   <Label>내용 (KO)</Label>
-                  <TiptapEditor value={contentKo} onChange={setContentKo} onImageUpload={handleImageUpload} />
+                  <TiptapEditor key="ko" value={contentKo} onChange={setContentKo} onImageUpload={triggerImageUpload} />
                 </div>
               </TabsContent>
             </Tabs>

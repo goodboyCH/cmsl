@@ -48,15 +48,7 @@ export function Navigation({ currentPage }: NavigationProps) {
       ]
     },
     { key: 'contact', path: '/contact', label: 'Contact' },
-    {
-      key: 'simulation',
-      label: 'PFM Tools',
-      subItems: [
-        { key: 'simulation', path: '/simulation', label: 'PFM Calculation' },
-        { key: 'simulation2', path: '/simulation2', label: 'PFM AI Chat' },
-        { key: 'pfm-simulation', path: '/pfm-simulation', label: 'PFM Simulation Suite' },
-      ]
-    },
+    { key: 'simulation', path: '/simulation', label: 'PFM Calculation' },
   ];
 
   const handleMouseEnter = (key: string) => {

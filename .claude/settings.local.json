@@ -1,21 +1,17 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run dev:*)",
+      "Bash(for file in *.tsx)",
+      "Bash(do if [ -f \"$file\" ])",
+      "Bash(then if ! grep -q \"^''use client''\" \"$file\")",
+      "Bash(! grep -q '^\"\"use client\"\"' \"$file\")",
+      "Bash(then echo \"''use client'';\")",
       "Bash(npm run build:*)",
-      "Bash(npm run lint:*)",
-      "Bash(npx tsc --noEmit:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(git status:*)",
-      "Bash(git diff:*)",
-      "Bash(git log:*)",
-      "Bash(git checkout:*)",
-      "Bash(git branch:*)",
-      "Bash(npx shadcn:*)",
-      "Bash(cat:*)",
-      "Bash(git rev-parse:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(cat:*)"
     ]
   }
 }
