@@ -154,7 +154,7 @@ export function IntroductionPage() {
 
   return (
     <SmoothScroll>
-      <main className="bg-black min-h-screen text-white selection:bg-cyan-500 selection:text-black">
+      <main className="bg-black min-h-screen text-white selection:bg-cyan-500 selection:text-black overflow-x-hidden">
 
         {/* Section 1: Mission */}
         <Section1_Intro
